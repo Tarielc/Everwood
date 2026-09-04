@@ -1,5 +1,6 @@
 import { AUTO, Game } from 'phaser';
 import BootScene from './game/scenes/BootScene';
+import PreloadScene from './game/scenes/PreloadScene';
 
 //  Game Configuration
 const config: Phaser.Types.Core.GameConfig = {
@@ -17,6 +18,7 @@ const config: Phaser.Types.Core.GameConfig = {
     },
     scene: [
         BootScene,
+        PreloadScene,
     ]
 };
 
