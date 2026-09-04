@@ -19,6 +19,12 @@ export default class PreloadScene extends Phaser.Scene {
 
         // load stuff...
         this.load.image("startBtn", "assets/ui/start-btn.png")
+
+        this.load.spritesheet("player", "assets/sprites/player.png", { frameWidth: 80, frameHeight: 64 })
+        this.load.image("left-btn", "assets/ui/left-btn.png")
+        this.load.image("right-btn", "assets/ui/right-btn.png")
+        this.load.image("jump-btn", "assets/ui/jump-btn.png")
+
     }
 
     create() {
@@ -34,7 +40,7 @@ export default class PreloadScene extends Phaser.Scene {
 
         // start main menu scene after a short delay
         this.time.delayedCall(300, () => {
-            this.scene.start("MainMenuScene")
+            this.scene.start("GameScene")
         })
     }
 
