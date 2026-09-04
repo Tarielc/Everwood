@@ -18,6 +18,7 @@ export default class PreloadScene extends Phaser.Scene {
         this.createLoadingGraph()
 
         // load stuff...
+        this.load.image("startBtn", "assets/ui/start-btn.png")
     }
 
     create() {
@@ -30,6 +31,11 @@ export default class PreloadScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setTint(0xA63446)
         .setDropShadow(1, 1, 0xFBFEF9, 1)
+
+        // start main menu scene after a short delay
+        this.time.delayedCall(300, () => {
+            this.scene.start("MainMenuScene")
+        })
     }
 
     createLoadingGraph() {
@@ -43,7 +49,7 @@ export default class PreloadScene extends Phaser.Scene {
 
         this.progressBar = this.add.graphics()
 
-        const percentText = this.add.text(width / 2, height / 2 - barHeight / 2 - 20, "0%", {
+        const percentText = this.add.text(width / 2, height / 2 + barHeight / 2 + 20, "0%", {
             fontSize: "18px",
         }).setOrigin(0.5)
 
