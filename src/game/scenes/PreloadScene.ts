@@ -21,9 +21,17 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image("startBtn", "assets/ui/start-btn.png")
 
         this.load.spritesheet("player", "assets/sprites/player.png", { frameWidth: 80, frameHeight: 64 })
+        this.load.spritesheet("fox", "assets/sprites/fox.png", { frameWidth: 32, frameHeight: 32 })
         this.load.image("left-btn", "assets/ui/left-btn.png")
         this.load.image("right-btn", "assets/ui/right-btn.png")
+        this.load.image("sprint-btn", "assets/ui/sprint-btn.png")
         this.load.image("jump-btn", "assets/ui/jump-btn.png")
+
+
+        this.load.image("hpBar", "assets/ui/HP-bar.png")
+        this.load.image("manaBar", "assets/ui/blue-bar.png")
+        this.load.image("healthBar", "assets/ui/red-bar.png")
+        this.load.image("staminaBar", "assets/ui/yellow-bar.png")
 
     }
 

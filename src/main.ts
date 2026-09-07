@@ -3,6 +3,7 @@ import BootScene from './game/scenes/BootScene';
 import PreloadScene from './game/scenes/PreloadScene';
 import MainMenuScene from './game/scenes/MainMenuScene';
 import GameScene from './game/scenes/GameScene';
+import HealthBar from './game/ui/HealthBar';
 
 //  Game Configuration
 const config: Phaser.Types.Core.GameConfig = {
@@ -27,7 +28,8 @@ const config: Phaser.Types.Core.GameConfig = {
         BootScene,
         PreloadScene,
         MainMenuScene,
-        GameScene
+        GameScene,
+        HealthBar
     ]
 };
 

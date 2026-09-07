@@ -7,6 +7,7 @@ import TouchSource from './TouchSource';
 export interface InputState {
     readonly moveLeft: boolean
     readonly moveRight: boolean
+    readonly sprintHeld: boolean
     readonly jumpHeld: boolean
     readonly jumpJustPressed: boolean
     readonly jumpJustReleased: boolean
@@ -21,6 +22,7 @@ export interface InputControllerOptions {
 export default class InputController implements InputState {
     moveLeft: boolean = false
     moveRight: boolean = false
+    sprintHeld: boolean = false
     jumpHeld: boolean = false
     jumpJustPressed: boolean = false
     jumpJustReleased: boolean = false
@@ -30,6 +32,7 @@ export default class InputController implements InputState {
     private frame: RawInput = {
         left: false,
         right: false,
+        sprint: false,
         jump: false
     }
 
@@ -58,6 +61,7 @@ export default class InputController implements InputState {
         const frame = this.frame
         frame.left = false
         frame.right = false
+        frame.sprint = false
         frame.jump = false
 
         for (const source of this.sources) {
@@ -69,6 +73,7 @@ export default class InputController implements InputState {
         // apply boolean values that represent whether buttons are held or not
         this.moveLeft = frame.left
         this.moveRight = frame.right
+        this.sprintHeld = frame.sprint
         this.jumpHeld = frame.jump
 
         // extra values to track "just pressed" values for jump

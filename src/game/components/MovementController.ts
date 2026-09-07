@@ -1,8 +1,9 @@
 import * as Phaser from 'phaser';
-import { InputState } from '../systems/InputController';
+import { InputState } from '../systems/inputs/InputController';
 
 export interface MovementConfig{
     speed: number,
+    sprintSpeed: number,
     acceleration: number,
     drag: number,
     jumpVelocity: number,
@@ -50,7 +51,7 @@ export class MovementController {
             this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - dt)
         }
     }
-
+    
     private applyGravity() {
         const body = this.sprite.body as Phaser.Physics.Arcade.Body
 
@@ -101,20 +102,21 @@ export class MovementController {
         const grounded = body.blocked.down || body.touching.down
         const acceleration = this.config.acceleration * (grounded ? 1 : 0.7) // weak air controll
 
-        // accelerate sprite and flip sprite image based on whether it's facing left or right
+        // accelerate sprite - mirroring it belongs to AnimationController.setFacing()
         if(input.moveLeft) {
             body.setAccelerationX(-acceleration)
-            this.sprite.setFlipX(false)
         } else if (input.moveRight) {
             body.setAccelerationX(acceleration)
-            this.sprite.setFlipX(true)
         } else {
             // set accelerations to 0 and apply drag to make deceleration feel natural
             body.setAccelerationX(0)
             body.velocity.x *= grounded? 0.85 : 0.95
         }
 
-        // lock max horizontal speed
-        body.velocity.x = Phaser.Math.Clamp(body.velocity.x, -this.config.speed, this.config.speed)
+        // lock max horizontal speed (based on whether sprint is held or not)
+        const maxSpeed = input.sprintHeld
+            ? this.config.sprintSpeed
+            : this.config.speed
+        body.velocity.x = Phaser.Math.Clamp(body.velocity.x, -maxSpeed, maxSpeed)
     }
 }

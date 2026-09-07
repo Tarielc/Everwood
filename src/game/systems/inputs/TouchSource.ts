@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { InputSource, RawInput } from './InputSource';
-import { TOUCH_CONTROLS, TouchControlsConfig, UI_SCALE_FACTOR } from '../utils/constants';
+import { TOUCH_CONTROLS, TouchControlsConfig, UI_SCALE_FACTOR } from '../../utils/constants';
 
 type Action = keyof RawInput
 
@@ -23,13 +23,16 @@ export default class TouchSource implements InputSource {
         // create control buttons
         const leftBtn = this.scene.add.image(margin + radius, height - margin - radius, "left-btn")
             .setScale(UI_SCALE_FACTOR)
-        const rightBtn = this.scene.add.image(margin + radius * 3 + gap, height - margin - radius, "right-btn")
+        const rightBtn = this.scene.add.image(margin + radius * 2 + gap, height - margin - radius, "right-btn")
             .setScale(UI_SCALE_FACTOR)
         const jumpBtn = this.scene.add.image(width - margin - radius, height - margin - radius, "jump-btn")
+            .setScale(UI_SCALE_FACTOR)
+        const sprintBtn = this.scene.add.image(width - margin - radius * 2 - gap, height - margin - radius, "sprint-btn")
             .setScale(UI_SCALE_FACTOR)
         
         this.addButton("left", leftBtn)
         this.addButton("right", rightBtn)
+        this.addButton("sprint", sprintBtn)
         this.addButton("jump", jumpBtn)
     }
 

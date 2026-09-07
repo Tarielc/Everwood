@@ -2,6 +2,7 @@
 export interface RawInput {
     left: boolean
     right: boolean
+    sprint: boolean
     jump: boolean
 }
 

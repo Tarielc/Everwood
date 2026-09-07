@@ -7,6 +7,7 @@ type KeyMap = {
     altLeft: Phaser.Input.Keyboard.Key
     right: Phaser.Input.Keyboard.Key
     altRight: Phaser.Input.Keyboard.Key
+    sprint: Phaser.Input.Keyboard.Key
     jump: Phaser.Input.Keyboard.Key
     altJump: Phaser.Input.Keyboard.Key
     altJump2: Phaser.Input.Keyboard.Key
@@ -29,6 +30,7 @@ export default class KeyboardSource implements InputSource {
             altLeft: keyboard.addKey(KeyCodes.A),
             right: keyboard.addKey(KeyCodes.RIGHT),
             altRight: keyboard.addKey(KeyCodes.D),
+            sprint: keyboard.addKey(KeyCodes.SHIFT),
             jump: keyboard.addKey(KeyCodes.SPACE),
             altJump: keyboard.addKey(KeyCodes.W),
             altJump2: keyboard.addKey(KeyCodes.UP),
@@ -46,6 +48,7 @@ export default class KeyboardSource implements InputSource {
         // only change values if left side is falsy
         out.left ||= k.left.isDown || k.altLeft.isDown
         out.right ||= k.right.isDown || k.altRight.isDown
+        out.sprint ||= k.sprint.isDown
         out.jump ||= k.jump.isDown || k.altJump.isDown || k.altJump2.isDown
     }
 
