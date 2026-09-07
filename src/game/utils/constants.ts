@@ -64,6 +64,7 @@ export interface TouchControlsConfig {
     gap: number,
     maxTouches: number,
     pressedAlpha: number,
+    depth: number, // above everything in the world, the controls are never occluded
 }
 
 export const TOUCH_CONTROLS:TouchControlsConfig = {
@@ -73,6 +74,7 @@ export const TOUCH_CONTROLS:TouchControlsConfig = {
     gap: 10,
     maxTouches: 3,
     pressedAlpha: 0.55,
+    depth: 2000,
 }
 
 export interface AnimConfig {

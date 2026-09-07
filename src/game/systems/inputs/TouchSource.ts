@@ -14,7 +14,7 @@ export default class TouchSource implements InputSource {
     // for touch device we use array of on-screen buttons
     private buttons: TouchButton[] = []
 
-    constructor(private scene: Phaser.Scene, config: TouchControlsConfig = TOUCH_CONTROLS) {
+    constructor(private scene: Phaser.Scene, private config: TouchControlsConfig = TOUCH_CONTROLS) {
         scene.input.addPointer(config.maxTouches - 1)
 
         const { width, height } = scene.scale.gameSize
@@ -48,22 +48,38 @@ export default class TouchSource implements InputSource {
         }
         this.buttons.push(entry)
 
-        btn.setInteractive({ useHandCursor: false})
+        // the art is 8x8, so the default hit area is a thumb-sized target only by
+        // luck - grow it past the drawn circle instead. Geometry is in texture
+        // pixels, the sprite's own scale is applied on top of it
+        const { width, height } = btn
+        btn.setInteractive(
+            new Phaser.Geom.Circle(width / 2, height / 2, (width / 2) * this.config.hitRadiusScale),
+            Phaser.Geom.Circle.Contains
+        )
+
         // Scroll factor 0 so buttons stay put if the camera scrolls.
         btn.setScrollFactor(0)
+        // above the world, so nothing the player walks behind can cover the controls
+        btn.setDepth(this.config.depth)
+
+        const setPressed = (pressed: boolean) => {
+            entry.pressed = pressed
+            // visible feedback - a touch has no cursor to show what it hit
+            btn.setAlpha(pressed ? this.config.pressedAlpha : 1)
+        }
 
         btn
             .on("pointerdown", () => {
-                entry.pressed = true
+                setPressed(true)
             })
             .on("pointerup", () => {
-                entry.pressed = false
+                setPressed(false)
             })
             .on("pointerupoutside", () => {
-                entry.pressed = false
+                setPressed(false)
             })
             .on("pointerout", () => {
-                entry.pressed = false
+                setPressed(false)
             })
     }
 

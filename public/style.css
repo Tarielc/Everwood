@@ -1,15 +1,41 @@
+html,
 body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     color: rgba(255, 255, 255, 0.87);
     background-color: #0f0f0f;
+    /* without this a touch that lands on a button also pans or pinch-zooms the page,
+       and the browser steals the gesture from Phaser mid-press */
+    touch-action: none;
+    overscroll-behavior: none;
 }
 
 #app {
     width: 100%;
+    /* 100vh on mobile means "the viewport with the URL bar hidden", which is taller
+       than what you can actually see - dvh tracks the real visible height. The vh
+       line stays first as a fallback for browsers without dvh */
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+#game-container {
+    /* Phaser measures this element to size the canvas under Scale.FIT. With no
+       dimensions of its own it collapses onto the canvas it contains, so FIT
+       compares the canvas against itself and never scales anything down */
+    width: 100%;
+    height: 100%;
+}
+
+#game-container canvas {
+    /* inline elements get a text baseline gap underneath, which offsets the letterbox */
+    display: block;
+    touch-action: none;
 }
