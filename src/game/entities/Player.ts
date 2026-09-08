@@ -3,7 +3,10 @@ import * as Phaser from 'phaser';
 import { MovementController } from "../components/MovementController"
 import { AnimationController, Facing } from "../components/AnimationController"
 import { HealthComponent, HealthChange, HealthEvent } from "../components/HealthComponent"
+import { EquipmentComponent } from "../components/EquipmentComponent"
 import {
+    ItemDefinition,
+    ItemId,
     PLAYER_ANIMS,
     PLAYER_HEALTH,
     PLAYER_HEALTH_BUS,
@@ -27,6 +30,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     private animations: AnimationController<typeof PLAYER_ANIMS>
     private stateMachine: StateMachine<Player>
     private health: HealthComponent
+    private equipment: EquipmentComponent
 
     constructor(
         scene: Phaser.Scene,
@@ -60,6 +64,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             .addStates(...createPlayerStates())
             .start(PlayerState.Idle)
 
+        // the equipped item is drawn as an overlay that copies this sprite's frames
+        this.equipment = new EquipmentComponent(this);
+
         // health drives the states, the states never poll it back
         this.bindHealth()
 
@@ -83,6 +90,27 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         this.updateInvulnerabilityBlink(time)
         this.stateMachine.update(delta)
+
+        // last, so the item copies the pose this frame actually settled on
+        this.equipment.update()
+    }
+
+    // put an item in the player's hand - swapping straight from another is fine
+    equip(id: ItemId): ItemDefinition {
+        return this.equipment.equip(id)
+    }
+
+    unequip(): ItemDefinition | null {
+        return this.equipment.unequip()
+    }
+
+    get gear(): EquipmentComponent {
+        return this.equipment
+    }
+
+    // what a swing lands for, falling back to bare hands
+    get attackDamage(): number {
+        return this.equipment.damage
     }
 
     // take a hit - returns false when i-frames or death swallowed it, so the
@@ -134,8 +162,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     // so the silhouette reads even against a busy background
     private flashDamage(): void {
         this.setTint(DAMAGE_FLASH_COLOR).setTintMode(Phaser.TintModes.FILL)
+        this.equipment.flash(DAMAGE_FLASH_COLOR)
+
         this.scene.time.delayedCall(DAMAGE_FLASH_MS, () => {
             this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)
+            this.equipment.clearFlash()
         })
     }
 
@@ -156,6 +187,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.stateMachine?.destroy()
         this.animations?.destroy()
         this.health?.destroy()
+        this.equipment?.destroy()
         super.destroy(fromScene)
     }
 

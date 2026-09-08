@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { PLAYER_HEALTH_BUS, SCALE_FACTOR } from '../utils/constants';
+import { ItemId, PLAYER_HEALTH_BUS, SCALE_FACTOR } from '../utils/constants';
 import Player from '../entities/Player';
 import InputController from '../systems/inputs/InputController';
 import { HealthEvent } from '../components/HealthComponent';
@@ -12,6 +12,17 @@ const FOX_CONTACT_DAMAGE = 22
 
 // how long the player stays down before respawning
 const RESPAWN_DELAY_MS = 2500
+
+// what the player is holding when the level starts
+const STARTING_ITEM: ItemId = "diamond-sword"
+
+// number-row shortcuts for swapping gear, until there's an inventory UI
+const ITEM_HOTKEYS: Record<string, ItemId | null> = {
+    "keydown-ONE": "diamond-sword",
+    "keydown-TWO": "diamond-axe",
+    "keydown-THREE": "diamond-pickaxe",
+    "keydown-ZERO": null, // bare hands
+}
 
 export default class GameScene extends Phaser.Scene {
 
@@ -31,6 +42,8 @@ export default class GameScene extends Phaser.Scene {
             .setScale(SCALE_FACTOR)
 
         this.player.setCollideWorldBounds(true)
+        this.player.equip(STARTING_ITEM)
+        this.bindItemHotkeys()
 
         const fox = this.physics.add
             .sprite(150, this.scale.height / 2, "fox")
@@ -56,6 +69,19 @@ export default class GameScene extends Phaser.Scene {
             busPrefix: PLAYER_HEALTH_BUS,
         })
 
+    }
+
+    // temporary stand-in for an inventory - swap gear with the number row
+    private bindItemHotkeys(): void {
+        const keyboard = this.input.keyboard
+        if (!keyboard) return
+
+        for (const [event, item] of Object.entries(ITEM_HOTKEYS)) {
+            keyboard.on(event, () => {
+                if (item) this.player.equip(item)
+                else this.player.unequip()
+            })
+        }
     }
 
     update(time:number, delta:number){

@@ -5,7 +5,7 @@ export interface HealthConfig {
     max: number,
     invulnerabilityMs: number, // i-frames after taking a hit, blocks further damage
     regenPerSecond: number, // set to 0 to disable regeneration
-    regenDelayMs: number, // wait this long after the last hit before regen kicks in
+    regenDelayMs: number, // wait this long healthEventKeyafter the last hit before regen kicks in
 }
 
 export interface HealthComponentOptions {
@@ -226,7 +226,6 @@ export class HealthComponent extends Phaser.Events.EventEmitter {
 
         this.regenCarry += this.config.regenPerSecond * (dt / 1000)
         if (this.regenCarry < 1) return
-        console.log("healed!", this.regenCarry)
 
         // heal in whole points, keeping the remainder for the next frame
         const whole = Math.floor(this.regenCarry)

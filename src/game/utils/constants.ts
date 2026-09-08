@@ -3,6 +3,11 @@ import { MovementConfig } from "../components/MovementController"
 
 export const SCALE_FACTOR:number = 2
 export const UI_SCALE_FACTOR:number = 7
+
+// every character sheet - the player and each equippable overlay - is cut to this
+// grid. Equipment works by copying the player's frame index onto the item sprite,
+// so the sheets must stay frame-for-frame aligned
+export const CHARACTER_FRAME = { frameWidth: 80, frameHeight: 64 } as const
 export const PLAYER_MOVEMENT:MovementConfig = {
     speed: 110,
     sprintSpeed: 225,
@@ -77,6 +82,27 @@ export const TOUCH_CONTROLS:TouchControlsConfig = {
     depth: 2000,
 }
 
+export interface ItemDefinition {
+    // shown in menus and pickup prompts
+    name: string,
+    // overlay spritesheet, cut to CHARACTER_FRAME and aligned with the player's sheet
+    texture: string,
+    // damage a swing deals - tools hit for less than a weapon of the same tier
+    damage: number,
+}
+
+export const ITEMS = {
+    "diamond-sword": { name: "Diamond Sword", texture: "diamond-sword", damage: 25 },
+    "diamond-axe": { name: "Diamond Axe", texture: "diamond-axe", damage: 18 },
+    "diamond-pickaxe": { name: "Diamond Pickaxe", texture: "diamond-pickaxe", damage: 12 },
+} as const satisfies Record<string, ItemDefinition>
+
+// every id the player can be handed - a typo is a compile error, not a blank sprite
+export type ItemId = keyof typeof ITEMS
+
+// damage a bare-handed swing deals, when nothing is equipped
+export const UNARMED_DAMAGE:number = 6
+
 export interface AnimConfig {
     key: string,
     start: number,
@@ -99,4 +125,6 @@ export const PLAYER_ANIMS = {
     // end so a flinch can't be cut short by the walk cycle resuming underneath it
     hurt: { key: "player-hurt", start: 60, end: 61, frameRate: 8, repeat: 0, priority: 10, lockUntilComplete: true },
     death: { key: "player-death", start: 60, end: 69, frameRate: 8, repeat: 0, priority: 20, lockUntilComplete: true },
+    // meele attack, meele action
+    attack: { key: "player-action", start: 50, end: 55, frameRate: 8, repeat: -1 },
 } as const satisfies Record<string, AnimConfig>

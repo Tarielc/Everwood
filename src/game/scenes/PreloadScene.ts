@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { CHARACTER_FRAME, ITEMS } from '../utils/constants';
 
 export default class PreloadScene extends Phaser.Scene {
     private progressBar!: Phaser.GameObjects.Graphics
@@ -20,7 +21,7 @@ export default class PreloadScene extends Phaser.Scene {
         // load stuff...
         this.load.image("startBtn", "assets/ui/start-btn.png")
 
-        this.load.spritesheet("player", "assets/sprites/player.png", { frameWidth: 80, frameHeight: 64 })
+        this.load.spritesheet("player", "assets/sprites/player.png", CHARACTER_FRAME)
         this.load.spritesheet("fox", "assets/sprites/fox.png", { frameWidth: 32, frameHeight: 32 })
         this.load.image("left-btn", "assets/ui/left-btn.png")
         this.load.image("right-btn", "assets/ui/right-btn.png")
@@ -32,6 +33,13 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image("manaBar", "assets/ui/blue-bar.png")
         this.load.image("healthBar", "assets/ui/red-bar.png")
         this.load.image("staminaBar", "assets/ui/yellow-bar.png")
+
+        // equippable overlays share the player's grid, so they load as spritesheets
+        // on the same frame size - driven off the registry, so adding an item to
+        // ITEMS is all it takes to get it loaded
+        for (const { texture } of Object.values(ITEMS)) {
+            this.load.spritesheet(texture, `assets/sprites/${texture}.png`, CHARACTER_FRAME)
+        }
 
     }
 
