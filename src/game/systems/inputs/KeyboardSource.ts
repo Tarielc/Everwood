@@ -11,6 +11,8 @@ type KeyMap = {
     jump: Phaser.Input.Keyboard.Key
     altJump: Phaser.Input.Keyboard.Key
     altJump2: Phaser.Input.Keyboard.Key
+    attack: Phaser.Input.Keyboard.Key
+    altAttack: Phaser.Input.Keyboard.Key
 }
 
 export default class KeyboardSource implements InputSource {
@@ -34,6 +36,8 @@ export default class KeyboardSource implements InputSource {
             jump: keyboard.addKey(KeyCodes.SPACE),
             altJump: keyboard.addKey(KeyCodes.W),
             altJump2: keyboard.addKey(KeyCodes.UP),
+            attack: keyboard.addKey(KeyCodes.F),
+            altAttack: keyboard.addKey(KeyCodes.J),
         }
 
         // stop the browser from scrolling on arrows / space
@@ -50,6 +54,7 @@ export default class KeyboardSource implements InputSource {
         out.right ||= k.right.isDown || k.altRight.isDown
         out.sprint ||= k.sprint.isDown
         out.jump ||= k.jump.isDown || k.altJump.isDown || k.altJump2.isDown
+        out.attack ||= k.attack.isDown || k.altAttack.isDown
     }
 
     destroy(): void {

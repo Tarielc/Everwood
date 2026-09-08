@@ -4,10 +4,12 @@ import { MovementController } from "../components/MovementController"
 import { AnimationController, Facing } from "../components/AnimationController"
 import { HealthComponent, HealthChange, HealthEvent } from "../components/HealthComponent"
 import { EquipmentComponent } from "../components/EquipmentComponent"
+import { CombatComponent } from "../components/CombatComponent"
 import {
     ItemDefinition,
     ItemId,
     PLAYER_ANIMS,
+    PLAYER_ATTACK,
     PLAYER_HEALTH,
     PLAYER_HEALTH_BUS,
     PLAYER_MOVEMENT,
@@ -25,12 +27,17 @@ const INVULNERABILITY_BLINK_ALPHA = 0.35
 const DAMAGE_FLASH_COLOR = 0xffffff
 const DAMAGE_FLASH_MS = 60
 
+// how much of its speed a grounded swing bleeds off per frame - a swing that
+// slides across the floor reads as a dodge rather than a commitment
+const SWING_FOOT_DRAG = 0.8
+
 export default class Player extends Phaser.Physics.Arcade.Sprite {
     private movement: MovementController
     private animations: AnimationController<typeof PLAYER_ANIMS>
     private stateMachine: StateMachine<Player>
     private health: HealthComponent
     private equipment: EquipmentComponent
+    private combat: CombatComponent
 
     constructor(
         scene: Phaser.Scene,
@@ -43,6 +50,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // add player sprite and physics to the scene
         scene.add.existing(this);
         scene.physics.add.existing(this);
+
+        this.setCollideWorldBounds(true)
 
         // resize and offset player hitbox, so it's more accurate
         this.setSize(16, 46);
@@ -67,6 +76,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // the equipped item is drawn as an overlay that copies this sprite's frames
         this.equipment = new EquipmentComponent(this);
 
+        // the swing's timing and reach - what it costs comes from the equipment,
+        // and who it lands on is the scene's business
+        this.combat = new CombatComponent(this, PLAYER_ATTACK);
+
         // health drives the states, the states never poll it back
         this.bindHealth()
 
@@ -81,12 +94,27 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             // a corpse still falls, it just stops steering
             this.setAccelerationX(0)
         } else {
+            // remembered even if this frame can't act on it, so a press during the
+            // tail of one swing flows into the next
+            if (this.controls.attackJustPressed) this.combat.queue()
+
+            // face where we're steering - neutral input keeps the last facing, and
+            // a swing already underway keeps the direction it started with
+            if (!this.combat.isSwinging) this.animations.setFacing(this.steeredFacing())
+
+            // decided before the move, so the first frame of a swing is already planted
+            if (this.canSwing()) this.stateMachine.transition(PlayerState.Attack)
+
             // move first, so states react to this frame's resulting velocity
             this.movement.update(this.controls, delta)
 
-            // face where we're steering - neutral input keeps the last facing
-            this.animations.setFacing(this.steeredFacing())
+            // gravity, jumping and the input buffers all still ran above - a swing
+            // can be jumped out of, it just can't be walked out of
+            if (this.combat.isSwinging && this.isGrounded()) this.plantFeet()
         }
+
+        // ticks the cooldown and drags the hit area along with the player
+        this.combat.update(delta)
 
         this.updateInvulnerabilityBlink(time)
         this.stateMachine.update(delta)
@@ -177,6 +205,25 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.setAlpha(visible ? 1 : INVULNERABILITY_BLINK_ALPHA)
     }
 
+    // a swing needs a buffered press and a finished cooldown, and a state that
+    // isn't already busy - a flinch owns the animation, so it can't be swung out of
+    private canSwing(): boolean {
+        return this.combat.canSwing && !this.stateMachine.isCurrentState(PlayerState.Hurt)
+    }
+
+    private isGrounded(): boolean {
+        const body = this.body as Phaser.Physics.Arcade.Body
+        return body.blocked.down || body.touching.down
+    }
+
+    // kill the steering a grounded swing was given, without touching the vertical
+    // movement the MovementController just worked out
+    private plantFeet(): void {
+        const body = this.body as Phaser.Physics.Arcade.Body
+        body.setAccelerationX(0)
+        body.velocity.x *= SWING_FOOT_DRAG
+    }
+
     private steeredFacing(): Facing {
         if (this.controls.moveLeft) return -1
         if (this.controls.moveRight) return 1
@@ -188,6 +235,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.animations?.destroy()
         this.health?.destroy()
         this.equipment?.destroy()
+        this.combat?.destroy()
         super.destroy(fromScene)
     }
 
@@ -209,5 +257,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     get getHealth(): HealthComponent {
         return this.health
+    }
+
+    get getCombat(): CombatComponent {
+        return this.combat
     }
 }

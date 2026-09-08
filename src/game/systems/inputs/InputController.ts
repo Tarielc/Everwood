@@ -11,6 +11,8 @@ export interface InputState {
     readonly jumpHeld: boolean
     readonly jumpJustPressed: boolean
     readonly jumpJustReleased: boolean
+    readonly attackHeld: boolean
+    readonly attackJustPressed: boolean
 }
 
 export interface InputControllerOptions {
@@ -26,6 +28,8 @@ export default class InputController implements InputState {
     jumpHeld: boolean = false
     jumpJustPressed: boolean = false
     jumpJustReleased: boolean = false
+    attackHeld: boolean = false
+    attackJustPressed: boolean = false
 
     // all the input sources and their raw input
     private sources: InputSource[] = []
@@ -33,7 +37,8 @@ export default class InputController implements InputState {
         left: false,
         right: false,
         sprint: false,
-        jump: false
+        jump: false,
+        attack: false
     }
 
     constructor(scene: Phaser.Scene, options: InputControllerOptions = {}) {
@@ -63,22 +68,28 @@ export default class InputController implements InputState {
         frame.right = false
         frame.sprint = false
         frame.jump = false
+        frame.attack = false
 
         for (const source of this.sources) {
             source.sample(frame)
         }
 
         const wasJumpHeld = this.jumpHeld
+        const wasAttackHeld = this.attackHeld
 
         // apply boolean values that represent whether buttons are held or not
         this.moveLeft = frame.left
         this.moveRight = frame.right
         this.sprintHeld = frame.sprint
         this.jumpHeld = frame.jump
+        this.attackHeld = frame.attack
 
         // extra values to track "just pressed" values for jump
         this.jumpJustPressed = this.jumpHeld && !wasJumpHeld
         this.jumpJustReleased = !this.jumpHeld && wasJumpHeld
+
+        // a swing fires on the press, never on the hold - one tap, one swing
+        this.attackJustPressed = this.attackHeld && !wasAttackHeld
     }
 
     destroy(): void {

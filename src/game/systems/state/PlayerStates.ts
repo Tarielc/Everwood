@@ -10,6 +10,7 @@ export const PlayerState = {
     Sprint: "sprint",
     Jump: "jump",
     Fall: "fall",
+    Attack: "attack",
     Hurt: "hurt",
     Dead: "dead",
 } as const
@@ -116,6 +117,28 @@ export function createPlayerStates(): State<Player>[] {
 
                 const body = player.body as Phaser.Physics.Arcade.Body
                 if (body.velocity.y < 0) player.states.transition(PlayerState.Jump)
+            },
+        },
+        {
+            // entered from Player.update() once the swing is allowed, not by polling
+            // here - the cooldown and the buffered press live in CombatComponent,
+            // and this state is only what a swing looks like while it happens
+            name: PlayerState.Attack,
+            enter(player) {
+                // the swing keeps the direction it started with, so spinning round
+                // halfway through can't drag the hit area across with it
+                player.getCombat.start(player.getAnimations.facing)
+                player.getAnimations.play("attack", { restart: true })
+            },
+            update(player) {
+                // the swing animation locks itself, so windup, hit and recovery all
+                // last exactly as long as they're drawn for
+                if (!player.getAnimations.isLocked) player.states.transition(recoverState(player))
+            },
+            exit(player) {
+                // closes the hit area and starts the cooldown however this ended -
+                // played out, interrupted by a flinch, or cut short by death
+                player.getCombat.end()
             },
         },
         {

@@ -10,6 +10,11 @@ interface TouchButton {
     pressed: boolean
 }
 
+// stand-in art for a button whose png hasn't been drawn yet, generated once per
+// texture manager - the same size as the real button sheets, so it scales alike
+const FALLBACK_TEXTURE = "touch-btn-fallback"
+const FALLBACK_SIZE = 8
+
 export default class TouchSource implements InputSource {
     // for touch device we use array of on-screen buttons
     private buttons: TouchButton[] = []
@@ -30,10 +35,36 @@ export default class TouchSource implements InputSource {
         const sprintBtn = this.scene.add.image(width - margin - radius * 2 - gap, height - margin - radius, "sprint-btn")
             .setScale(UI_SCALE_FACTOR)
         
+        // stacked above jump rather than beside it - the thumb that swings is the
+        // thumb that jumps, and reaching sideways for it fights the movement hand
+        const attackBtn = this.scene.add.image(
+            width - margin - radius,
+            height - margin - radius * 2 - gap,
+            this.textureFor("attack-btn"),
+        ).setScale(UI_SCALE_FACTOR)
+
         this.addButton("left", leftBtn)
         this.addButton("right", rightBtn)
         this.addButton("sprint", sprintBtn)
         this.addButton("jump", jumpBtn)
+        this.addButton("attack", attackBtn)
+    }
+
+    // the real art if it was loaded, a plain disc if it wasn't - drop assets/ui/
+    // attack-btn.png in and load it in PreloadScene to replace the placeholder
+    private textureFor(key: string): string {
+        const textures = this.scene.textures
+        if (textures.exists(key)) return key
+
+        if (!textures.exists(FALLBACK_TEXTURE)) {
+            const graphics = this.scene.make.graphics({ x: 0, y: 0 }, false)
+            graphics.fillStyle(0xffffff, 1)
+            graphics.fillCircle(FALLBACK_SIZE / 2, FALLBACK_SIZE / 2, FALLBACK_SIZE / 2)
+            graphics.generateTexture(FALLBACK_TEXTURE, FALLBACK_SIZE, FALLBACK_SIZE)
+            graphics.destroy()
+        }
+
+        return FALLBACK_TEXTURE
     }
 
     // assign each button with corresponding "action" and value to track whether it's pressed or not

@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { CHARACTER_FRAME, ITEMS } from '../utils/constants';
+import { CHARACTER_FRAME, FOES, ITEMS } from '../utils/constants';
 
 export default class PreloadScene extends Phaser.Scene {
     private progressBar!: Phaser.GameObjects.Graphics
@@ -22,7 +22,11 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image("startBtn", "assets/ui/start-btn.png")
 
         this.load.spritesheet("player", "assets/sprites/player.png", CHARACTER_FRAME)
-        this.load.spritesheet("fox", "assets/sprites/fox.png", { frameWidth: 32, frameHeight: 32 })
+
+        // foes bring their own grid, so each loads on the frame size it declares
+        for (const { texture, frame } of Object.values(FOES)) {
+            this.load.spritesheet(texture, `assets/sprites/${texture}.png`, frame)
+        }
         this.load.image("left-btn", "assets/ui/left-btn.png")
         this.load.image("right-btn", "assets/ui/right-btn.png")
         this.load.image("sprint-btn", "assets/ui/sprint-btn.png")
