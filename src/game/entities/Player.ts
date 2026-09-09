@@ -4,7 +4,7 @@ import { MovementController } from "../components/MovementController"
 import { AnimationController, Facing } from "../components/AnimationController"
 import { HealthComponent, HealthChange, HealthEvent } from "../components/HealthComponent"
 import { EquipmentComponent } from "../components/EquipmentComponent"
-import { CombatComponent } from "../components/CombatComponent"
+import { MeleeAttack } from "../components/MeleeAttack"
 import {
     ItemDefinition,
     ItemId,
@@ -37,7 +37,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     private stateMachine: StateMachine<Player>
     private health: HealthComponent
     private equipment: EquipmentComponent
-    private combat: CombatComponent
+    private attack: MeleeAttack
 
     constructor(
         scene: Phaser.Scene,
@@ -78,7 +78,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         // the swing's timing and reach - what it costs comes from the equipment,
         // and who it lands on is the scene's business
-        this.combat = new CombatComponent(this, PLAYER_ATTACK);
+        this.attack = new MeleeAttack(this, PLAYER_ATTACK);
 
         // health drives the states, the states never poll it back
         this.bindHealth()
@@ -96,11 +96,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         } else {
             // remembered even if this frame can't act on it, so a press during the
             // tail of one swing flows into the next
-            if (this.controls.attackJustPressed) this.combat.queue()
+            if (this.controls.attackJustPressed) this.attack.queue()
 
             // face where we're steering - neutral input keeps the last facing, and
             // a swing already underway keeps the direction it started with
-            if (!this.combat.isSwinging) this.animations.setFacing(this.steeredFacing())
+            if (!this.attack.isAttacking) this.animations.setFacing(this.steeredFacing())
 
             // decided before the move, so the first frame of a swing is already planted
             if (this.canSwing()) this.stateMachine.transition(PlayerState.Attack)
@@ -110,11 +110,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
             // gravity, jumping and the input buffers all still ran above - a swing
             // can be jumped out of, it just can't be walked out of
-            if (this.combat.isSwinging && this.isGrounded()) this.plantFeet()
+            if (this.attack.isAttacking && this.isGrounded()) this.plantFeet()
         }
 
         // ticks the cooldown and drags the hit area along with the player
-        this.combat.update(delta)
+        this.attack.update(delta)
 
         this.updateInvulnerabilityBlink(time)
         this.stateMachine.update(delta)
@@ -208,7 +208,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     // a swing needs a buffered press and a finished cooldown, and a state that
     // isn't already busy - a flinch owns the animation, so it can't be swung out of
     private canSwing(): boolean {
-        return this.combat.canSwing && !this.stateMachine.isCurrentState(PlayerState.Hurt)
+        return this.attack.canStart && !this.stateMachine.isCurrentState(PlayerState.Hurt)
     }
 
     private isGrounded(): boolean {
@@ -235,7 +235,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.animations?.destroy()
         this.health?.destroy()
         this.equipment?.destroy()
-        this.combat?.destroy()
+        this.attack?.destroy()
         super.destroy(fromScene)
     }
 
@@ -259,7 +259,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         return this.health
     }
 
-    get getCombat(): CombatComponent {
-        return this.combat
+    get getAttack(): MeleeAttack {
+        return this.attack
     }
 }

@@ -5,7 +5,7 @@ export const SCALE_FACTOR:number = 2
 export const UI_SCALE_FACTOR:number = 7
 
 // every character sheet - the player and each equippable overlay - is cut to this
-// grid. Equipment works by copying the player's frame index onto the item sprite,
+// grid. Equint works by copying the player's frame index onto the item sprite,
 // so the sheets must stay frame-for-frame aligned
 export const CHARACTER_FRAME = { frameWidth: 80, frameHeight: 64 } as const
 export const PLAYER_MOVEMENT:MovementConfig = {
@@ -56,11 +56,11 @@ export interface MeleeAttackConfig {
 export const PLAYER_ATTACK:MeleeAttackConfig = {
     windupMs: 180,
     activeMs: 260,
-    cooldownMs: 140,
+    cooldownMs: 240,
     bufferMs: 160,
-    width: 44,
+    width: 54,
     height: 76,
-    offsetX: 2,
+    offsetX: -8,
     // the player's body is nearly a hundred pixels tall and a fox barely a third
     // of that, so the arc is pushed down to reach the things standing on the floor
     offsetY: 8,
@@ -125,7 +125,7 @@ export interface ItemDefinition {
 }
 
 export const ITEMS = {
-    "diamond-sword": { name: "Diamond Sword", texture: "diamond-sword", damage: 25 },
+    "diamond-sword": { name: "Diamond Sword", texture: "diamond-sword", damage: 150 },
     "diamond-axe": { name: "Diamond Axe", texture: "diamond-axe", damage: 18 },
     "diamond-pickaxe": { name: "Diamond Pickaxe", texture: "diamond-pickaxe", damage: 12 },
 } as const satisfies Record<string, ItemDefinition>
@@ -148,11 +148,86 @@ export interface AnimConfig {
     lockUntilComplete?: boolean, // don't let other animations cut this one short
 }
 
-// every foe animates from at least these two - the states only ever ask for them
+// every foe animates from at least these two - the rest are optional, so a sheet
+// that only has a walk cycle still works and the states fall back to a frame it has
 export type FoeAnims = {
     idle: AnimConfig,
     run: AnimConfig,
+    attack?: AnimConfig,
+    hurt?: AnimConfig,
+    death?: AnimConfig,
 }
+
+export interface ProjectileDefinition {
+    // a single image rather than a sheet - a projectile is one frame
+    texture: string,
+    // flight speed in px/s, always along the direction it was fired
+    speed: number,
+    // arcade gravity applied to it - 0 flies flat, which is what an arrow does here
+    gravity: number,
+    scale: number,
+    body: { width: number, height: number, offsetX: number, offsetY: number },
+    // removed after this long, so a shot that hits nothing can't live forever
+    lifetimeMs: number,
+}
+
+export const PROJECTILES = {
+    // arrow.png is drawn pointing right, so a shot travelling left is mirrored
+    arrow: {
+        texture: "arrow",
+        speed: 430,
+        gravity: 0,
+        scale: SCALE_FACTOR,
+        body: { width: 26, height: 5, offsetX: 2, offsetY: 0 },
+        lifetimeMs: 2200,
+    },
+} as const satisfies Record<string, ProjectileDefinition>
+
+export type ProjectileId = keyof typeof PROJECTILES
+
+// what every foe attack has, whatever shape it takes
+interface FoeAttackBase {
+    // how close the target has to be before the foe commits to one - always
+    // shorter than aggroRange, so a foe closes the gap before it swings or shoots
+    range: number,
+    damage: number,
+}
+
+export interface FoeMeleeAttack extends FoeAttackBase {
+    kind: "melee",
+    // the swing's timing and reach, the same shape the player's swing uses -
+    // bufferMs goes unused, a foe's swing is started by its state, not by a press
+    swing: MeleeAttackConfig,
+}
+
+// a shot's timing and where it leaves from - the counterpart to
+// MeleeAttackConfig, and like it, the same shape whoever is holding the weapon
+export interface RangedAttackConfig {
+    projectile: ProjectileDefinition,
+    // what one costs whatever it lands on - unlike a swing, a shot carries its
+    // damage with it rather than being charged for on contact
+    damage: number,
+    // how far into the animation the shot leaves - the frames either side are
+    // the draw and the recovery, and neither of them hurts anybody
+    windupMs: number,
+    // waited out on top of however long the animation itself took
+    cooldownMs: number,
+    // where the shot leaves, measured from the centre of the shooter's body -
+    // muzzleX is mirrored with its facing, muzzleY is not
+    muzzleX: number,
+    muzzleY: number,
+}
+
+// extends the config directly rather than nesting it, so a foe definition can
+// be handed straight to RangedAttack
+export interface FoeRangedAttack extends FoeAttackBase, RangedAttackConfig {
+    kind: "ranged",
+    // it won't close any nearer than this, so it keeps the room it needs to shoot
+    standoff: number,
+}
+
+// a foe without one of these only ever has its body to hurt you with
+export type FoeAttack = FoeMeleeAttack | FoeRangedAttack
 
 export interface FoeDefinition {
     name: string,
@@ -179,6 +254,8 @@ export interface FoeDefinition {
     // how far above/below the foe still counts as reachable
     verticalReach: number,
     contactDamage: number,
+    // how it fights once it's in range - left out, it just walks into you
+    attack?: FoeAttack,
     // shove the foe takes when hit, away from whatever hit it
     knockback: number,
     knockbackLift: number,
@@ -191,6 +268,43 @@ export const FOX_ANIMS = {
     run: { key: "fox-run", start: 6, end: 11, frameRate: 12, repeat: -1 },
 } as const satisfies FoeAnims
 
+// warrior.png is cut to the same 80x64 grid as the player, one animation per row:
+// idle, run, swing, flinch, and a ten-frame fall over
+export const WARRIOR_ANIMS = {
+    idle: { key: "warrior-idle", start: 0, end: 4, frameRate: 6, repeat: -1 },
+    run: { key: "warrior-run", start: 10, end: 17, frameRate: 12, repeat: -1 },
+    // 600ms of swing, the blade only out in front for the last two frames
+    attack: { key: "warrior-attack", start: 20, end: 25, frameRate: 10, repeat: 0, priority: 5, lockUntilComplete: true },
+    // outranks the swing, so a hit lands as a flinch instead of being swallowed by it
+    hurt: { key: "warrior-hurt", start: 30, end: 31, frameRate: 5, repeat: 0, priority: 10, lockUntilComplete: true },
+    death: { key: "warrior-death", start: 40, end: 49, frameRate: 10, repeat: 0, priority: 20, lockUntilComplete: true },
+} as const satisfies FoeAnims
+
+// archer.png is an 11-wide, 64x64 grid - the wider rows are what the extra
+// columns are for, the shot alone runs eleven frames
+export const ARCHER_ANIMS = {
+    idle: { key: "archer-idle", start: 0, end: 4, frameRate: 6, repeat: -1 },
+    run: { key: "archer-run", start: 22, end: 29, frameRate: 12, repeat: -1 },
+    // the draw, the loose and the recovery, ~790ms end to end
+    attack: { key: "archer-shoot", start: 11, end: 21, frameRate: 14, repeat: 0, priority: 5, lockUntilComplete: true },
+    hurt: { key: "archer-hurt", start: 33, end: 37, frameRate: 12, repeat: 0, priority: 10, lockUntilComplete: true },
+    death: { key: "archer-death", start: 44, end: 49, frameRate: 10, repeat: 0, priority: 20, lockUntilComplete: true },
+} as const satisfies FoeAnims
+
+// tuned against WARRIOR_ANIMS.attack - the window opens on the two frames the
+// slash is drawn on, and shuts as the animation ends
+export const WARRIOR_SWING:MeleeAttackConfig = {
+    windupMs: 180,
+    activeMs: 260,
+    // on top of the 600ms the animation itself takes, so there's a beat between swings
+    cooldownMs: 450,
+    bufferMs: 0, // unused - a foe's swing is started by its state, never queued
+    width: 46,
+    height: 70,
+    offsetX: 2,
+    offsetY: 6,
+}
+
 export const FOES = {
     fox: {
         name: "Fox",
@@ -201,13 +315,13 @@ export const FOES = {
         scale: SCALE_FACTOR,
         body: { width: 28, height: 18, offsetX: 2, offsetY: 13 },
         health: {
-            max: 300,
+            max: 100,
             invulnerabilityMs: 250, // short, so a fast weapon still combos
             regenPerSecond: 0,
             regenDelayMs: 0,
         },
         speed: 45,
-        chaseSpeed: 130,
+        chaseSpeed: 100,
         patrolRange: 140,
         pauseMs: 1400,
         aggroRange: 260,
@@ -217,6 +331,88 @@ export const FOES = {
         knockback: 180,
         knockbackLift: -120,
         deathFadeMs: 450,
+    },
+    // a swordsman built on the player's own sheet - slower than the player, but
+    // it hits nearly as hard and takes eight sword blows to put down
+    warrior: {
+        name: "Warrior",
+        texture: "warrior",
+        frame: CHARACTER_FRAME,
+        anims: WARRIOR_ANIMS,
+        facing: 'left', // drawn facing left, the same way the player sheet is
+        scale: SCALE_FACTOR,
+        // the same footprint the player has in this grid, minus the sword arm
+        body: { width: 16, height: 44, offsetX: 32, offsetY: 20 },
+        health: {
+            max: 200,
+            invulnerabilityMs: 300,
+            regenPerSecond: 0,
+            regenDelayMs: 0,
+        },
+        speed: 55,
+        chaseSpeed: 150,
+        patrolRange: 160,
+        pauseMs: 1200,
+        aggroRange: 300,
+        deAggroRange: 420,
+        verticalReach: 90,
+        // nothing - the sword is what hurts, and body contact would only spend the
+        // player's i-frames on a hit the swing was about to land
+        contactDamage: 0,
+        attack: {
+            kind: "melee",
+            // just inside the swing's reach, so it commits rather than nudging closer
+            range: 76,
+            damage: 25,
+            swing: WARRIOR_SWING,
+        },
+        knockback: 40, // heavy, so it barely staggers
+        knockbackLift: -20,
+        deathFadeMs: 600,
+    },
+    // fragile, and no threat at all once you're stood next to it - it backs off to
+    // its standoff distance rather than let you close, and shoots from out there
+    archer: {
+        name: "Archer",
+        texture: "archer",
+        frame: { frameWidth: 64, frameHeight: 64 },
+        anims: ARCHER_ANIMS,
+        facing: 'right', // the bow is on its right and the arrow leaves that way
+        scale: SCALE_FACTOR,
+        // the art sits left of centre in its frame - Foe mirrors this offset with
+        // the sprite, so the hitbox stays on the archer rather than on its bow
+        body: { width: 20, height: 43, offsetX: 15, offsetY: 21 },
+        health: {
+            max: 120,
+            invulnerabilityMs: 250,
+            regenPerSecond: 0,
+            regenDelayMs: 0,
+        },
+        speed: 40,
+        chaseSpeed: 110,
+        patrolRange: 120,
+        pauseMs: 1500,
+        // it spots you from further off than anything else, which is the whole point
+        aggroRange: 440,
+        deAggroRange: 540,
+        verticalReach: 90,
+        contactDamage: 0,
+        attack: {
+            kind: "ranged",
+            range: 400,
+            damage: 16,
+            projectile: PROJECTILES.arrow,
+            // the frame the arrow leaves the bow, eight frames into the eleven
+            windupMs: 570,
+            cooldownMs: 900,
+            standoff: 200,
+            // out at the bow, roughly level with the archer's hands
+            muzzleX: 22,
+            muzzleY: -6,
+        },
+        knockback: 200,
+        knockbackLift: -140,
+        deathFadeMs: 600,
     },
 } as const satisfies Record<string, FoeDefinition>
 

@@ -121,13 +121,13 @@ export function createPlayerStates(): State<Player>[] {
         },
         {
             // entered from Player.update() once the swing is allowed, not by polling
-            // here - the cooldown and the buffered press live in CombatComponent,
+            // here - the cooldown and the buffered press live in the attack component,
             // and this state is only what a swing looks like while it happens
             name: PlayerState.Attack,
             enter(player) {
                 // the swing keeps the direction it started with, so spinning round
                 // halfway through can't drag the hit area across with it
-                player.getCombat.start(player.getAnimations.facing)
+                player.getAttack.start(player.getAnimations.facing)
                 player.getAnimations.play("attack", { restart: true })
             },
             update(player) {
@@ -138,7 +138,7 @@ export function createPlayerStates(): State<Player>[] {
             exit(player) {
                 // closes the hit area and starts the cooldown however this ended -
                 // played out, interrupted by a flinch, or cut short by death
-                player.getCombat.end()
+                player.getAttack.end()
             },
         },
         {

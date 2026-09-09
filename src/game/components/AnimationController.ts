@@ -1,8 +1,9 @@
 import * as Phaser from 'phaser';
 import { AnimConfig } from '../utils/constants';
 
-// set of animations
-export type AnimSet = Record<string, AnimConfig>
+// set of animations - entries are optional, so a sheet can leave out the ones it
+// hasn't got the frames for and callers ask with has() before playing them
+export type AnimSet = Record<string, AnimConfig | undefined>
 
 // facing left | skip | facing right
 export type Facing = -1 | 0 | 1
@@ -119,6 +120,12 @@ export class AnimationController<TAnims extends AnimSet = AnimSet> {
         this.sprite.anims.stop()
     }
 
+    // does this set actually have the animation? optional entries mean a caller
+    // can pick a fallback instead of playing a warning
+    has(name: keyof TAnims): boolean {
+        return Boolean(this.anims[name])
+    }
+
     // check if the specific animation is playing
     isPlaying(name: keyof TAnims): boolean {
         return this.current === name && this.sprite.anims.isPlaying
@@ -151,8 +158,8 @@ export class AnimationController<TAnims extends AnimSet = AnimSet> {
     private register(texture: string): void {
         const manager = this.sprite.scene.anims
 
-        for (const config of Object.values(this.anims) as AnimConfig[]) {
-            if (manager.exists(config.key)) continue
+        for (const config of Object.values(this.anims) as (AnimConfig | undefined)[]) {
+            if (!config || manager.exists(config.key)) continue
 
             manager.create({
                 key: config.key,
