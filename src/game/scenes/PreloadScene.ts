@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { CHARACTER_FRAME, FOES, ITEMS, PROJECTILES } from '../utils/constants';
+import { loadMapImages } from '../systems/world/WorldMap';
 
 export default class PreloadScene extends Phaser.Scene {
     private progressBar!: Phaser.GameObjects.Graphics
@@ -20,6 +21,10 @@ export default class PreloadScene extends Phaser.Scene {
 
         // load stuff...
         this.load.image("startBtn", "assets/ui/start-btn.png")
+
+        // every sheet and backdrop the map names, queued off the map data that
+        // BootScene already fetched
+        loadMapImages(this)
 
         this.load.spritesheet("player", "assets/sprites/player.png", CHARACTER_FRAME)
 

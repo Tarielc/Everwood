@@ -2,7 +2,7 @@ import { HealthConfig } from "../components/HealthComponent"
 import { MovementConfig } from "../components/MovementController"
 
 export const SCALE_FACTOR:number = 2
-export const UI_SCALE_FACTOR:number = 7
+export const UI_SCALE_FACTOR:number = 10
 
 // every character sheet - the player and each equippable overlay - is cut to this
 // grid. Equint works by copying the player's frame index onto the item sprite,
@@ -109,7 +109,7 @@ export const TOUCH_CONTROLS:TouchControlsConfig = {
     radius: 56,
     hitRadiusScale: 1.25,
     margin: 20,
-    gap: 10,
+    gap: 50,
     maxTouches: 3,
     pressedAlpha: 0.55,
     depth: 2000,
@@ -432,3 +432,98 @@ export const PLAYER_ANIMS = {
     // short, but below hurt and death, which are allowed to interrupt one
     attack: { key: "player-action", start: 50, end: 55, frameRate: 16, repeat: 0, priority: 5, lockUntilComplete: true },
 } as const satisfies Record<string, AnimConfig>
+
+// ---------------------------------------------------------------------------
+// World map
+// ---------------------------------------------------------------------------
+
+// the map is drawn at the same scale the characters standing on it are, so a
+// 32px tile and the player's art stay in proportion. everything the map hands
+// back - spawn points, object markers - is already multiplied by this, so the
+// rest of the game only ever deals in world pixels
+export const MAP_SCALE:number = SCALE_FACTOR
+
+export interface LevelDefinition {
+    // the Tiled export, under public/. everything else about a level - where it
+    // starts, what stands in it, where it lets out - is authored into the map
+    // itself rather than repeated here
+    url: string,
+}
+
+// every map the game can be standing in. the id is both the key the map json is
+// cached under and the name a level transition uses, so adding a location is an
+// entry here plus a `level` property on the exit that leads to it
+export const LEVELS = {
+    everwood: { url: "assets/map/map.json" },
+} as const satisfies Record<string, LevelDefinition>
+
+// every map the game can ask for - a typo is a compile error, not a blank scene
+export type LevelId = keyof typeof LEVELS
+
+// where a fresh game begins
+export const STARTING_LEVEL:LevelId = "everwood"
+
+export const MAP = {
+    // the tileset sheets and the backdrops sit next to the maps that name them,
+    // and are queued off the map data rather than listed by hand. two levels
+    // sharing a sheet share the one texture, because a sheet is keyed by its
+    // filename rather than by the tileset name a given map gave it
+    assetPath: "assets/map/",
+    scale: MAP_SCALE,
+    // the per-tile property Tiled marks solid tiles with. Tiled will happily
+    // write it as a bool or a string depending on how the field was authored,
+    // so both spellings count
+    collisionProperty: "collides",
+    collisionValues: [true, "true"],
+    objectLayers: {
+        player: "Player Object Layer",
+        enemies: "EnemyObjectsLayer",
+        npcs: "NPC Objects",
+        decor: "Decor Objects",
+    },
+    // depth custom property for optimal dynamic map loading
+    depthProperty: "depth",
+
+    // markers on the player layer - where a level starts and where it lets out
+    spawnMarker: "PlayerStartPoint",
+    exitMarker: "PlayerExitpoint",
+    // which level the exit leads to, named on the exit object in Tiled. a map
+    // whose exit doesn't name one is simply the end of the line
+    exitLevelProperty: "nextLevel",
+    // an object on the NPC layer becomes a foe when Tiled gives it this type;
+    // which foe comes from its `enemyType` property, or failing that its name
+    foeType: "Foe",
+    foeTypeProperty: "foeType",
+} as const
+
+export interface ParallaxConfig {
+    // how much of the camera's movement the backdrop follows - 0 is painted on
+    // the lens and 1 is nailed to the world. vertical scroll is deliberately
+    // left at 1: these are drawn to sit on the horizon, and sliding them up
+    // would show what's underneath them
+    scrollFactorX: number,
+    depth: number,
+}
+
+// fallback depth in case it's not provided
+export const MAP_DEFAULT_BACKDROP_DEPTH:number = -90
+
+// where a tile layer lands when the table above doesn't name it - behind the
+// ground and in front of the backdrops, which is where new decor belongs
+export const MAP_DEFAULT_LAYER_DEPTH:number = -40
+
+export interface CameraFollowConfig {
+    // how hard the camera pulls towards the player each frame, per axis
+    lerpX: number,
+    lerpY: number,
+    // shifts the camera off the player, positive being up. the ground is near
+    // the bottom of this map and everything under it is solid fill, so the view
+    // is lifted to trade that dirt for the sky and the treeline above it
+    offsetY: number,
+}
+
+export const MAP_CAMERA:CameraFollowConfig = {
+    lerpX: 0.12,
+    lerpY: 0.08,
+    offsetY: 90,
+}

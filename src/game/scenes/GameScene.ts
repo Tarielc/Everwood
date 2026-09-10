@@ -1,5 +1,17 @@
 import * as Phaser from 'phaser';
-import { FOES, FoeDefinition, ItemId, PLAYER_HEALTH_BUS, SCALE_FACTOR } from '../utils/constants';
+import {
+    FOES,
+    FoeDefinition,
+    FoeId,
+    ItemId,
+    LEVELS,
+    LevelId,
+    MAP,
+    MAP_CAMERA,
+    PLAYER_HEALTH_BUS,
+    SCALE_FACTOR,
+    STARTING_LEVEL,
+} from '../utils/constants';
 import Foe from '../entities/Foe';
 import Player from '../entities/Player';
 import Projectile from '../entities/Projectile';
@@ -7,21 +19,29 @@ import InputController from '../systems/inputs/InputController';
 import { AttackEvent } from '../components/AttackComponent';
 import { Shot } from '../components/RangedAttack';
 import { HealthEvent } from '../components/HealthComponent';
+import { FootPoint, MapObject, WorldMap } from '../systems/world/WorldMap';
 
-// where the player spawns and respawns
-const SPAWN = { x: 400, y: 300 }
-
-// where each foe starts its patrol - the archer is parked out to the right, far
-// enough that it opens up on the player before anything else has closed in
-const FOX_SPAWN = { x: 250, y: 300 }
-const WARRIOR_SPAWN = { x: 800, y: 300 }
-const ARCHER_SPAWN = { x: 1150, y: 300 }
+// used only if the map turns up without a PlayerStartPoint on it - somewhere to
+// stand is better than the top left corner of the world
+const FALLBACK_SPAWN: FootPoint = { x: 400, y: 300 }
 
 // how long the player stays down before respawning
 const RESPAWN_DELAY_MS = 2500
 
-// what the player is holding when the level starts
+// what the player is holding the first time they set out - after that they
+// arrive in a level holding whatever they left the last one with
 const STARTING_ITEM: ItemId = "diamond-sword"
+
+// what the player carries between levels. the sprite is rebuilt from scratch on
+// the other side of a level change, so what travels is the state, not the entity
+interface Progress {
+    health: number,
+    item: ItemId | null,
+}
+
+// kept on the game registry rather than in this scene - a scene restart is
+// exactly what a level change is, and the registry is what outlives one
+const PROGRESS_KEY = "progress"
 
 // number-row shortcuts for swapping gear, until there's an inventory UI
 const ITEM_HOTKEYS: Record<string, ItemId | null> = {
@@ -33,10 +53,21 @@ const ITEM_HOTKEYS: Record<string, ItemId | null> = {
 
 export default class GameScene extends Phaser.Scene {
 
+    private world!: WorldMap
     private player!: Player
     private controls!: InputController
     private foes: Foe[] = []
     private projectiles: Projectile[] = []
+
+    // read off the map once, and kept for every respawn after the first
+    private spawn: FootPoint = FALLBACK_SPAWN
+
+    // which map is being played, handed in by whatever started this scene
+    private level: LevelId = STARTING_LEVEL
+
+    // a level change is a scene restart, and it takes a beat to come round -
+    // this is what stops the exit firing again while it's on its way
+    private travelling: boolean = false
 
     // reused - resolving a swing shouldn't allocate a rectangle per foe per frame
     private readonly foeBounds: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()
@@ -46,39 +77,143 @@ export default class GameScene extends Phaser.Scene {
         super("GameScene")
     }
 
+    // a restarted scene is the same instance over again, so anything held
+    // between frames is put back to how it started rather than left to carry
+    init(data: { level?: LevelId }) {
+        this.level = data?.level ?? STARTING_LEVEL
+        this.foes = []
+        this.projectiles = []
+        this.travelling = false
+    }
+
     create() {
+        // the level first - it sets the world and camera bounds everything else
+        // is then spawned inside of
+        this.world = new WorldMap(this, this.level)
+        console.log(this.world)
+
         // create input controller after game starts
         this.controls = new InputController(this)
 
+        this.spawn = this.world.spawn ?? FALLBACK_SPAWN
+        
         // spawn player in game scene and give it input controls
-        this.player = new Player(this, SPAWN.x, SPAWN.y, "player", this.controls)
+        this.player = new Player(this, this.spawn.x, this.spawn.y, "player", this.controls)
             .setScale(SCALE_FACTOR)
 
-        this.player.equip(STARTING_ITEM)
+        // scaled first, then stood on the floor - the drop is measured off the
+        // body the player actually ended up with
+        this.world.stand(this.player, this.spawn)
+        this.world.collide(this.player)
+        this.world.follow(this.player, MAP_CAMERA)
+
+        this.restoreProgress()
         this.bindItemHotkeys()
 
-        this.spawnFoe(FOES.fox, FOX_SPAWN.x, FOX_SPAWN.y)
-        this.spawnFoe(FOES.warrior, WARRIOR_SPAWN.x, WARRIOR_SPAWN.y)
-        this.spawnFoe(FOES.archer, ARCHER_SPAWN.x, ARCHER_SPAWN.y)
+        this.spawnMapFoes()
+        this.watchForExit()
+
         // listening on the component rather than the bus - it's torn down with the
         // player, so a scene restart can't leave a stale respawn timer behind
         this.player.getHealth.on(HealthEvent.Died, () => {
-            this.time.delayedCall(RESPAWN_DELAY_MS, () => this.player.respawn(SPAWN.x, SPAWN.y))
+            this.time.delayedCall(RESPAWN_DELAY_MS, () => {
+                this.player.respawn(this.spawn.x, this.spawn.y)
+                this.world.stand(this.player, this.spawn)
+            })
         })
 
         // the HUD runs as its own scene - hand it the starting values so it draws
-        // the right bar before the first health event arrives
-        this.scene.launch("HealthBar", {
-            ratio: this.player.getHealth.ratio,
-            busPrefix: PLAYER_HEALTH_BUS,
-        })
+        // the right bar before the first health event arrives. it isn't torn
+        // down by a level change, and restoreProgress() has already put the
+        // arriving player's health on the bus, so one that's already up is left
+        // alone rather than started over
+        if (!this.scene.isActive("HealthBar")) {
+            this.scene.launch("HealthBar", {
+                ratio: this.player.getHealth.ratio,
+                busPrefix: PLAYER_HEALTH_BUS,
+            })
+        }
 
     }
 
+    // pick the player back up where they left the last level off, or kit them
+    // out fresh if this is where they came in
+    private restoreProgress(): void {
+        const progress = this.registry.get(PROGRESS_KEY) as Progress | undefined
+
+        if (!progress) {
+            this.player.equip(STARTING_ITEM)
+            return
+        }
+
+        // reset() rather than a heal - it announces the new value on the bus,
+        // which is what puts the arriving player's health on the HUD
+        this.player.getHealth.reset(progress.health)
+
+        if (progress.item) this.player.equip(progress.item)
+        else this.player.unequip()
+    }
+
+    private saveProgress(): void {
+        this.registry.set(PROGRESS_KEY, {
+            health: this.player.getHealth.current,
+            item: this.player.gear.itemId,
+        } satisfies Progress)
+    }
+
+    // the exit is a marker like any other until the map says where it goes. a
+    // `level` property on it names the next one; without one, this map is simply
+    // the end of the line and standing on the exit does nothing
+    private watchForExit(): void {
+        const exit = this.world.exit
+        if (!exit) return
+
+        const next = WorldMap.property<string>(exit, MAP.exitLevelProperty)
+        if (!next) return
+
+        if (!(next in LEVELS)) {
+            console.warn(`GameScene: "${exit.name}" leads to "${next}", which isn't a level`)
+            return
+        }
+
+        this.physics.add.overlap(this.player, this.world.zone(exit), () => {
+            this.travelTo(next as LevelId)
+        })
+    }
+
+    // off to somewhere else. the overlap that calls this fires every frame the
+    // player is stood in the exit, so the first one through wins
+    private travelTo(level: LevelId): void {
+        if (this.travelling) return
+
+        this.travelling = true
+        this.saveProgress()
+        this.scene.restart({ level })
+    }
+
+    // every foe the map asked for, each stood on its own marker. which foe comes
+    // from the object's `foeType` property, or failing that from its name, so
+    // a foe can be placed in Tiled without touching any of this
+    private spawnMapFoes(): void {
+        for (const object of this.world.objects(MAP.objectLayers.enemies)) {
+            if (object.type !== MAP.foeType) continue
+
+            const definition = foeDefinitionFor(object)
+            if (!definition) continue
+
+            this.spawnFoe(definition, this.world.foot(object))
+        }
+    }
+
     // bring a foe into the world and hook it up to the player
-    private spawnFoe(definition: FoeDefinition, x: number, y: number): Foe {
-        const foe = new Foe(this, x, y, definition).setTarget(this.player)
+    private spawnFoe(definition: FoeDefinition, at: FootPoint): Foe {
+        const foe = new Foe(this, at.x, at.y, definition).setTarget(this.player)
         this.foes.push(foe)
+
+        // Foe scales itself in its constructor, so its body is the right size by
+        // the time it's put on the floor
+        this.world.stand(foe, at)
+        this.world.collide(foe)
 
         // fires every frame of the overlap - takeDamage() ignores the hits that land
         // during i-frames, so contact damage paces itself
@@ -113,6 +248,10 @@ export default class GameScene extends Phaser.Scene {
             this.player.takeDamage(projectile.damage, shot.shooter)
             projectile.strike()
         })
+
+        // an arrow that hits the level is spent the same way one that hits the
+        // player is - it just doesn't cost anybody anything
+        this.world.collide(projectile, () => projectile.strike())
 
         projectile.once(Phaser.GameObjects.Events.DESTROY, () => {
             this.projectiles.splice(this.projectiles.indexOf(projectile), 1)
@@ -200,4 +339,22 @@ export default class GameScene extends Phaser.Scene {
         this.resolvePlayerSwing()
         this.resolveFoeSwings()
     }
+}
+
+// which foe an object on the NPC layer asks for - its `foeType` property wins,
+// and its name is the fallback, so "Archer" in Tiled is enough on its own. one
+// that names neither is left out rather than guessed at
+function foeDefinitionFor(object: MapObject): FoeDefinition | null {
+    const candidates = [
+        WorldMap.property<string>(object, MAP.foeTypeProperty),
+        object.name,
+    ]
+
+    for (const candidate of candidates) {
+        const id = candidate?.trim().toLowerCase()
+        if (id && id in FOES) return FOES[id as FoeId]
+    }
+
+    console.warn(`GameScene: no foe matches "${object.name}" - skipping it`)
+    return null
 }
