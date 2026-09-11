@@ -6,38 +6,37 @@ import Projectile from '../../entities/Projectile';
 import { Attackable, MeleeAttack } from '../../components/MeleeAttack';
 import { MapObject, WorldMap } from '../world/WorldMap';
 
-// anything a swing can be resolved against: a body to measure the reach against,
-// and a way of being told it was hit. the player and a foe both satisfy this
-// without being related to one another
+/** target that can receive damage */
 interface Combatant extends Attackable {
     takeDamage(amount: number, source?: unknown): boolean
 }
 
 /**
- * Who can hit what. Everything that decides a body is stopped, a hit lands, or a
- * trigger fired lives here - the entities only ever announce what they did, and
- * the scene only says which of them are in the world.
- *
- * Two kinds of contact are handled, because the game has two. Arcade's own
- * colliders and overlaps are registered as things are spawned and then run
- * themselves; the melee swings own no physics body at all, so they're resolved
- * by hand from update(), once everything has finished moving for the frame.
- */
+ * This class manages collision and overlap between world, player, foes, projectiles, etc.
+ * 
+ * Register the player before adding foes, projectiles or zones that interacts with the it.
+ * Registered colliders and overlaps are destroyed on scene shutdown.
+*/
 export class CollisionManager {
 
+    /** the playes is what most of everything is registered against */
     private player: Player | null = null
 
-    // the swing candidates, kept because resolving a swing means testing every
-    // one of them. a destroyed foe drops itself out, so a caller registers one
-    // and never has to take it back off
+    /** Set to track current foes, removed when they die */
     private readonly foes = new Set<Foe>()
 
-    // everything registered through here, so it can all be taken down in one go
+    /** Track all colliders for cleanup */
     private readonly colliders: Phaser.Physics.Arcade.Collider[] = []
 
-    // reused - resolving a swing shouldn't allocate a rectangle per target per frame
+    /** Reusable targets bounds to avoid allocating new reactangle for each swing */
     private readonly targetBounds: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()
 
+    /**
+     * Creates a manager and registers cleanup for scene shutdown
+     * 
+     * @param scene - Scene that owns the physics interactions
+     * @param world - World map that providde solid-layer collisions and zones
+     */
     constructor(
         private readonly scene: Phaser.Scene,
         private readonly world: WorldMap,
@@ -45,8 +44,21 @@ export class CollisionManager {
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
-    // the player is what everything else is registered against, so it goes in
-    // first - a foe added before one has nobody to walk into
+    /**
+     * Registers the players and adds collision with world's solid layers
+     * 
+     * Call first. Other registrations aren't upated when player is missing.
+     * 
+     * 
+     * @param player - Player to use for subsequent registrations
+     * @returns This manager for method chaining
+     * 
+     * @example
+     * ```ts
+     * const collisions = new CollisionManager()
+     *      .setPlayer(playerObject) 
+     * ```
+     */
     setPlayer(player: Player): this {
         this.player = player
         this.track(this.world.collide(player))
@@ -55,11 +67,15 @@ export class CollisionManager {
     }
 
     /**
-     * Bring a foe into the collision world: stopped by the level, blocked by the
-     * player, and hurting them on contact.
-     *
-     * The overlap fires every frame the two are touching - takeDamage() ignores
-     * the hits that land during i-frames, which is what paces contact damage.
+     * Registers a foe for world collisions and player touching damage detection.
+     * 
+     * If player is present also adds physical blocking and an overlap
+     * that attempts contact damage. Removes the foe from tracked set when
+     * its game object is destroyed.
+     * 
+     * @param foe - A single foe object to register
+     * @returns The same foe instance
+     * 
      */
     addFoe(foe: Foe): Foe {
         this.foes.add(foe)
@@ -83,9 +99,12 @@ export class CollisionManager {
     }
 
     /**
-     * Give a shot in flight something to land on. A projectile is spent by
-     * whatever stopped it, and the level stops one exactly the way the player
-     * does - it just doesn't cost anybody anything.
+     * Register a project for world collisions and player overlap.
+     * 
+     * Calls "strike()" to dispense and spent arrow.
+     * 
+     * @param projectile - Projectile to register.
+     * @returns The same projectile instance.
      */
     addProjectile(projectile: Projectile): Projectile {
         this.track(this.world.collide(projectile, () => projectile.strike()))
@@ -95,7 +114,7 @@ export class CollisionManager {
             this.track([
                 this.scene.physics.add.overlap(player, projectile, () => {
                     if (!projectile.active) return
-                    
+
                     // the shooter is the source, not the arrow - being knocked back
                     // towards whoever fired it would read as being pulled in
                     player.takeDamage(projectile.damage, projectile.shooter)
@@ -110,12 +129,13 @@ export class CollisionManager {
     }
 
     /**
-     * Call `onEnter` while the player is stood on a marker from the map - an
-     * exit, or anything else a level wants to trigger on.
-     *
-     * It fires every frame of the overlap rather than once, because what that
-     * ought to mean belongs to whoever asked: an exit takes the first one and
-     * ignores the rest, something else may well want all of them.
+     * Creates a zone from map object and watches for player overlap.
+     * 
+     * Despite it's name, `onEnter` runs every frame overlap is detected.
+     * 
+     * @param object - Map object to get a zone from by using WorldMap's `zone()` function
+     * @param onEnter - Callback invoked while player overlaps the zone
+     * @returns The created zone, or `null` if no player is registered
      */
     watchZone(object: MapObject, onEnter: () => void): Phaser.GameObjects.Zone | null {
         if (!this.player) return null
@@ -126,13 +146,21 @@ export class CollisionManager {
         return zone
     }
 
-    // run last in the frame, so every swing lands against where things actually
-    // ended up rather than where they started it
+    /**
+     * Resolve player and enemy meele attacks
+     * run after entity updates in `GameScene.update()` so every swing lands on object's
+     * new frame position, rather than previous one
+     */
     update(): void {
         this.resolvePlayerSwing()
         this.resolveFoeSwings()
     }
 
+    /**
+     * Destroys tracked colliders, clears foes and nullifies player reference
+     * 
+     * Called after one time listener fires on scene shutdown.
+     */
     destroy(): void {
         for (const collider of this.colliders) collider.destroy()
 
@@ -141,7 +169,10 @@ export class CollisionManager {
         this.player = null
     }
 
-    // the player's swing reaches for every foe in the world
+    /**
+     * Resolve player's meele attack against registered foes.
+     * Does nothing if player isn't registered.
+     */
     private resolvePlayerSwing(): void {
         const player = this.player
         if (!player) return
@@ -152,14 +183,17 @@ export class CollisionManager {
         })
     }
 
-    // the mirror of it - a melee foe's swing reaches for the player, and its own
-    // registerHit() keeps one swing to one hit
+    /**
+     * Resolve every foes meele attack against player.
+     * Does nothing if player is missing or dead.
+     */
     private resolveFoeSwings(): void {
         const player = this.player
+        // if player is dead, nothing left to hit
         if (!player || player.getHealth.isDead) return
 
         for (const foe of this.foes) {
-            // the foe is the source, so the player is knocked away from it
+            // pass player as an array of length === 1, because resolveSwing takes array as a parameter
             this.resolveSwing(foe.meleeAttack, [player], () => {
                 player.takeDamage(foe.attackDamage, foe)
             })
@@ -167,26 +201,26 @@ export class CollisionManager {
     }
 
     /**
-     * One swing against everything it could reach. The geometry is the same
-     * whoever is swinging - what differs is who counts as a target and what a
-     * hit costs them, and both of those are the caller's to say.
-     *
-     * registerHit() is what stops one swing landing on the same target twice, so
-     * it's asked last: a target the reach missed was never hit to begin with.
+     * Resolve meele attack against targets with enabled physics bodies.
+     * 
+     * Checks geometry before registering a hit. Calls `onHit()` only when
+     * `registerHit()` accepts target, preventing repeated hits on the same
+     * targets during one swing.
+     * Does nothing if the swing or it's hit are is missing.
+     * 
+     * @param swing - Meele attack to get hit and hit area.
+     * @param targets - Iterable type object of swing targets.
+     * @param onHit - Callback invoked for every registered swing.
      */
     private resolveSwing<T extends Combatant>(
         swing: MeleeAttack | null,
         targets: Iterable<T>,
         onHit: (target: T) => void,
     ): void {
-        // null outside the frames that actually hurt, so a windup or a recovery
-        // has nothing to test
+        // area of meele attack box
         const area = swing?.hitArea
         if (!swing || !area) return
 
-        // a target that dies to its hit leaves the set mid-loop, which is why the
-        // foes are held in one - removing the element being visited can't shuffle
-        // the ones still to come, the way splicing an array would
         for (const target of targets) {
             const body = target.body as Phaser.Physics.Arcade.Body | null
 
@@ -202,7 +236,11 @@ export class CollisionManager {
         }
     }
 
-    // hold on to what was registered, so destroy() can take it all back down
+    /**
+     * Save registered collider handles for cleanup in `destroy()`
+     *  
+     * @param colliders - Handles to retain
+     */
     private track(colliders: Phaser.Physics.Arcade.Collider[]): void {
         this.colliders.push(...colliders)
     }
