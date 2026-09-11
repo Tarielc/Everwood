@@ -20,6 +20,7 @@ import { AttackEvent } from '../components/AttackComponent';
 import { Shot } from '../components/RangedAttack';
 import { HealthEvent } from '../components/HealthComponent';
 import { FootPoint, MapObject, WorldMap } from '../systems/world/WorldMap';
+import { CollisionManager } from '../systems/collision/CollisionManager';
 
 // used only if the map turns up without a PlayerStartPoint on it - somewhere to
 // stand is better than the top left corner of the world
@@ -56,6 +57,9 @@ export default class GameScene extends Phaser.Scene {
     private world!: WorldMap
     private player!: Player
     private controls!: InputController
+
+    // everything about who can hit what - the scene only says what's in the world
+    private collisions!: CollisionManager
     private foes: Foe[] = []
     private projectiles: Projectile[] = []
 
@@ -68,10 +72,6 @@ export default class GameScene extends Phaser.Scene {
     // a level change is a scene restart, and it takes a beat to come round -
     // this is what stops the exit firing again while it's on its way
     private travelling: boolean = false
-
-    // reused - resolving a swing shouldn't allocate a rectangle per foe per frame
-    private readonly foeBounds: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()
-    private readonly playerBounds: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()
 
     constructor() {
         super("GameScene")
@@ -90,7 +90,9 @@ export default class GameScene extends Phaser.Scene {
         // the level first - it sets the world and camera bounds everything else
         // is then spawned inside of
         this.world = new WorldMap(this, this.level)
-        console.log(this.world)
+
+        // built on the world, since what stops a body is the level itself
+        this.collisions = new CollisionManager(this, this.world)
 
         // create input controller after game starts
         this.controls = new InputController(this)
@@ -104,8 +106,10 @@ export default class GameScene extends Phaser.Scene {
         // scaled first, then stood on the floor - the drop is measured off the
         // body the player actually ended up with
         this.world.stand(this.player, this.spawn)
-        this.world.collide(this.player)
         this.world.follow(this.player, MAP_CAMERA)
+
+        // everything registered after this point is registered against the player
+        this.collisions.setPlayer(this.player)
 
         this.restoreProgress()
         this.bindItemHotkeys()
@@ -176,9 +180,7 @@ export default class GameScene extends Phaser.Scene {
             return
         }
 
-        this.physics.add.overlap(this.player, this.world.zone(exit), () => {
-            this.travelTo(next as LevelId)
-        })
+        this.collisions.watchZone(exit, () => this.travelTo(next as LevelId))
     }
 
     // off to somewhere else. the overlap that calls this fires every frame the
@@ -213,13 +215,7 @@ export default class GameScene extends Phaser.Scene {
         // Foe scales itself in its constructor, so its body is the right size by
         // the time it's put on the floor
         this.world.stand(foe, at)
-        this.world.collide(foe)
-
-        // fires every frame of the overlap - takeDamage() ignores the hits that land
-        // during i-frames, so contact damage paces itself
-        this.physics.add.overlap(this.player, foe, () => {
-            if (!foe.isDead) this.player.takeDamage(foe.contactDamage, foe)
-        })
+        this.collisions.addFoe(foe)
 
         // a bow only announces its shot - what one can hit is decided here, the
         // same as it is for a swing. this listens to the component rather than to
@@ -240,69 +236,13 @@ export default class GameScene extends Phaser.Scene {
             this, shot.x, shot.y, shot.projectile, shot.direction, shot.damage, shot.shooter,
         )
         this.projectiles.push(projectile)
-
-        this.physics.add.overlap(this.player, projectile, () => {
-            if (!projectile.active) return
-
-            // spent either way - an arrow stopped by i-frames still stops
-            this.player.takeDamage(projectile.damage, shot.shooter)
-            projectile.strike()
-        })
-
-        // an arrow that hits the level is spent the same way one that hits the
-        // player is - it just doesn't cost anybody anything
-        this.world.collide(projectile, () => projectile.strike())
+        this.collisions.addProjectile(projectile)
 
         projectile.once(Phaser.GameObjects.Events.DESTROY, () => {
             this.projectiles.splice(this.projectiles.indexOf(projectile), 1)
         })
 
         return projectile
-    }
-
-    // the swing's hit area is plain geometry, so this is where it's decided who
-    // counts as a target. registerHit() is what stops one swing hitting twice
-    private resolvePlayerSwing(): void {
-        const swing = this.player.getAttack
-        const area = swing.hitArea
-        if (!area) return
-
-        // backwards, so a foe that dies to the hit can't shift the ones behind it
-        for (let i = this.foes.length - 1; i >= 0; i--) {
-            const foe = this.foes[i]
-            const body = foe.body as Phaser.Physics.Arcade.Body | null
-
-            // a corpse mid-fade still has a sprite, but nothing left to hit
-            if (foe.isDead || !body?.enable) continue
-
-            this.foeBounds.setTo(body.x, body.y, body.width, body.height)
-            if (!Phaser.Geom.Rectangle.Overlaps(area, this.foeBounds)) continue
-            if (!swing.registerHit(foe)) continue
-
-            // the player is the source, so the foe knows which way to be knocked
-            foe.takeDamage(this.player.attackDamage, this.player)
-        }
-    }
-
-    // the mirror of the above - a melee foe's swing reaches for the player, and
-    // its own registerHit() keeps one swing to one hit
-    private resolveFoeSwings(): void {
-        const body = this.player.body as Phaser.Physics.Arcade.Body | null
-        if (!body || this.player.getHealth.isDead) return
-
-        this.playerBounds.setTo(body.x, body.y, body.width, body.height)
-
-        for (const foe of this.foes) {
-            const swing = foe.meleeAttack
-            const area = swing?.hitArea
-            if (!swing || !area) continue
-
-            if (!Phaser.Geom.Rectangle.Overlaps(area, this.playerBounds)) continue
-            if (!swing.registerHit(this.player)) continue
-
-            // the foe is the source, so the player is knocked away from it
-            this.player.takeDamage(foe.attackDamage, foe)
-        }
     }
 
     // temporary stand-in for an inventory - swap gear with the number row
@@ -336,8 +276,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         // last, so every swing lands against where everything actually ended up
-        this.resolvePlayerSwing()
-        this.resolveFoeSwings()
+        this.collisions.update()
     }
 }
 
