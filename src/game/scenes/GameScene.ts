@@ -169,18 +169,19 @@ export default class GameScene extends Phaser.Scene {
     // `level` property on it names the next one; without one, this map is simply
     // the end of the line and standing on the exit does nothing
     private watchForExit(): void {
-        const exit = this.world.exit
-        if (!exit) return
+        const exits = this.world.exit
+        if (!exits) return
 
-        const next = WorldMap.property<string>(exit, MAP.exitLevelProperty)
-        if (!next) return
-
-        if (!(next in LEVELS)) {
-            console.warn(`GameScene: "${exit.name}" leads to "${next}", which isn't a level`)
-            return
+        for (const exit of exits) {
+            const next = WorldMap.property<string>(exit, MAP.exitLevelProperty)
+            if (!next) continue
+    
+            if (!(next in LEVELS)) {
+                console.warn(`GameScene: "${exit.name}" leads to "${next}", which isn't a level`)
+                continue
+            }
+            this.collisions.watchZone(exit, () => this.travelTo(next as LevelId))
         }
-
-        this.collisions.watchZone(exit, () => this.travelTo(next as LevelId))
     }
 
     // off to somewhere else. the overlap that calls this fires every frame the

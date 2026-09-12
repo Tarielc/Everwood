@@ -486,7 +486,7 @@ export const MAP = {
 
     // markers on the player layer - where a level starts and where it lets out
     spawnMarker: "PlayerStartPoint",
-    exitMarker: "PlayerExitpoint",
+    exitType: "PlayerExitpoint",
     // which level the exit leads to, named on the exit object in Tiled. a map
     // whose exit doesn't name one is simply the end of the line
     exitLevelProperty: "nextLevel",
