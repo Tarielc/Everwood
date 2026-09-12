@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { EventBus } from '../utils/EventBus';
 import { HealthChange, HealthEvent, healthEventKey, HealthEventName } from '../components/HealthComponent';
 import { HEALTH_BAR, PLAYER_HEALTH_BUS } from '../utils/constants';
+import { onResize, safeArea } from '../utils/viewport';
 
 export interface HealthBarData {
     // the bar the HUD draws on its first frame, before any event arrives
@@ -50,6 +51,13 @@ export default class HealthBar extends Phaser.Scene {
         hud.setScale(HEALTH_BAR.scale)
         hud.setScrollFactor(0, 0, true)
         hud.setDepth(HEALTH_BAR.depth)
+
+        // the top-left corner doesn't move under Scale.EXPAND, but a notch can
+        // sit over it in landscape - keep the HUD inside the safe area
+        onResize(this, () => {
+            const inset = safeArea(this.scale)
+            hud.setPosition(HEALTH_BAR.x + inset.left, HEALTH_BAR.y + inset.top)
+        })
 
         // draw the values we were handed before the first event lands
         this.drawHealth(this.healthRatio)

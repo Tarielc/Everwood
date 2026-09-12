@@ -34,6 +34,40 @@ body {
     height: 100%;
 }
 
+#rotate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    background-color: #0f0f0f;
+    font-family: system-ui, sans-serif;
+    font-size: 20px;
+}
+
+#rotate-overlay .rotate-icon {
+    width: 48px;
+    height: 80px;
+    border: 4px solid currentColor;
+    border-radius: 8px;
+    animation: rotate-hint 2s ease-in-out infinite;
+}
+
+@keyframes rotate-hint {
+    0%, 30% { transform: rotate(0deg); }
+    60%, 100% { transform: rotate(90deg); }
+}
+
+/* coarse pointer = a finger, so a narrow desktop window never gets the overlay */
+@media (orientation: portrait) and (pointer: coarse) {
+    #rotate-overlay {
+        display: flex;
+    }
+}
+
 #game-container canvas {
     /* inline elements get a text baseline gap underneath, which offsets the letterbox */
     display: block;

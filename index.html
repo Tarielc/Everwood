@@ -15,6 +15,12 @@
     <div id="app">
         <div id="game-container"></div>
     </div>
+    <!-- shown by CSS on touch devices held in portrait - iOS can't be locked to
+         landscape from a web page, so the player is asked to turn it instead -->
+    <div id="rotate-overlay">
+        <div class="rotate-icon"></div>
+        <p>Rotate your device</p>
+    </div>
     <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

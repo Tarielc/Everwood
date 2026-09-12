@@ -8,14 +8,15 @@ import HealthBar from './game/ui/HealthBar';
 //  Game Configuration
 const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
-    width: 1280,
-    height: 720,
     parent: 'game-container',
     backgroundColor: '#028af8',
     pixelArt: true,
+    roundPixels: true,
     scale: {
-        mode: Scale.FIT,
-        autoCenter: Scale.CENTER_BOTH
+        mode: Scale.EXPAND,
+        autoCenter: Scale.CENTER_BOTH,
+        width: 1280,
+        height: 720,
     },
     physics: {
         default: "arcade",

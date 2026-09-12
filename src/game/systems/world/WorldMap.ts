@@ -12,6 +12,7 @@
  * - {@link WorldMap} turn one cached level map into an actual world: live layers, backdrops, bounds, etc.
  */
 import * as Phaser from 'phaser';
+import { onResize } from '../../utils/viewport';
 
 import {
     LEVELS,
@@ -260,6 +261,13 @@ export class WorldMap {
      * Kept because the tileset image paths and the image layers are not reachable through Phaser's tilemap.
      */
     private readonly json: TiledJson | null
+
+    /** Backdrops that tile sideways, re-sized to the camera on every resize */
+    private readonly repeatingBackdrops: Array<{
+        sprite: Phaser.GameObjects.TileSprite,
+        parallaxX: number,
+        sourceWidth: number,
+    }> = []
 
     /**
      * Builds the level map: backdrops, tile layers, bounds.
@@ -546,9 +554,6 @@ export class WorldMap {
     private buildBackdrops(): void {
         if (!this.json) return
 
-        const camera = this.scene.cameras.main
-        const worldWidth = this.map.widthInPixels * this.scale
-
         for (const data of readBackdrops(this.json)) {
             const key = backdropTexture(data.image)
             if (!this.scene.textures.exists(key)) {
@@ -559,16 +564,16 @@ export class WorldMap {
             const parallaxX = data.parallaxX ?? 1
             const source = this.scene.textures.get(key).getSourceImage()
 
-            // a backdrop that scrolls slower than the world still has to cover the
-            // eveywhere camera can go: it travels parallaxX of the world's scrollable
-            // width - so it needs viewport size, plus that much.
-            const coverWidth = camera.width + Math.max(0, worldWidth - camera.width) * parallaxX
-
             // repeatubg vacjdrios vecines a tukesorite sizes to cover that span
             // a non-repeating one is a plain image at its authored size
-            const backdrop: Phaser.GameObjects.Image | Phaser.GameObjects.TileSprite = data.repeatX
-                ? this.scene.add.tileSprite(0, 0, coverWidth / this.scale + source.width, source.height, key)
-                : this.scene.add.image(0, 0, key)
+            let backdrop: Phaser.GameObjects.Image | Phaser.GameObjects.TileSprite
+            if (data.repeatX) {
+                const tiled = this.scene.add.tileSprite(0, 0, source.width, source.height, key)
+                this.repeatingBackdrops.push({ sprite: tiled, parallaxX, sourceWidth: source.width })
+                backdrop = tiled
+            } else {
+                backdrop = this.scene.add.image(0, 0, key)
+            }
 
             // top-left origin, so the position means the same thing Tiled meant
             backdrop.setOrigin(0, 0)
@@ -579,6 +584,26 @@ export class WorldMap {
             backdrop.setDepth(data.depth)
             backdrop.setAlpha(data.alpha)
             backdrop.setVisible(data.visible)
+        }
+
+        // sized off the camera, which grows and shrinks with the screen under
+        // Scale.EXPAND - so it's done again on every resize
+        onResize(this.scene, () => this.coverBackdrops())
+    }
+
+    /**
+     * Stretch each repeating backdrop over everywhere the camera can see.
+     */
+    private coverBackdrops(): void {
+        const camera = this.scene.cameras.main
+        const worldWidth = this.map.widthInPixels * this.scale
+
+        for (const { sprite, parallaxX, sourceWidth } of this.repeatingBackdrops) {
+            // a backdrop that scrolls slower than the world still has to cover the
+            // eveywhere camera can go: it travels parallaxX of the world's scrollable
+            // width - so it needs viewport size, plus that much.
+            const coverWidth = camera.width + Math.max(0, worldWidth - camera.width) * parallaxX
+            sprite.setSize(coverWidth / this.scale + sourceWidth, sprite.height)
         }
     }
 

@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { InputSource, RawInput } from './InputSource';
 import { TOUCH_CONTROLS, TouchControlsConfig, UI_SCALE_FACTOR } from '../../utils/constants';
+import { onResize, safeArea } from '../../utils/viewport';
 
 type Action = keyof RawInput
 
@@ -19,35 +20,46 @@ export default class TouchSource implements InputSource {
     // for touch device we use array of on-screen buttons
     private buttons: TouchButton[] = []
 
+    // stops the buttons following resizes once this source is destroyed
+    private stopLayout: () => void
+
     constructor(private scene: Phaser.Scene, private config: TouchControlsConfig = TOUCH_CONTROLS) {
         scene.input.addPointer(config.maxTouches - 1)
 
-        const { width, height } = scene.scale.gameSize
-        const { radius, margin, gap } = config
+        // create control buttons - placed by layout(), since where they go
+        // depends on the screen size at the time
+        this.addButton("left", this.scene.add.image(0, 0, "left-btn").setScale(UI_SCALE_FACTOR))
+        this.addButton("right", this.scene.add.image(0, 0, "right-btn").setScale(UI_SCALE_FACTOR))
+        this.addButton("sprint", this.scene.add.image(0, 0, "sprint-btn").setScale(UI_SCALE_FACTOR))
+        this.addButton("jump", this.scene.add.image(0, 0, "jump-btn").setScale(UI_SCALE_FACTOR))
+        this.addButton("attack", this.scene.add.image(0, 0, this.textureFor("attack-btn")).setScale(UI_SCALE_FACTOR))
 
-        // create control buttons
-        const leftBtn = this.scene.add.image(margin + radius, height - margin - radius, "left-btn")
-            .setScale(UI_SCALE_FACTOR)
-        const rightBtn = this.scene.add.image(margin + radius * 2 + gap, height - margin - radius, "right-btn")
-            .setScale(UI_SCALE_FACTOR)
-        const jumpBtn = this.scene.add.image(width - margin - radius, height - margin - radius, "jump-btn")
-            .setScale(UI_SCALE_FACTOR)
-        const sprintBtn = this.scene.add.image(width - margin - radius * 2 - gap, height - margin - radius, "sprint-btn")
-            .setScale(UI_SCALE_FACTOR)
-        
-        // stacked above jump rather than beside it - the thumb that swings is the
-        // thumb that jumps, and reaching sideways for it fights the movement hand
-        const attackBtn = this.scene.add.image(
-            width - margin - radius,
-            height - margin - radius * 2 - gap,
-            this.textureFor("attack-btn"),
-        ).setScale(UI_SCALE_FACTOR)
+        this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
+    }
 
-        this.addButton("left", leftBtn)
-        this.addButton("right", rightBtn)
-        this.addButton("sprint", sprintBtn)
-        this.addButton("jump", jumpBtn)
-        this.addButton("attack", attackBtn)
+    // pin movement to the bottom-left and actions to the bottom-right of the
+    // live screen, clear of any notch or home bar
+    private layout(width: number, height: number): void {
+        const { radius, margin, gap } = this.config
+        const inset = safeArea(this.scene.scale)
+
+        const left = margin + inset.left
+        const right = width - margin - inset.right
+        const bottom = height - margin - inset.bottom - radius
+
+        const positions: Record<Action, [number, number]> = {
+            left: [left + radius, bottom],
+            right: [left + radius * 2 + gap, bottom],
+            jump: [right - radius, bottom],
+            sprint: [right - radius * 2 - gap, bottom],
+            // stacked above jump rather than beside it - the thumb that swings is the
+            // thumb that jumps, and reaching sideways for it fights the movement hand
+            attack: [right - radius, bottom - radius - gap],
+        }
+
+        for (const { action, button } of this.buttons) {
+            button.setPosition(...positions[action])
+        }
     }
 
     // the real art if it was loaded, a plain disc if it wasn't - drop assets/ui/
@@ -124,6 +136,7 @@ export default class TouchSource implements InputSource {
     }
 
     destroy(): void {
+        this.stopLayout()
         for (const { button } of this.buttons) {
             button.destroy()
         }
