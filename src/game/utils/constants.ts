@@ -4,6 +4,11 @@ import { MovementConfig } from "../components/MovementController"
 export const SCALE_FACTOR:number = 2
 export const UI_SCALE_FACTOR:number = 10
 
+// the fewest game pixels of height the screen ever shows. a shorter screen (a
+// phone held sideways) is drawn scaled down instead of cropping the top and
+// bottom off the level - lower it to zoom in on those screens, raise it to zoom out
+export const MIN_VIEW_HEIGHT:number = 720
+
 // every character sheet - the player and each equippable overlay - is cut to this
 // grid. Equint works by copying the player's frame index onto the item sprite,
 // so the sheets must stay frame-for-frame aligned
@@ -109,7 +114,7 @@ export const TOUCH_CONTROLS:TouchControlsConfig = {
     radius: 56,
     hitRadiusScale: 1.25,
     margin: 20,
-    gap: 50,
+    gap: 30,
     maxTouches: 3,
     pressedAlpha: 0.55,
     depth: 2000,

@@ -28,11 +28,11 @@ export default class TouchSource implements InputSource {
 
         // create control buttons - placed by layout(), since where they go
         // depends on the screen size at the time
-        this.addButton("left", this.scene.add.image(0, 0, "left-btn").setScale(UI_SCALE_FACTOR))
-        this.addButton("right", this.scene.add.image(0, 0, "right-btn").setScale(UI_SCALE_FACTOR))
-        this.addButton("sprint", this.scene.add.image(0, 0, "sprint-btn").setScale(UI_SCALE_FACTOR))
-        this.addButton("jump", this.scene.add.image(0, 0, "jump-btn").setScale(UI_SCALE_FACTOR))
-        this.addButton("attack", this.scene.add.image(0, 0, this.textureFor("attack-btn")).setScale(UI_SCALE_FACTOR))
+        this.addButton("left", this.scene.add.image(0, 0, this.textureFor("left-btn")).setScale(1.5))
+        this.addButton("right", this.scene.add.image(0, 0, this.textureFor("right-btn")).setScale(1.5))
+        //this.addButton("sprint", this.scene.add.image(0, 0, "sprint-btn").setScale(UI_SCALE_FACTOR))
+        this.addButton("jump", this.scene.add.image(0, 0, this.textureFor("jump-btn")).setScale(1.5))
+        this.addButton("attack", this.scene.add.image(0, 0, this.textureFor("attack-btn")).setScale(1.5))
 
         this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
     }
@@ -112,12 +112,13 @@ export default class TouchSource implements InputSource {
         const setPressed = (pressed: boolean) => {
             entry.pressed = pressed
             // visible feedback - a touch has no cursor to show what it hit
-            btn.setAlpha(pressed ? this.config.pressedAlpha : 1)
+            btn.setTexture(pressed ? `${action}-btn-down` : `${action}-btn`)
         }
 
         btn
             .on("pointerdown", () => {
                 setPressed(true)
+                
             })
             .on("pointerup", () => {
                 setPressed(false)

@@ -1,6 +1,16 @@
 # Responsive Design
 
-The game uses `Phaser.Scale.EXPAND` with the size of 1280x780. `EXPAND` grows the visible area to fill the screen, so `scale.width` and `scale.height` change with the device and window size. Everything placed relative to screen, should be positioned from live size, not 1280x780.
+The game is sized by `fitToParent()`, which behaves like `Phaser.Scale.RESIZE` with a minimum height (see below), so `scale.width` and `scale.height` change with the device and window size. Everything placed relative to screen, should be positioned from live size, not the 1280x720 in the game config.
+
+## `fitToParent(game, minHeight)`
+
+Called once in [main.ts](/src/main.ts), to handle reponsive desing manually - `Scale.NONE` gives us full control over the scaling, no automatic size changing.
+
+Screens with a height of a least `MIN_VIEW_HEIGHT` in CSS pixels, act exactly as `Phaser.Scale.RESIZE` would - 1 game pixel is 1 CSS pixel.
+
+On shorter screens the game gets `MIN_VIEW_HEIGHT` pixels of height, and the browser draws that canvas scaled down. Plain `RESIZE` would crop the top and bottom levels instead and `EXPAND` would display empty space below the game.
+
+A `ResizeObserver()` is a browser API on the parent, and it watches size change of parent element. After detecting a change, we resize `Phaser.Scale` which fires `RESIZE` event and `onResize()` listener is triggered.
 
 Each scene has its own objects and needs different solutions, but shared helpers are defined in `viewport.ts`.
 
@@ -29,8 +39,6 @@ On desktop and on devices without a notch, every inset is `0`.
 
 Creates event listener on resize which runs `layout(width, height)` every time event is fired. Listener is removed after scene shuts down.
 
-On every resize handler also runs `toffleRotateOverlay()` to show or hide the rotate overlay.
-
 ### Usage
 |Scene| What it does |
 | --- | --- |
@@ -41,7 +49,7 @@ On every resize handler also runs `toffleRotateOverlay()` to show or hide the ro
 
 ## `EnterImmersive(scene)`
 
-Enters fullscreen mode wherever possible and tries to lock screen orientation to landscape. It does nothing on devices without touch input.
+Enters fullscreen mode wherever possible. Orientation isn't locked. It does nothing on devices without touch input.
 
 Browsers only grant fullscreen on the `pointerdown`:
 ```ts
@@ -53,12 +61,7 @@ startButton.on("pointerup", ()=> {
 
 ## Orientation
 
-The game is landscape only. There are two layer of handlig:
-
-1. **Lock** - `lockLandscape()` asks the browser to lock the orienntations with `screen.orientation.lock("landscape")`, falling back to Phaser's  `scale.lockOrientation()` for older browsers. It resolves to whether the lock succeeded. The modern API for locking orientation mode only works in fullscreen, so outside it the call fails quietly.
-2. **Overlay** - where the lock isn't supported (e.g. iOS Safari), the rotate overlay is displayed, asking player to rotate device. `toggleRotateOverlay()` adds active class to `#rotate-overlay` while `scale.isPortrait`, otherwise it removed the active class.
-
-The overlay markup [index.html](/index.html), and styles [style.css](/public/style.css)
+The game plays in both portrait and landscape; there is no orientation lock or rotate overlay. Portrait uses the screen as-is (narrow and tall view), while landscape on a phone is scaled by `fitToParent()` so the full height of the view stays visible.
 
 ## Adding a Responsive Element
 - Create the object at any position

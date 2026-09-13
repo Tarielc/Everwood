@@ -4,6 +4,8 @@ import PreloadScene from './game/scenes/PreloadScene';
 import MainMenuScene from './game/scenes/MainMenuScene';
 import GameScene from './game/scenes/GameScene';
 import HealthBar from './game/ui/HealthBar';
+import { fitToParent } from './game/utils/viewport';
+import { MIN_VIEW_HEIGHT } from './game/utils/constants';
 
 //  Game Configuration
 const config: Phaser.Types.Core.GameConfig = {
@@ -12,12 +14,12 @@ const config: Phaser.Types.Core.GameConfig = {
     backgroundColor: '#028af8',
     pixelArt: true,
     roundPixels: true,
+    // sized by fitToParent() instead - RESIZE, but with a minimum height, so a
+    // phone in landscape shows the adequate height view rather than a stripped version of it
     scale: {
-        mode: Scale.EXPAND,
-        autoCenter: Scale.CENTER_BOTH,
+        mode: Scale.NONE,
         width: 1280,
         height: 720,
-        
     },
     physics: {
         default: "arcade",
@@ -37,11 +39,14 @@ const config: Phaser.Types.Core.GameConfig = {
 
 // function to start the game
 const StartGame = (parent: string) => {
-    return new Game({ ...config, parent });
+    const game = new Game({ ...config, parent });
+    fitToParent(game, MIN_VIEW_HEIGHT);
+    return game;
 }
 
 // start game after DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    StartGame('game-container');
+    const game = StartGame('game-container');
+    console.log(game)
 });
 
