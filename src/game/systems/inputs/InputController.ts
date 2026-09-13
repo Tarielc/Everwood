@@ -2,6 +2,9 @@ import * as Phaser from 'phaser';
 import { InputSource, RawInput } from './InputSource';
 import KeyboardSource from './KeyboardSource';
 import TouchSource from './TouchSource';
+import { DOUBLE_TAP_SPRINT_MS } from '../../utils/constants';
+
+type Direction = 'left' | 'right'
 
 // drives MovementController - can be implemented by KeyBoard, Touchpad, etc.
 export interface InputState {
@@ -41,7 +44,11 @@ export default class InputController implements InputState {
         attack: false
     }
 
-    constructor(scene: Phaser.Scene, options: InputControllerOptions = {}) {
+    // when each direction was last pressed, and the one a double tap is sprinting in
+    private lastPressAt: Record<Direction, number> = { left: -Infinity, right: -Infinity }
+    private tapSprint: Direction | null = null
+
+    constructor(private scene: Phaser.Scene, options: InputControllerOptions = {}) {
         const { keyboard = true, touch = 'auto' } = options
 
         // if keyboard is present, add it to source inputs
@@ -76,11 +83,22 @@ export default class InputController implements InputState {
 
         const wasJumpHeld = this.jumpHeld
         const wasAttackHeld = this.attackHeld
+        const wasLeft = this.moveLeft
+        const wasRight = this.moveRight
 
         // apply boolean values that represent whether buttons are held or not
         this.moveLeft = frame.left
         this.moveRight = frame.right
-        this.sprintHeld = frame.sprint
+
+        const now = this.scene.time.now
+        if (this.moveLeft && !wasLeft) this.onDirectionPressed('left', now)
+        if (this.moveRight && !wasRight) this.onDirectionPressed('right', now)
+
+        // the sprint lasts only as long as the second press is held
+        if (this.tapSprint === 'left' && !this.moveLeft) this.tapSprint = null
+        if (this.tapSprint === 'right' && !this.moveRight) this.tapSprint = null
+
+        this.sprintHeld = frame.sprint || this.tapSprint !== null
         this.jumpHeld = frame.jump
         this.attackHeld = frame.attack
 
@@ -90,6 +108,18 @@ export default class InputController implements InputState {
 
         // a swing fires on the press, never on the hold - one tap, one swing
         this.attackJustPressed = this.attackHeld && !wasAttackHeld
+    }
+
+    private onDirectionPressed(direction: Direction, now: number): void {
+        if (now - this.lastPressAt[direction] <= DOUBLE_TAP_SPRINT_MS) {
+            this.tapSprint = direction
+            // a third quick tap starts a fresh pair rather than chaining off this one
+            this.lastPressAt[direction] = -Infinity
+        } else {
+            // turning around drops a sprint, the other direction has to be double tapped too
+            if (this.tapSprint !== direction) this.tapSprint = null
+            this.lastPressAt[direction] = now
+        }
     }
 
     destroy(): void {

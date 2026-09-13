@@ -9,6 +9,8 @@ interface TouchButton {
     action: Action
     button: Phaser.GameObjects.Image
     pressed: boolean
+    // ids of the pointers holding this button down - two fingers can share one
+    pointers: Set<number>
 }
 
 // stand-in art for a button whose png hasn't been drawn yet, generated once per
@@ -28,13 +30,15 @@ export default class TouchSource implements InputSource {
 
         // create control buttons - placed by layout(), since where they go
         // depends on the screen size at the time
-        this.addButton("left", this.scene.add.image(0, 0, this.textureFor("left-btn")).setScale(1.5))
-        this.addButton("right", this.scene.add.image(0, 0, this.textureFor("right-btn")).setScale(1.5))
-        //this.addButton("sprint", this.scene.add.image(0, 0, "sprint-btn").setScale(UI_SCALE_FACTOR))
-        this.addButton("jump", this.scene.add.image(0, 0, this.textureFor("jump-btn")).setScale(1.5))
-        this.addButton("attack", this.scene.add.image(0, 0, this.textureFor("attack-btn")).setScale(1.5))
+        this.addButton("left", this.scene.add.image(0, 0, this.textureFor("left-btn")).setScale(UI_SCALE_FACTOR))
+        this.addButton("right", this.scene.add.image(0, 0, this.textureFor("right-btn")).setScale(UI_SCALE_FACTOR))
+        this.addButton("jump", this.scene.add.image(0, 0, this.textureFor("jump-btn")).setScale(UI_SCALE_FACTOR))
+        this.addButton("attack", this.scene.add.image(0, 0, this.textureFor("attack-btn")).setScale(UI_SCALE_FACTOR))
 
         this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
+
+        scene.input.on(Phaser.Input.Events.POINTER_UP, this.onPointerUp)
+        scene.input.on(Phaser.Input.Events.POINTER_UP_OUTSIDE, this.onPointerUp)
     }
 
     /**
@@ -92,6 +96,7 @@ export default class TouchSource implements InputSource {
             action: action,
             button: btn,
             pressed: false,
+            pointers: new Set(),
         }
         this.buttons.push(entry)
 
@@ -109,26 +114,28 @@ export default class TouchSource implements InputSource {
         // above the world, so nothing the player walks behind can cover the controls
         btn.setDepth(this.config.depth)
 
-        const setPressed = (pressed: boolean) => {
-            entry.pressed = pressed
-            // visible feedback - a touch has no cursor to show what it hit
-            btn.setTexture(pressed ? `${action}-btn-down` : `${action}-btn`)
-        }
+        btn.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+            entry.pointers.add(pointer.id)
+            this.setPressed(entry, true)
+        })
+    }
 
-        btn
-            .on("pointerdown", () => {
-                setPressed(true)
-                
-            })
-            .on("pointerup", () => {
-                setPressed(false)
-            })
-            .on("pointerupoutside", () => {
-                setPressed(false)
-            })
-            .on("pointerout", () => {
-                setPressed(false)
-            })
+    private setPressed(entry: TouchButton, pressed: boolean): void {
+        entry.pressed = pressed
+        // visible feedback - a touch has no cursor to show what it hit
+        entry.button.setTexture(pressed ? `${entry.action}-btn-down` : `${entry.action}-btn`)
+    }
+
+    // a press is held by the finger that made it, not by the button's area - sliding
+    // off the button keeps it down, and only lifting that finger (anywhere, even
+    // off the canvas) lets it go. The button itself only hears "pointerup" if the
+    // finger is still over it, so the release is caught at the scene level
+    private readonly onPointerUp = (pointer: Phaser.Input.Pointer): void => {
+        for (const entry of this.buttons) {
+            if (entry.pointers.delete(pointer.id) && entry.pointers.size === 0) {
+                this.setPressed(entry, false)
+            }
+        }
     }
 
     // read current state of the buttons and copy it into out
@@ -142,6 +149,8 @@ export default class TouchSource implements InputSource {
 
     destroy(): void {
         this.stopLayout()
+        this.scene.input.off(Phaser.Input.Events.POINTER_UP, this.onPointerUp)
+        this.scene.input.off(Phaser.Input.Events.POINTER_UP_OUTSIDE, this.onPointerUp)
         for (const { button } of this.buttons) {
             button.destroy()
         }

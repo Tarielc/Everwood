@@ -2,7 +2,7 @@ import { HealthConfig } from "../components/HealthComponent"
 import { MovementConfig } from "../components/MovementController"
 
 export const SCALE_FACTOR:number = 2
-export const UI_SCALE_FACTOR:number = 10
+export const UI_SCALE_FACTOR:number = 1.5
 
 // the fewest game pixels of height the screen ever shows. a shorter screen (a
 // phone held sideways) is drawn scaled down instead of cropping the top and
@@ -26,6 +26,9 @@ export const PLAYER_MOVEMENT:MovementConfig = {
     jumpBufferMs: 120,
     maxFallSpeed: 600,
 }
+// two presses of the same direction this close together sprint, for as long as
+// the second press is held - the only way to sprint on touch, which has no shift
+export const DOUBLE_TAP_SPRINT_MS:number = 250
 // prefix the player's health events carry on the global EventBus, e.g. "player:health-changed"
 // - shared so the entity that emits and the HUD that listens can't drift apart
 export const PLAYER_HEALTH_BUS:string = "player"
