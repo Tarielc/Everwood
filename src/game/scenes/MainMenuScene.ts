@@ -24,10 +24,6 @@ export default class MainMenuScene extends Phaser.Scene {
             startButton.setPosition(width / 2, height / 2 + 50)
         })
 
-        // the menu is skipped for now, so the first tap in the level is the
-        // gesture that asks for fullscreen and landscape.
-        this.input.once(Phaser.Input.Events.POINTER_UP, () => enterImmersive(this))
-
         startButton.on("pointerover", () => startButton.setTint(0xAAAAAA))
         startButton.on("pointerout", () => startButton.clearTint())
         // pointerup rather than pointerdown - browsers only grant fullscreen on

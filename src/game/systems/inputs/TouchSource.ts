@@ -37,8 +37,12 @@ export default class TouchSource implements InputSource {
         this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
     }
 
-    // pin movement to the bottom-left and actions to the bottom-right of the
-    // live screen, clear of any notch or home bar
+    /**
+     * Distribute action buttons on the new resized screen 
+     * 
+     * @param width - New scale width after resize
+     * @param height  - New scale height after resize
+     */
     private layout(width: number, height: number): void {
         const { radius, margin, gap } = this.config
         const inset = safeArea(this.scene.scale)

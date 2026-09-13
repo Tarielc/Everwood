@@ -18,8 +18,7 @@ export default class PreloadScene extends Phaser.Scene {
         // create a loading graph
         const loadingGraph = this.createLoadingGraph()
 
-        // the bar is drawn around its container's origin, so moving the container
-        // is all a resize needs
+        // he bar is drawn in its container, so we only need to move container
         onResize(this, (width, height) => {
             background.setDisplaySize(width, height)
             loadingGraph.setPosition(width / 2, height / 2)
@@ -69,6 +68,7 @@ export default class PreloadScene extends Phaser.Scene {
             .setTint(0xA63446)
             .setDropShadow(1, 1, 0xFBFEF9, 1)
 
+        // Text needs to be in center for every new resize
         onResize(this, (width, height) => title.setPosition(width / 2, height / 2 - 50))
 
         // start main menu scene after a short delay

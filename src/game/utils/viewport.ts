@@ -8,10 +8,24 @@ export interface SafeArea {
     left: number
 }
 
-// a hidden element padded by the env() insets - the browser resolves them into
-// plain pixels on it, which is the only way to read them from script
+/**
+ * A hidden element padded by the env() insets - the browser resolves them into
+ * plain pixels on it, which is the only way to read them from script
+ * 
+ * variable that will hold <div> element which is used as a ruler
+ */
 let probe: HTMLDivElement | null = null
 
+/**
+ * Create a <div> element and use it as a ruler
+ * 
+ * "Storing" CSS enviromental variables in probes padding
+ * so for TypeScript can read values of safe-area-insets
+ * 
+ * @returns returns the global probe element
+ *  creates new one if it doesn't exists
+ *  reuse if already exists 
+ */
 function insetProbe(): HTMLDivElement {
     if (probe) return probe
 
@@ -28,9 +42,10 @@ function insetProbe(): HTMLDivElement {
 }
 
 /**
- * Current safe-area insets, converted from CSS pixels into game pixels.
- *
- * All zero on devices without a notch, and on desktop.
+ * Get current safe-area-insets - read from CSS and convert into game pixels
+ * 
+ * @param scale - Game's scale, so we can factor size for our game
+ * @returns Safe working area
  */
 export function safeArea(scale: Phaser.Scale.ScaleManager): SafeArea {
     const style = getComputedStyle(insetProbe())
@@ -46,20 +61,24 @@ export function safeArea(scale: Phaser.Scale.ScaleManager): SafeArea {
 }
 
 /**
- * Run `layout` now and again every time the game size changes, until the scene shuts down.
- *
- * Under Scale.EXPAND the visible area grows past the 1280x720 design size, so
- * anything pinned to a screen edge has to be placed from the live size.
- *
- * @returns A function that removes the listener early.
+ * Add resize event handlers for the scene
+ * 
+ * @param scene - Scene we want to listen to resize event
+ * @param layout - Function we want to run every time resize event fires
+ * @returns cleanup and remove listener on scene shutdown
  */
 export function onResize(
     scene: Phaser.Scene,
     layout: (width: number, height: number) => void,
 ): () => void {
     const scale = scene.scale
-    const handler = () => layout(scale.width, scale.height)
+    const handler = () => {
+        // main function to run (passed as an argument)
+        layout(scale.width, scale.height)
 
+        // toogle orientation overlay
+        toggleRotateOverlay(scene)
+    }
     scale.on(Phaser.Scale.Events.RESIZE, handler)
     // the ScaleManager belongs to the game, not the scene - without this the
     // listener outlives the scene and fires into destroyed objects
@@ -71,11 +90,13 @@ export function onResize(
 }
 
 /**
- * Go fullscreen and lock to landscape where the browser allows it.
- *
- * Must be called from inside a user gesture (a pointerup handler). Android
- * Chrome honours both; iOS Safari supports neither, so the rotate overlay in
- * index.html is what covers it there.
+ * Go fullscreen and lock `landscape` mode wherever browser allows it
+ * 
+ * iOS Safari doesn't support `startFullscreen()` so the rotate overlay
+ * div in index.html {@link #rotate-overlay} is set to active whenever `portrait`
+ * mode is detected and fullscreen can't be locked.
+ * 
+ * @param scene - Scene to lock
  */
 export function enterImmersive(scene: Phaser.Scene): void {
     const scale = scene.scale
@@ -85,7 +106,49 @@ export function enterImmersive(scene: Phaser.Scene): void {
         scale.startFullscreen()
     }
 
-    // lock() is missing from TypeScript's DOM types, and throws outside fullscreen
+    // lock orientation to landscape
+    lockLandscape(scene)
+}
+
+/**
+ * Attempt locking to landscape mode
+ *
+ * Modern browsers use `screen.orientation.lock()`, which only works in
+ * fullscreen and rejects everywhere else. Phaser's `lockOrientation()` only
+ * checks the legacy prefixed APIs, so it is kept as a fallback for old browsers.
+ *
+ * @param scene - Scene we want to lock
+ * @returns resolves to true if the lock succeeded, false otherwise
+ */
+async function lockLandscape(scene: Phaser.Scene): Promise<boolean> {
+    // lock() is missing from TypeScript's DOM types
     const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }
-    orientation.lock?.("landscape").catch(() => { /* not supported - the overlay handles it */ })
+
+    if (orientation?.lock) {
+        try {
+            await orientation.lock("landscape")
+            return true
+        } catch {
+            // not supported, or not in fullscreen - the overlay handles it
+            return false
+        }
+    }
+
+    return scene.scale.lockOrientation("landscape")
+}
+/**
+ * Attempts to lock screen, display orientation overlay otherwise
+ * 
+ * @param scene - Scene to check orientation
+ */
+function toggleRotateOverlay(scene: Phaser.Scene): void {
+    const overlayDiv = document.getElementById("rotate-overlay")
+    if(!overlayDiv) return
+
+    const isPortrait = scene.scale.isPortrait
+
+    // we aren't in portrait mode, we don't need overlayDiv to display
+    overlayDiv.classList.toggle("active-overlay", isPortrait)
+    
+    
 }
