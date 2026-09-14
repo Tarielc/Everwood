@@ -42,16 +42,15 @@ export default class PreloadScene extends Phaser.Scene {
         for (const { texture } of Object.values(PROJECTILES)) {
             this.load.image(texture, `assets/sprites/${texture}.png`)
         }
-        this.load.image("left-btn", "assets/ui/controls/left-btn.png")
-        this.load.image("right-btn", "assets/ui/controls/right-btn.png")
-        //this.load.image("sprint-btn", "assets/ui/controls/sprint-btn.png")
-        this.load.image("jump-btn", "assets/ui/controls/jump-btn.png")
-        this.load.image("attack-btn", "assets/ui/controls/attack-btn.png")
+        this.load.image("left-btn", "assets/ui/controls/left-btn.svg")
+        this.load.image("right-btn", "assets/ui/controls/right-btn.svg")
+        this.load.image("jump-btn", "assets/ui/controls/jump-btn.svg")
+        this.load.image("attack-btn", "assets/ui/controls/attack-btn.svg")
 
-        this.load.image("left-btn-down", "assets/ui/controls/left-btn-down.png")
-        this.load.image("right-btn-down", "assets/ui/controls/right-btn-down.png")
-        this.load.image("jump-btn-down", "assets/ui/controls/jump-btn-down.png")
-        this.load.image("attack-btn-down", "assets/ui/controls/attack-btn-down.png")
+        this.load.image("left-btn-down", "assets/ui/controls/left-btn-down.svg")
+        this.load.image("right-btn-down", "assets/ui/controls/right-btn-down.svg")
+        this.load.image("jump-btn-down", "assets/ui/controls/jump-btn-down.svg")
+        this.load.image("attack-btn-down", "assets/ui/controls/attack-btn-down.svg")
 
 
         this.load.image("hpBar", "assets/ui/HP-bar.png")

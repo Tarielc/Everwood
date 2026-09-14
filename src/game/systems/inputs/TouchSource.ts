@@ -30,10 +30,10 @@ export default class TouchSource implements InputSource {
 
         // create control buttons - placed by layout(), since where they go
         // depends on the screen size at the time
-        this.addButton("left", this.scene.add.image(0, 0, this.textureFor("left-btn")).setScale(UI_SCALE_FACTOR))
-        this.addButton("right", this.scene.add.image(0, 0, this.textureFor("right-btn")).setScale(UI_SCALE_FACTOR))
-        this.addButton("jump", this.scene.add.image(0, 0, this.textureFor("jump-btn")).setScale(UI_SCALE_FACTOR))
-        this.addButton("attack", this.scene.add.image(0, 0, this.textureFor("attack-btn")).setScale(UI_SCALE_FACTOR))
+        this.addButton("left", this.scene.add.image(0, 0, this.textureFor("left-btn")))
+        this.addButton("right", this.scene.add.image(0, 0, this.textureFor("right-btn")))
+        this.addButton("jump", this.scene.add.image(0, 0, this.textureFor("jump-btn")))
+        this.addButton("attack", this.scene.add.image(0, 0, this.textureFor("attack-btn")))
 
         this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
 
