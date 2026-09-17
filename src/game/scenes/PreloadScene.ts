@@ -27,7 +27,15 @@ export default class PreloadScene extends Phaser.Scene {
 
         // he bar is drawn in its container, so we only need to move container
         onResize(this, (width, height) => {
-            background.setDisplaySize(width, height)
+            const scale = Math.max(
+                this.scale.width / background.width,
+                this.scale.height / background.height
+            );
+
+            background
+                .setDisplaySize(width, height)
+                .setScale(scale);
+
             loadingGraph.setPosition(width / 2, height / 2)
         })
 
@@ -73,14 +81,6 @@ export default class PreloadScene extends Phaser.Scene {
     }
 
     create() {
-        const title = this.add.bitmapText(0, 0, "Jacquard24", "Everwood", 100)
-            .setOrigin(0.5)
-            .setTint(0xA63446)
-            .setDropShadow(1, 1, 0xFBFEF9, 1)
-
-        // Text needs to be in center for every new resize
-        onResize(this, (width, height) => title.setPosition(width / 2, height / 2 - 50))
-
         // start main menu scene after a short delay
         this.time.delayedCall(300, () => {
             this.scene.start("MainMenuScene")
