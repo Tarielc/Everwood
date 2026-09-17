@@ -9,9 +9,14 @@ export const BUTTON_SVG_SCALE:number = 2
 
 /**
  * The fewest game pixels of height the screen ever shows. A shorter screen (a phone
- * held sideways) is drawn scaled down instead of cropping the level - instead zoom in-out
+ * held sideways) is drawn scaled down instead of cropping the level
  */
 export const MIN_VIEW_HEIGHT:number = 720
+/**
+ * The maximum game pixels of height the screen ever shows. A taller screen
+ * is drawn scaled up instead of expanding the level and displaying background color
+ */
+export const MAX_VIEW_HEIGHT:number = 1280
 
 /**
  * The grid every character sheet - the player and each equippable overlay - is cut to.

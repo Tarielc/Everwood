@@ -78,7 +78,7 @@ export function safeArea(scale: Phaser.Scale.ScaleManager): SafeArea {
  * @param game - Game to size
  * @param minHeight - Fewest game pixels of height ever shown
  */
-export function fitToParent(game: Phaser.Game, minHeight: number): void {
+export function fitToParent(game: Phaser.Game, minHeight: number, maxHeight: number): void {
     const scale = game.scale
     const parent = scale.parent as HTMLElement
 
@@ -87,7 +87,7 @@ export function fitToParent(game: Phaser.Game, minHeight: number): void {
         if (width === 0 || height === 0) return
 
         // CSS pixels per game pixel - 1 on tall screens, below 1 on short ones
-        const zoom = Math.min(1, height / minHeight)
+        const zoom = Math.min(height / maxHeight, height / minHeight)
 
         // the canvas has to be its final on-screen size before resize() refreshes,
         // since that's what displayScale - and so every pointer - is measured from

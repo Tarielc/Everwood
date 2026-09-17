@@ -5,7 +5,7 @@ import MainMenuScene from './game/scenes/MainMenuScene';
 import GameScene from './game/scenes/GameScene';
 import HealthBar from './game/ui/HealthBar';
 import { fitToParent } from './game/utils/viewport';
-import { MIN_VIEW_HEIGHT } from './game/config/display';
+import { MAX_VIEW_HEIGHT, MIN_VIEW_HEIGHT } from './game/config/display';
 import UIScene from './game/scenes/UIScene';
 
 //  Game Configuration
@@ -42,7 +42,7 @@ const config: Phaser.Types.Core.GameConfig = {
 // function to start the game
 const StartGame = (parent: string) => {
     const game = new Game({ ...config, parent });
-    fitToParent(game, MIN_VIEW_HEIGHT);
+    fitToParent(game, MAX_VIEW_HEIGHT, MIN_VIEW_HEIGHT);
     return game;
 }
 
