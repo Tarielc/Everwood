@@ -17,7 +17,7 @@ export interface TouchControlsConfig {
 
 /** Default touch control configuration for `TouchSource` */
 export const TOUCH_CONTROLS:TouchControlsConfig = {
-    radius: 48,
+    radius: 64,
     hitRadiusScale: 1.25,
     margin: 20,
     gap: 20,

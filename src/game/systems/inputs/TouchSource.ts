@@ -1,6 +1,5 @@
 import * as Phaser from 'phaser';
 import { Action, InputSource, RawInput } from './InputSource';
-import { BUTTON_SVG_SCALE } from '../../config/display';
 import { BUTTONS, TOUCH_CONTROLS, TouchControlsConfig } from '../../config/input';
 import { onResize, safeArea } from '../../utils/viewport';
 
@@ -32,7 +31,7 @@ export default class TouchSource implements InputSource {
             }
             // the SVGs are rasterised at BUTTON_SVG_SCALE, so draw them back down
             // to their authored size
-            this.addButton(action, this.scene.add.image(0, 0, texture).setScale(1 / BUTTON_SVG_SCALE))
+            this.addButton(action, this.scene.add.image(0, 0, texture))
         }
 
         this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
