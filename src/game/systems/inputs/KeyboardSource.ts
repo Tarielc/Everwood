@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { InputSource, RawInput } from './InputSource';
 
-
+/** aEvery key this source listens to - 'alt' stands for 'alternative'   */
 type KeyMap = {
     left: Phaser.Input.Keyboard.Key
     altLeft: Phaser.Input.Keyboard.Key
@@ -15,9 +15,20 @@ type KeyMap = {
     altAttack: Phaser.Input.Keyboard.Key
 }
 
+/**
+ * Implements {@link InputSource} for keyboard inputs, created by
+ * `InputController` if the keyboard is detected/enabled.
+ */
 export default class KeyboardSource implements InputSource {
+    /** Phaser key object for every binding */
     private keys: KeyMap
 
+    /**
+     * Register the key binding and stop browser from
+     * scrolling when arrow keys or space is pressed.
+     * 
+     * @param scene - Scene we are tracking keyboard input for
+     */
     constructor(private scene: Phaser.Scene) {
         const keyboard = scene.input.keyboard
         // keyboard must be present to track keyboard inputs
@@ -46,7 +57,11 @@ export default class KeyboardSource implements InputSource {
         ])
     }
 
-    // implement interface method to output data which can be later used by InputController 
+    /**
+     * Sets action in `out` to `true` if any input key is pressed.
+     * 
+     * @param out - This frame's raw input
+     */
     sample(out: RawInput): void {
         const k = this.keys
         // only change values if left side is falsy
@@ -57,6 +72,9 @@ export default class KeyboardSource implements InputSource {
         out.attack ||= k.attack.isDown || k.altAttack.isDown
     }
 
+    /**
+     * Caled by `InputController` to remove the bound keys from scene's keyboard plugin
+     */
     destroy(): void {
         const keyboard = this.scene.input.keyboard
         if (!keyboard) return

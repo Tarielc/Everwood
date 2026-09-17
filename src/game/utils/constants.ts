@@ -26,9 +26,7 @@ export const PLAYER_MOVEMENT:MovementConfig = {
     jumpBufferMs: 120,
     maxFallSpeed: 600,
 }
-// two presses of the same direction this close together sprint, for as long as
-// the second press is held - the only way to sprint on touch, which has no shift
-export const DOUBLE_TAP_SPRINT_MS:number = 250
+
 // prefix the player's health events carry on the global EventBus, e.g. "player:health-changed"
 // - shared so the entity that emits and the HUD that listens can't drift apart
 export const PLAYER_HEALTH_BUS:string = "player"
@@ -102,25 +100,6 @@ export const HEALTH_BAR:HealthBarConfig = {
     tweenMs: 220,
     damageFlash: 0xffffff,
     damageFlashMs: 90,
-}
-export interface TouchControlsConfig {
-    radius: number,
-    hitRadiusScale: number, // forgiving hit area, larger than the drawn circle
-    margin: number,
-    gap: number,
-    maxTouches: number,
-    pressedAlpha: number,
-    depth: number, // above everything in the world, the controls are never occluded
-}
-
-export const TOUCH_CONTROLS:TouchControlsConfig = {
-    radius: 56,
-    hitRadiusScale: 1.25,
-    margin: 20,
-    gap: 30,
-    maxTouches: 3,
-    pressedAlpha: 0.55,
-    depth: 2000,
 }
 
 export interface ItemDefinition {

@@ -1,9 +1,7 @@
 import * as Phaser from 'phaser';
-import { InputSource, RawInput } from './InputSource';
-import { TOUCH_CONTROLS, TouchControlsConfig, UI_SCALE_FACTOR } from '../../utils/constants';
+import { Action, InputSource, RawInput } from './InputSource';
+import { BUTTON_SVG_SCALE, BUTTONS, TOUCH_CONTROLS, TouchControlsConfig } from '../../config/input';
 import { onResize, safeArea } from '../../utils/viewport';
-
-type Action = keyof RawInput
 
 interface TouchButton {
     action: Action
@@ -12,11 +10,6 @@ interface TouchButton {
     // ids of the pointers holding this button down - two fingers can share one
     pointers: Set<number>
 }
-
-// stand-in art for a button whose png hasn't been drawn yet, generated once per
-// texture manager - the same size as the real button sheets, so it scales alike
-const FALLBACK_TEXTURE = "touch-btn-fallback"
-const FALLBACK_SIZE = 8
 
 export default class TouchSource implements InputSource {
     // for touch device we use array of on-screen buttons
@@ -30,10 +23,16 @@ export default class TouchSource implements InputSource {
 
         // create control buttons - placed by layout(), since where they go
         // depends on the screen size at the time
-        this.addButton("left", this.scene.add.image(0, 0, this.textureFor("left-btn")))
-        this.addButton("right", this.scene.add.image(0, 0, this.textureFor("right-btn")))
-        this.addButton("jump", this.scene.add.image(0, 0, this.textureFor("jump-btn")))
-        this.addButton("attack", this.scene.add.image(0, 0, this.textureFor("attack-btn")))
+        for (const {action, texture, downTexture} of Object.values(BUTTONS)){
+            // pixelArt makes every texture NEAREST - the buttons are vector art, so
+            // both states get smooth filtering, or pressing one turns it blocky
+            for (const key of [texture, downTexture]) {
+                this.scene.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR)
+            }
+            // the SVGs are rasterised at BUTTON_SVG_SCALE, so draw them back down
+            // to their authored size
+            this.addButton(action, this.scene.add.image(0, 0, texture).setScale(1 / BUTTON_SVG_SCALE))
+        }
 
         this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
 
@@ -68,23 +67,6 @@ export default class TouchSource implements InputSource {
         for (const { action, button } of this.buttons) {
             button.setPosition(...positions[action])
         }
-    }
-
-    // the real art if it was loaded, a plain disc if it wasn't - drop assets/ui/
-    // attack-btn.png in and load it in PreloadScene to replace the placeholder
-    private textureFor(key: string): string {
-        const textures = this.scene.textures
-        if (textures.exists(key)) return key
-
-        if (!textures.exists(FALLBACK_TEXTURE)) {
-            const graphics = this.scene.make.graphics({ x: 0, y: 0 }, false)
-            graphics.fillStyle(0xffffff, 1)
-            graphics.fillCircle(FALLBACK_SIZE / 2, FALLBACK_SIZE / 2, FALLBACK_SIZE / 2)
-            graphics.generateTexture(FALLBACK_TEXTURE, FALLBACK_SIZE, FALLBACK_SIZE)
-            graphics.destroy()
-        }
-
-        return FALLBACK_TEXTURE
     }
 
     // assign each button with corresponding "action" and value to track whether it's pressed or not

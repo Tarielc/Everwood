@@ -2,13 +2,17 @@ import * as Phaser from 'phaser';
 import { CHARACTER_FRAME, FOES, ITEMS, PROJECTILES } from '../utils/constants';
 import { loadMapImages } from '../systems/world/WorldMap';
 import { onResize } from '../utils/viewport';
+import { BUTTON_SVG_SCALE, BUTTONS } from '../config/input';
 
 export default class PreloadScene extends Phaser.Scene {
     private progressBar!: Phaser.GameObjects.Graphics
     private progressBox!: Phaser.GameObjects.Graphics
 
     constructor() {
-        super("PreloadScene")
+        super({
+            key: "PreloadScene",
+            plugins: ["Loader", "Clock"]
+        })
     }
 
     preload() {
@@ -42,16 +46,12 @@ export default class PreloadScene extends Phaser.Scene {
         for (const { texture } of Object.values(PROJECTILES)) {
             this.load.image(texture, `assets/sprites/${texture}.png`)
         }
-        this.load.image("left-btn", "assets/ui/controls/left-btn.svg")
-        this.load.image("right-btn", "assets/ui/controls/right-btn.svg")
-        this.load.image("jump-btn", "assets/ui/controls/jump-btn.svg")
-        this.load.image("attack-btn", "assets/ui/controls/attack-btn.svg")
 
-        this.load.image("left-btn-down", "assets/ui/controls/left-btn-down.svg")
-        this.load.image("right-btn-down", "assets/ui/controls/right-btn-down.svg")
-        this.load.image("jump-btn-down", "assets/ui/controls/jump-btn-down.svg")
-        this.load.image("attack-btn-down", "assets/ui/controls/attack-btn-down.svg")
-
+        // load button textures
+        for (const {texture, downTexture} of Object.values(BUTTONS)){
+            this.load.svg(texture, `assets/ui/controls/${texture}.svg`, { scale: BUTTON_SVG_SCALE })
+            this.load.svg(downTexture, `assets/ui/controls/${downTexture}.svg`, { scale: BUTTON_SVG_SCALE })
+        }
 
         this.load.image("hpBar", "assets/ui/HP-bar.png")
         this.load.image("manaBar", "assets/ui/blue-bar.png")
@@ -64,7 +64,6 @@ export default class PreloadScene extends Phaser.Scene {
         for (const { texture } of Object.values(ITEMS)) {
             this.load.spritesheet(texture, `assets/sprites/${texture}.png`, CHARACTER_FRAME)
         }
-
     }
 
     create() {
