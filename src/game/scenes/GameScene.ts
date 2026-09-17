@@ -130,10 +130,6 @@ export default class GameScene extends Phaser.Scene {
                 busPrefix: PLAYER_HEALTH_BUS,
             })
         }
-        
-        if (!this.scene.isActive("UIScene")){
-            this.scene.launch("UIScene")
-        }
     }
 
     // pick the player back up where they left the last level off, or kit them

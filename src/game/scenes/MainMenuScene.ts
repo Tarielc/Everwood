@@ -23,6 +23,10 @@ export default class MainMenuScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true })
 
+        if (!this.scene.isActive("UIScene")){
+            this.scene.launch("UIScene")
+        }
+
         // centred off the live size, which under fitToParent() isn't always 1280x720 -
         // a portrait phone is far narrower than the 100px title
         onResize(this, (width, height) => {
@@ -46,11 +50,11 @@ export default class MainMenuScene extends Phaser.Scene {
 
         startButton.on("pointerover", () => startButton.setTint(0xAAAAAA))
         startButton.on("pointerout", () => startButton.clearTint())
+        
         // pointerup rather than pointerdown - browsers only grant fullscreen on
         // the release half of a gesture
         startButton.on("pointerup", () => {
             this.scene.start("GameScene")
         })
-
     }
 }
