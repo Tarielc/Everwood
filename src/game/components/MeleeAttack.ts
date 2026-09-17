@@ -47,6 +47,9 @@ export class MeleeAttack extends AttackComponent {
 
     private debug: Phaser.GameObjects.Graphics | null = null
 
+    // a config handed over mid-swing, waiting for that swing to finish
+    private pending: MeleeAttackConfig | null = null
+
     constructor(
         owner: Phaser.Physics.Arcade.Sprite,
         private config: MeleeAttackConfig,
@@ -64,6 +67,13 @@ export class MeleeAttack extends AttackComponent {
 
     protected get bufferMs(): number {
         return this.config.bufferMs
+    }
+
+    // the timing and reach of the next swing - one already underway keeps the
+    // config it started with, so swapping weapons can't reshape it halfway through
+    setConfig(config: MeleeAttackConfig): void {
+        if (this.isAttacking) this.pending = config
+        else this.config = config
     }
 
     update(dt: number): void {
@@ -111,6 +121,12 @@ export class MeleeAttack extends AttackComponent {
 
     protected onEnd(): void {
         this.connected.clear()
+
+        // after the base has already charged this swing's own cooldown
+        if (this.pending) {
+            this.config = this.pending
+            this.pending = null
+        }
     }
 
     protected advance(_dt: number): void {

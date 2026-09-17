@@ -46,12 +46,12 @@ export const PLAYER_RESPAWN_INVULNERABILITY_MS:number = 1500
  * Player melee swing, tuned against the 6-frame `PLAYER_ANIMS.attack` - the window
  * opens around the frame the blade is out in front
  */
-export const PLAYER_ATTACK:MeleeAttackConfig = {
+export const PLAYER_UNARMED_ATTACK:MeleeAttackConfig = {
     windupMs: 180,
     activeMs: 260,
     cooldownMs: 240,
     bufferMs: 160,
-    width: 53,
+    width: 18,
     height: 64,
     offsetX: -8,
     // the player's body is nearly a hundred pixels tall and a fox barely a third

@@ -3,12 +3,12 @@ import * as Phaser from 'phaser';
 import { MovementController } from "../components/MovementController"
 import { AnimationController, Facing } from "../components/AnimationController"
 import { HealthComponent, HealthChange, HealthEvent } from "../components/HealthComponent"
-import { EquipmentComponent } from "../components/EquipmentComponent"
+import { EquipmentComponent, EquipmentEvent } from "../components/EquipmentComponent"
 import { MeleeAttack } from "../components/MeleeAttack"
 import { ItemDefinition, ItemId } from '../data/items';
 import { PLAYER_ANIMS } from '../data/animations';
 import {
-    PLAYER_ATTACK,
+    PLAYER_UNARMED_ATTACK,
     PLAYER_BODY,
     PLAYER_HEALTH,
     PLAYER_HEALTH_BUS,
@@ -76,12 +76,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // the equipped item is drawn as an overlay that copies this sprite's frames
         this.equipment = new EquipmentComponent(this);
 
-        // the swing's timing and reach - what it costs comes from the equipment,
-        // and who it lands on is the scene's business
-        this.attack = new MeleeAttack(this, PLAYER_ATTACK);
+        // the swing's timing and reach - both follow the equipment, and who it
+        // lands on is the scene's business
+        this.attack = new MeleeAttack(this, PLAYER_UNARMED_ATTACK);
 
         // health drives the states, the states never poll it back
         this.bindHealth()
+        this.bindEquipment()
 
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
@@ -196,6 +197,18 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.health.on(HealthEvent.InvulnerabilityEnd, () => {
             this.setAlpha(1)
         })
+    }
+
+    // whatever's in hand decides how the next swing reaches - bare hands, or an
+    // item without a swing of its own, fall back to the unarmed one
+    private bindEquipment(): void {
+        const applySwing = () => {
+            this.attack.setConfig(this.equipment.item?.swing ?? PLAYER_UNARMED_ATTACK)
+        }
+
+        // the equipment component owns these listeners, so destroy() unhooks them with it
+        this.equipment.on(EquipmentEvent.Equipped, applySwing)
+        this.equipment.on(EquipmentEvent.Unequipped, applySwing)
     }
 
     // brief white flash on the hit - FILL replaces the texture colour outright,
