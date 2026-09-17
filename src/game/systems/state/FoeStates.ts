@@ -3,7 +3,7 @@ import type Foe from '../../entities/Foe';
 import { FoeAnims } from '../../data/animations';
 import { State } from './StateMachine';
 
-// states of a foe
+/** List of foe states, keyd by {@link FoeStateName} */
 export const FoeState = {
     Idle: "idle",     // pausing at the end of a patrol leg, or with nothing to do
     Patrol: "patrol", // wandering either side of where it spawned
@@ -13,20 +13,31 @@ export const FoeState = {
     Dead: "dead",     // fading out, no longer collidable
 } as const
 
+/** Keys for {@link FoeState}*/
 export type FoeStateName = typeof FoeState[keyof typeof FoeState]
 
-// how long a flinch holds on a sheet that hasn't got a hurt animation to time it
+/** how long a flinch holds on a sheet that hasn't got a hurt animation to time it */
 const HURT_STUN_MS = 520
 
-// not every sheet has every animation - fall back to a frame it definitely has,
-// rather than asking for one that isn't there
+/**
+ * Play foe animation. Not every foe has every animation, so fall back to ones they do have.
+ * 
+ * @param foe - Foe we want to animate
+ * @param name - name of the animation
+ * @param fallback - name of the fallback animation
+ */
 function play(foe: Foe, name: keyof FoeAnims, fallback: keyof FoeAnims = "idle"): void {
     const animations = foe.getAnimations
     animations.play(animations.has(name) ? name : fallback, { restart: true })
 }
 
-// can the foe currently see its target? `range` differs on the way in and out of a
-// chase, so a target hovering at the boundary can't strobe the state every frame
+/**
+ * Determine whether a foe can currently sea its target.
+ * 
+ * @param foe - Foe we are checking
+ * @param range - Range at which foe can see it's target
+ * @returns `true` if foe can see it's target, `false` otherwise
+ */
 function canSee(foe: Foe, range: number): boolean {
     const target = foe.target
     if (!target || !target.active) return false
@@ -36,7 +47,13 @@ function canSee(foe: Foe, range: number): boolean {
         && Math.abs(target.y - foe.y) <= definition.verticalReach
 }
 
-// close enough to commit, and off cooldown - a foe without an attack never is
+/**
+ * Check whether a foe can attack or not
+ * close enought to commit and no cooldown
+ * 
+ * @param foe - Foe we are checking
+ * @returns `true` if target is in range and foe attack is ready, `false` otherwise
+ */
 function canAttack(foe: Foe): boolean {
     const attack = foe.definition.attack
     if (!attack) return false
@@ -45,14 +62,31 @@ function canAttack(foe: Foe): boolean {
     return foe.isAttackReady && canSee(foe, attack.range)
 }
 
-// -1 or 1 toward the target, or the way the foe already faces if there isn't one
+/**
+ * Determine the direction of target, relative to foe
+ * 
+ * if target is dead or doesn't exist, foe is facing the same way as before
+ * 
+ * @param foe - Foe we are checking
+ * @returns `-1` if foetarget is lef,
+ *  `1` if target is right,
+ *  `patrolDirection` if target doesn't exists
+ */
 function directionToTarget(foe: Foe): -1 | 1 {
     const target = foe.target
     if (!target) return foe.patrolDirection
     return target.x < foe.x ? -1 : 1
 }
 
-// walked past its leash, or run into a wall
+/**
+ * Does foe need to run around?
+ * 
+ * Foe either walked past it's patrol area or walked into a solid object (or wolrd border)
+ * 
+ * @param foe - Foe we are checking
+ * @returns `true` if foe is blocked OR on patrol border,
+ *  `false` otherwise
+ */
 function shouldTurnAround(foe: Foe): boolean {
     const body = foe.body as Phaser.Physics.Arcade.Body
 
@@ -67,12 +101,24 @@ function shouldTurnAround(foe: Foe): boolean {
     return blocked || onPatrolBorder
 }
 
-// where a foe goes once an attack or a flinch is over - back on the hunt if
-// whatever it was dealing with is still in reach
+/**
+ * Whenever foe attack or flinch is over - back on the hunt, or chase, if
+ * foe can still see it's target.
+ *  
+ * @param foe - Foe we are checking
+ * @returns returns `FoeStateName` revert back
+ */
 function recoverState(foe: Foe): FoeStateName {
     return canSee(foe, foe.definition.deAggroRange) ? FoeState.Chase : FoeState.Idle
 }
 
+/**
+ * Create all foe states, one for each {@link FoeState}
+ * 
+ * Every foe registers its own set with `addStates()` and starts in {@link FoeState.Idle}
+ * 
+ * @returns the list of states, readu to add to a foe's `StateMachine`
+ */
 export function createFoeStates(): State<Foe>[] {
     return [
         {

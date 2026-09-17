@@ -3,7 +3,7 @@ import type Player from '../../entities/Player';
 import { State } from './StateMachine';
 import { PLAYER_MOVEMENT } from '../../data/player';
 
-// states of the player
+/** List of player states, keyd by {@link PlayerStateName} */
 export const PlayerState = {
     Idle: "idle",
     Walk: "walk",
@@ -15,18 +15,30 @@ export const PlayerState = {
     Dead: "dead",
 } as const
 
+/** Keys for {@link PlayerState}*/
 export type PlayerStateName = typeof PlayerState[keyof typeof PlayerState]
 
-// if speed is below this value, player state is `idle`
+/** If playe speed is beloe this value, player stat counts as idle */
 const IDLE_SPEED_EPSILON = 10
 
-// check if player is touching the ground
+/**
+ * Check if player is touching the ground
+ * @param player - Player to check
+ * @returns `true` if player is touching ground, `false` otherwise
+ */
 function isGrounded(player: Player): boolean {
     const body = player.body as Phaser.Physics.Arcade.Body
     return body.blocked.down || body.touching.down
 }
 
-// return true if player is moving, or speed is above IDLE_SPEED_EPSILON
+/**
+ * Check whether player is moving or not
+ * 
+ * Mocing speed must be higher then `IDLE_SPEED_EPSILOn`
+ * @param player - Player to check
+ * @returns `true` if movement button is pressed or velocity is higher than `IDLE_SPEED_EPSILON`
+ *  `false` otherwise.
+ */
 function isMoving(player: Player): boolean {
     const body = player.body as Phaser.Physics.Arcade.Body
     return player.inputState.moveLeft
@@ -34,12 +46,26 @@ function isMoving(player: Player): boolean {
         || Math.abs(body.velocity.x) > IDLE_SPEED_EPSILON
 }
 
-// the state to fall back into once a flinch is over - airborne wins over grounded
+/**
+ * The state to fall back into once a flick is over
+ * 
+ * Airborne wins over grounded
+ * 
+ * @param player - Player to check
+ * @returns player state name to fall back to
+ */
 function recoverState(player: Player): PlayerStateName {
     return airborneState(player) ?? groundedState(player)
 }
 
 // grounded state of the player that encompases possbiel states together
+/**
+ * Check which grounded state the player is in
+ * 
+ * @param player - Player to check
+ * @returns either player state `sprint` or `walk` based on speed if player is moving,
+ *  `idle` if player isn't moving
+ */
 function groundedState(player: Player): PlayerStateName {
     const body = player.body as Phaser.Physics.Arcade.Body
     return isMoving(player)
@@ -50,6 +76,15 @@ function groundedState(player: Player): PlayerStateName {
 }
 
 // airborne state of the player that encompases possible states together
+/**
+ * Check which airborne state the player is in
+ * 
+ * If player is grounded, abort
+ * 
+ * @param player - Player to check
+ * @returns player state `Jump` if Y speed is less than a 0,
+ *  `Fall` otherwise.
+ */
 function airborneState(player: Player): PlayerStateName | null {
     if (isGrounded(player)) return null
     const body = player.body as Phaser.Physics.Arcade.Body
@@ -57,6 +92,13 @@ function airborneState(player: Player): PlayerStateName | null {
 }
 
 // create all the player states
+/**
+ * Create all player states, one for each {@link PlayerState}
+ * 
+ * Player starts in idle state
+ * 
+ * @returns the list of states, ready to add to Players `StateMachine`
+ */
 export function createPlayerStates(): State<Player>[] {
     return [
         {
