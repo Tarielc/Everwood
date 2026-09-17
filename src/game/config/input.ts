@@ -1,23 +1,22 @@
 import { Action } from '../systems/inputs/InputSource';
 
-// two presses of the same direction this close together sprint, for as long as
-// the second press is held - the only way to sprint on touch, which has no shift
 export const DOUBLE_TAP_SPRINT_MS:number = 250
 
-// make svg
 export const BUTTON_SVG_SCALE = 2
 
+/** Configuration for button placement - used in `TouchSource` */
 export interface TouchControlsConfig {
     radius: number,
-    hitRadiusScale: number, // forgiving hit area, larger than the drawn circle
+    hitRadiusScale: number,
     margin: number,
     gap: number,
+    /** How many fingers can be tracked at once, e.g. hold move, jump and attack together */
     maxTouches: number,
     pressedAlpha: number,
-    depth: number, // above everything in the world, the controls are never occluded
+    depth: number,
 }
 
-// Default touch control configuration
+/** Default touch control configuration for `TouchSource` */
 export const TOUCH_CONTROLS:TouchControlsConfig = {
     radius: 48,
     hitRadiusScale: 1.25,
@@ -28,12 +27,15 @@ export const TOUCH_CONTROLS:TouchControlsConfig = {
     depth: 2000,
 }
 
+/** A single on-screen touch button used in `TouchSource` to track different buttons */
 export interface ButtonDefinition {
+    /** The `RawInput` flag set while the button is held */
     action: Action,
     texture: string,
     downTexture: string,
 }
-// all the ouch buttons
+
+/** Every on-screen touch button, keyed by {@link ButtonId}. */
 export const BUTTONS = {
     "move-left": {action: "left", texture: "left-btn", downTexture: "left-btn-down"},
     "move-right": {action: "right", texture: "right-btn", downTexture: "right-btn-down"},
@@ -41,4 +43,5 @@ export const BUTTONS = {
     "attack": {action: "attack", texture: "attack-btn", downTexture: "attack-btn-down"},
 } as const satisfies Record<string, ButtonDefinition>
 
+/** Keys of {@link BUTTONS} */
 export type ButtonId = keyof typeof BUTTONS
