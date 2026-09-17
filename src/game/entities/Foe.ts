@@ -5,7 +5,8 @@ import { AttackComponent } from "../components/AttackComponent"
 import { MeleeAttack } from "../components/MeleeAttack"
 import { RangedAttack } from "../components/RangedAttack"
 import { HealthChange, HealthComponent, HealthEvent } from "../components/HealthComponent"
-import { FoeAnims, FoeDefinition } from '../utils/constants';
+import { FoeAnims } from '../data/animations';
+import { FoeDefinition } from '../data/foes';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createFoeStates, FoeState } from '../systems/state/FoeStates';
 

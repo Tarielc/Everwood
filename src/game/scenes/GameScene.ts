@@ -1,17 +1,10 @@
 import * as Phaser from 'phaser';
-import {
-    FOES,
-    FoeDefinition,
-    FoeId,
-    ItemId,
-    LEVELS,
-    LevelId,
-    MAP,
-    MAP_CAMERA,
-    PLAYER_HEALTH_BUS,
-    SCALE_FACTOR,
-    STARTING_LEVEL,
-} from '../utils/constants';
+import { SCALE_FACTOR } from '../config/display';
+import { MAP, MAP_CAMERA } from '../config/world';
+import { FOES, FoeDefinition, FoeId } from '../data/foes';
+import { ItemId } from '../data/items';
+import { LEVELS, LevelId, STARTING_LEVEL } from '../data/levels';
+import { PLAYER_HEALTH_BUS } from '../data/player';
 import Foe from '../entities/Foe';
 import Player from '../entities/Player';
 import Projectile from '../entities/Projectile';
@@ -166,7 +159,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // the exit is a marker like any other until the map says where it goes. a
-    // `level` property on it names the next one; without one, this map is simply
+    // `nextLevel` property on it names the next one; without one, this map is simply
     // the end of the line and standing on the exit does nothing
     private watchForExit(): void {
         const exits = this.world.exit
@@ -281,7 +274,7 @@ export default class GameScene extends Phaser.Scene {
     }
 }
 
-// which foe an object on the NPC layer asks for - its `foeType` property wins,
+// which foe an object on the enemies layer asks for - its `foeType` property wins,
 // and its name is the fallback, so "Archer" in Tiled is enough on its own. one
 // that names neither is left out rather than guessed at
 function foeDefinitionFor(object: MapObject): FoeDefinition | null {

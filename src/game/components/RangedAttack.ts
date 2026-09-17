@@ -1,6 +1,20 @@
 import * as Phaser from 'phaser';
-import { ProjectileDefinition, RangedAttackConfig } from '../utils/constants';
+import type { ProjectileDefinition } from '../data/projectiles';
 import { AttackComponent, AttackEvent } from './AttackComponent';
+
+/** A shot's timing and where it leaves from - the counterpart to `MeleeAttackConfig`, the same shape whoever holds the weapon */
+export interface RangedAttackConfig {
+    projectile: ProjectileDefinition,
+    /** What one shot costs whatever it lands on - a shot carries its damage with it rather than being charged on contact */
+    damage: number,
+    /** How far into the animation the shot leaves - the frames either side are the draw and the recovery */
+    windupMs: number,
+    /** Waited out on top of however long the animation itself took */
+    cooldownMs: number,
+    /** Where the shot leaves, measured from the centre of the shooter's body - `muzzleX` is mirrored with its facing, `muzzleY` is not */
+    muzzleX: number,
+    muzzleY: number,
+}
 
 // everything the scene needs to build the projectile that just left
 export interface Shot {

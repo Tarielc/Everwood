@@ -5,7 +5,7 @@ import MainMenuScene from './game/scenes/MainMenuScene';
 import GameScene from './game/scenes/GameScene';
 import HealthBar from './game/ui/HealthBar';
 import { fitToParent } from './game/utils/viewport';
-import { MIN_VIEW_HEIGHT } from './game/utils/constants';
+import { MIN_VIEW_HEIGHT } from './game/config/display';
 
 //  Game Configuration
 const config: Phaser.Types.Core.GameConfig = {

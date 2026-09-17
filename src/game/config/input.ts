@@ -1,8 +1,7 @@
 import { Action } from '../systems/inputs/InputSource';
 
+/** Double tap in this timeframe triggers sprint */
 export const DOUBLE_TAP_SPRINT_MS:number = 250
-
-export const BUTTON_SVG_SCALE = 2
 
 /** Configuration for button placement - used in `TouchSource` */
 export interface TouchControlsConfig {

@@ -14,13 +14,8 @@
 import * as Phaser from 'phaser';
 import { onResize } from '../../utils/viewport';
 
-import {
-    LEVELS,
-    LevelId,
-    MAP,
-    MAP_DEFAULT_BACKDROP_DEPTH,
-    MAP_DEFAULT_LAYER_DEPTH,
-} from '../../utils/constants';
+import { MAP, MAP_DEFAULT_BACKDROP_DEPTH, MAP_DEFAULT_LAYER_DEPTH } from '../../config/world';
+import { LEVELS, LevelId } from '../../data/levels';
 
 /**
  * A standing point coordinate, in world pixels

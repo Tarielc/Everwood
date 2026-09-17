@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { ITEMS, ItemDefinition, ItemId, UNARMED_DAMAGE } from '../utils/constants';
+import { ItemDefinition, ItemId, ITEMS, UNARMED_DAMAGE } from '../data/items';
 
 export const EquipmentEvent = {
     Equipped: "equipment-equipped",

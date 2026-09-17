@@ -1,8 +1,11 @@
 import * as Phaser from 'phaser';
-import { CHARACTER_FRAME, FOES, ITEMS, PROJECTILES } from '../utils/constants';
+import { BUTTON_SVG_SCALE, CHARACTER_FRAME } from '../config/display';
+import { FOES } from '../data/foes';
+import { ITEMS } from '../data/items';
+import { PROJECTILES } from '../data/projectiles';
 import { loadMapImages } from '../systems/world/WorldMap';
 import { onResize } from '../utils/viewport';
-import { BUTTON_SVG_SCALE, BUTTONS } from '../config/input';
+import { BUTTONS } from '../config/input';
 
 export default class PreloadScene extends Phaser.Scene {
     private progressBar!: Phaser.GameObjects.Graphics

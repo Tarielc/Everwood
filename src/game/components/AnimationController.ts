@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { AnimConfig } from '../utils/constants';
+import { AnimConfig } from '../data/animations';
 
 // set of animations - entries are optional, so a sheet can leave out the ones it
 // hasn't got the frames for and callers ask with has() before playing them

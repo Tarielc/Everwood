@@ -5,16 +5,16 @@ import { AnimationController, Facing } from "../components/AnimationController"
 import { HealthComponent, HealthChange, HealthEvent } from "../components/HealthComponent"
 import { EquipmentComponent } from "../components/EquipmentComponent"
 import { MeleeAttack } from "../components/MeleeAttack"
+import { ItemDefinition, ItemId } from '../data/items';
+import { PLAYER_ANIMS } from '../data/animations';
 import {
-    ItemDefinition,
-    ItemId,
-    PLAYER_ANIMS,
     PLAYER_ATTACK,
+    PLAYER_BODY,
     PLAYER_HEALTH,
     PLAYER_HEALTH_BUS,
     PLAYER_MOVEMENT,
     PLAYER_RESPAWN_INVULNERABILITY_MS,
-} from '../utils/constants';
+} from '../data/player';
 import { InputState } from '../systems/inputs/InputController';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createPlayerStates, PlayerState } from '../systems/state/PlayerStates';
@@ -54,8 +54,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.setCollideWorldBounds(true)
 
         // resize and offset player hitbox, so it's more accurate
-        this.setSize(16, 46);
-        this.setOffset(32, 18);
+        this.setSize(PLAYER_BODY.width, PLAYER_BODY.height);
+        this.setOffset(PLAYER_BODY.offsetX, PLAYER_BODY.offsetY);
 
         // add movement controller for the player
         this.movement = new MovementController(this, PLAYER_MOVEMENT);
@@ -100,7 +100,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
             // face where we're steering - neutral input keeps the last facing, and
             // a swing already underway keeps the direction it started with
-            if (!this.attack.isAttacking) this.animations.setFacing(this.steeredFacing())
+            if (!this.attack.isAttacking) this.setFacing()
 
             // decided before the move, so the first frame of a swing is already planted
             if (this.canSwing()) this.stateMachine.transition(PlayerState.Attack)
@@ -121,6 +121,18 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         // last, so the item copies the pose this frame actually settled on
         this.equipment.update()
+    }
+
+    setFacing(){
+        this.animations.setFacing(this.steeredFacing())
+        this.applyBodyOffset()
+    }
+
+    private applyBodyOffset(): void {
+        const { width, offsetX, offsetY } = PLAYER_BODY
+        const mirrored = this.width - offsetX - width
+
+        this.setOffset(this.flipX ? mirrored : offsetX, offsetY)
     }
 
     // put an item in the player's hand - swapping straight from another is fine

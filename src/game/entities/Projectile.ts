@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { ProjectileDefinition } from '../utils/constants';
+import { ProjectileDefinition } from '../data/projectiles';
 
 /**
  * A shot in flight. It carries its own damage and remembers who fired it, so

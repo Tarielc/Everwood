@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import type Player from '../../entities/Player';
 import { State } from './StateMachine';
-import { PLAYER_MOVEMENT } from '../../utils/constants';
+import { PLAYER_MOVEMENT } from '../../data/player';
 
 // states of the player
 export const PlayerState = {

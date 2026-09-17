@@ -1,7 +1,8 @@
 import * as Phaser from 'phaser';
 import { EventBus } from '../utils/EventBus';
 import { HealthChange, HealthEvent, healthEventKey, HealthEventName } from '../components/HealthComponent';
-import { HEALTH_BAR, PLAYER_HEALTH_BUS } from '../utils/constants';
+import { HEALTH_BAR } from '../config/ui';
+import { PLAYER_HEALTH_BUS } from '../data/player';
 import { onResize, safeArea } from '../utils/viewport';
 
 export interface HealthBarData {

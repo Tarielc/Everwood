@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import type Foe from '../../entities/Foe';
-import { FoeAnims } from '../../utils/constants';
+import { FoeAnims } from '../../data/animations';
 import { State } from './StateMachine';
 
 // states of a foe

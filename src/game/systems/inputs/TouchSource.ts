@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { Action, InputSource, RawInput } from './InputSource';
-import { BUTTON_SVG_SCALE, BUTTONS, TOUCH_CONTROLS, TouchControlsConfig } from '../../config/input';
+import { BUTTON_SVG_SCALE } from '../../config/display';
+import { BUTTONS, TOUCH_CONTROLS, TouchControlsConfig } from '../../config/input';
 import { onResize, safeArea } from '../../utils/viewport';
 
 interface TouchButton {

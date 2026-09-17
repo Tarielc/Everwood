@@ -1,6 +1,23 @@
 import * as Phaser from 'phaser';
-import { MeleeAttackConfig } from '../utils/constants';
 import { AttackComponent, AttackEvent } from './AttackComponent';
+
+/** A swing's timing and reach, the same shape whoever holds the weapon */
+export interface MeleeAttackConfig {
+    /** How far into the swing the hit area opens - the rest of the animation is windup and recovery, and hurts nobody */
+    windupMs: number,
+    /** How long the hit area stays open */
+    activeMs: number,
+    /** Enforced after the swing ends, so a held button isn't a blender */
+    cooldownMs: number,
+    /** A press this far ahead of the swing being allowed still counts, so mashing flows into the next swing */
+    bufferMs: number,
+    /** The hit area in world pixels, measured out from the edge of the attacker's body - not scaled with the sprite */
+    width: number,
+    height: number,
+    offsetX: number,
+    /** Negative reaches above the attacker's middle */
+    offsetY: number,
+}
 
 // anything a swing can connect with - the component only needs to tell two of
 // them apart, the scene decides what actually counts as a target
