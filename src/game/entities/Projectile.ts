@@ -10,9 +10,19 @@ import { ProjectileDefinition } from '../data/projectiles';
  * calls strike() when the shot is spent, the same way it resolves a swing.
  */
 export default class Projectile extends Phaser.Physics.Arcade.Sprite {
-    // ms of flight left before it gives up and removes itself
-    private life: number
+    /** ms since projectile was fired - discarded after it exceeds projectile.lifetimeMs */
+    private lifeTimer: number
 
+    /**
+     * 
+     * @param scene - Scene to spawn projectile
+     * @param x - X coordinate to spawn projectile
+     * @param y - Y coordinate to spawn projectile
+     * @param definition - projectile definition e.g. arrow
+     * @param direction - which direction projectile should move
+     * @param damage - damage of a projectile
+     * @param shooter - source/shooter of a projectile
+     */
     constructor(
         scene: Phaser.Scene,
         x: number,
@@ -27,7 +37,7 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
         scene.add.existing(this)
         scene.physics.add.existing(this)
 
-        this.life = definition.lifetimeMs
+        this.lifeTimer = definition.lifetimeMs
 
         this.setScale(definition.scale)
         // the art points right, so a shot travelling left is mirrored
@@ -48,19 +58,24 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
+    /** Update projectile timer and discard it */
     update(_time: number, delta: number): void {
         if (!this.active) return
 
-        this.life -= delta
-        if (this.life <= 0 || this.hasLeftTheWorld()) this.destroy()
+        this.lifeTimer -= delta
+        if (this.lifeTimer <= 0 || this.hasLeftTheWorld()) this.destroy()
     }
 
-    // the shot is spent - whatever it reached stopped it
+    /** discard/spend arrow after it hits something */
     strike(): void {
         this.destroy()
     }
 
-    // gone past the edge of the level, where nothing can be hit any more
+    /**
+     * Check if arrow left world bounds
+     * 
+     * @returns `true` if it did, `false` otherwise
+     */
     private hasLeftTheWorld(): boolean {
         const bounds = this.scene.physics.world.bounds
         return this.x < bounds.left || this.x > bounds.right
