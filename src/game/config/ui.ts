@@ -42,7 +42,7 @@ export interface UiButtonConfig {
 export const UI_BUTTONS: UiButtonConfig = {
     radius: 36,
     hitRadiusScale: 1.25,
-    margin: 10,
+    margin: 20,
     gap: 10,
     depth: 2000,
 }
