@@ -61,6 +61,9 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image("healthBar", "assets/ui/red-bar.png")
         this.load.image("staminaBar", "assets/ui/yellow-bar.png")
 
+        this.load.image("fullscreen-enter", "assets/ui/fullscreen-enter-btn.png")
+        this.load.image("fullscreen-exit", "assets/ui/fullscreen-exit-btn.png")
+
         // equippable overlays share the player's grid, so they load as spritesheets
         // on the same frame size - driven off the registry, so adding an item to
         // ITEMS is all it takes to get it loaded

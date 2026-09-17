@@ -134,20 +134,3 @@ export function onResize(
     handler()
     return off
 }
-
-/**
- * Go fullscreen wherever the browser allows it, on touch devices only
- *
- * Orientation is left alone - the game plays in portrait and landscape alike,
- * and iOS Safari doesn't support `startFullscreen()` at all.
- *
- * @param scene - Scene requesting fullscreen
- */
-export function enterImmersive(scene: Phaser.Scene): void {
-    const scale = scene.scale
-    if (!scene.sys.game.device.input.touch) return
-
-    if (scale.fullscreen.available && !scale.isFullscreen) {
-        scale.startFullscreen()
-    }
-}

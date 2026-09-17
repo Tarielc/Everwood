@@ -29,3 +29,20 @@ export const HEALTH_BAR:HealthBarConfig = {
     damageFlash: 0xffffff,
     damageFlashMs: 90,
 }
+
+/** UI Buttons */
+/** Configuration for button placement - used in `TouchSource` */
+export interface UiButtonConfig {
+    radius: number,
+    hitRadiusScale: number,
+    margin: number,
+    gap: number,
+    depth: number,
+}
+export const UI_BUTTONS: UiButtonConfig = {
+    radius: 36,
+    hitRadiusScale: 1.25,
+    margin: 10,
+    gap: 10,
+    depth: 2000,
+}

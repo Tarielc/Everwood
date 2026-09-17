@@ -2,7 +2,7 @@
 export const SCALE_FACTOR:number = 2
 
 /** Scale the HUD is drawn at, independent of the world */
-export const UI_SCALE_FACTOR:number = 1.5
+export const UI_SCALE_FACTOR:number = 3
 
 /** Touch button SVGs are rasterised this many times larger, then drawn back down so they stay sharp */
 export const BUTTON_SVG_SCALE:number = 2
@@ -19,3 +19,5 @@ export const MIN_VIEW_HEIGHT:number = 720
  * sheets must stay frame-for-frame aligned
  */
 export const CHARACTER_FRAME = { frameWidth: 80, frameHeight: 64 } as const
+
+

@@ -47,18 +47,6 @@ Creates event listener on resize which runs `layout(width, height)` every time e
 | `TouchSource` | Movement and action buttons distributed |
 | `WorldMap` | Stretched backdrops to cover the screen |
 
-## `EnterImmersive(scene)`
-
-Enters fullscreen mode wherever possible. Orientation isn't locked. It does nothing on devices without touch input.
-
-Browsers only grant fullscreen on the `pointerdown`:
-```ts
-startButton.on("pointerup", ()=> {
-    enterImmersive(this)
-    this.scene.start("GameScene")
-})
-```
-
 ## Orientation
 
 The game plays in both portrait and landscape; there is no orientation lock or rotate overlay. Portrait uses the screen as-is (narrow and tall view), while landscape on a phone is scaled by `fitToParent()` so the full height of the view stays visible.

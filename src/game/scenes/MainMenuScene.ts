@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { enterImmersive, onResize } from '../utils/viewport';
+import { onResize } from '../utils/viewport';
 
 export default class MainMenuScene extends Phaser.Scene {
     constructor() {
@@ -29,7 +29,6 @@ export default class MainMenuScene extends Phaser.Scene {
         // pointerup rather than pointerdown - browsers only grant fullscreen on
         // the release half of a gesture
         startButton.on("pointerup", () => {
-            enterImmersive(this)
             this.scene.start("GameScene")
         })
     }

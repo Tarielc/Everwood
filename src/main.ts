@@ -6,6 +6,7 @@ import GameScene from './game/scenes/GameScene';
 import HealthBar from './game/ui/HealthBar';
 import { fitToParent } from './game/utils/viewport';
 import { MIN_VIEW_HEIGHT } from './game/config/display';
+import UIScene from './game/scenes/UIScene';
 
 //  Game Configuration
 const config: Phaser.Types.Core.GameConfig = {
@@ -33,7 +34,8 @@ const config: Phaser.Types.Core.GameConfig = {
         PreloadScene,
         MainMenuScene,
         GameScene,
-        HealthBar
+        HealthBar,
+        UIScene
     ]
 };
 
