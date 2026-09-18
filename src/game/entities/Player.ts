@@ -24,22 +24,66 @@ const INVULNERABILITY_BLINK_MS = 70
 /** How much transparent is sprite when its in i-frames */
 const INVULNERABILITY_BLINK_ALPHA = 0.35
 
-// the white "hit" flash on the frame damage lands
-const DAMAGE_FLASH_COLOR = 0xffffff
+/** color of the flash when player takes damage */
+const DAMAGE_FLASH_COLOR = 0xFF2C2C
+/** How fast sprite blinkc when it takes damage */
 const DAMAGE_FLASH_MS = 60
 
-// how much of its speed a grounded swing bleeds off per frame - a swing that
-// slides across the floor reads as a dodge rather than a commitment
-const SWING_FOOT_DRAG = 0.8
+/** How much of players speed is grounded while swinging */
+const SWING_FOOT_DRAG = 0.6
 
+/** Input fed to the movement while stunned - nothing held, nothing pressed */
+const NO_INPUT: InputState = {
+    moveLeft: false,
+    moveRight: false,
+    sprintHeld: false,
+    jumpHeld: false,
+    jumpJustPressed: false,
+    jumpJustReleased: false,
+    attackHeld: false,
+    attackJustPressed: false,
+}
+
+/**
+ * The player-controller character
+ * 
+ * A thing coordinator over a set of components - it owns no gameplay logic of its own
+ * beyond wiring them together each frame:
+ * - {@link MovementController}
+ * - {@link AnimationController}
+ * - {@link StateMachine}
+ * - {@link HealthComponent}
+ * - {@link EquipmentController}
+ * - {@link MeeleAttack}
+ * 
+ * Deciding who a swing actually hits is left to the scene
+ */
 export default class Player extends Phaser.Physics.Arcade.Sprite {
+    /** Controls movement*/
     private movement: MovementController
+    /** player animations and mirrors sprite to match facing */
     private animations: AnimationController<typeof PLAYER_ANIMS>
+    /** behaviour states and transitions between them */
     private stateMachine: StateMachine<Player>
+    /** hitpoints, regenration, etc - broacasting on global event bus*/
     private health: HealthComponent
+    /** item currently held, drawn as an overlay on top of this sprite */
     private equipment: EquipmentComponent
+    /** Meele swing - its config follows whatever items is equipped */
     private attack: MeleeAttack
 
+    /**
+     * Adds players to the scene and physics world, while also settings it's
+     * collision world bounds. Defines size of a sprite and hitbox.
+     * 
+     * Initialized every components and set's listeners - for health, equipment, and scene shutdown.
+     * 
+     * @param scene - Scene where to spawn a player in
+     * @param x - spawn X cooridnate (world)
+     * @param y - spaw Y coordinate (world)
+     * @param texture - Texture sprite key of the player
+     * @param controls - Input controls of the player, read every frame
+     */
     constructor(
         scene: Phaser.Scene,
         x: number,
@@ -88,6 +132,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
+    /**
+     * Run on every frame, called in `GameScene.update()`
+     * 
+     * Order matters.
+     *  
+     * @param time - Total amount of the time elapsed since the game started
+     * @param delta - Time elapsed since the previous frame (16.67 for 60FPS)
+     */
     update(time: number, delta: number) {
         // ticks i-frames and regen, and can emit on its own (regen heals, i-frames ending)
         this.health.update(delta)
@@ -95,6 +147,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.health.isDead) {
             // a corpse still falls, it just stops steering
             this.setAccelerationX(0)
+        } else if (this.isStunned) {
+            // gravity and drag still run, so a stun mid-jump falls and a stun
+            // mid-run slides to a stop - the player just can't steer or swing
+            this.movement.update(NO_INPUT, delta)
         } else {
             // remembered even if this frame can't act on it, so a press during the
             // tail of one swing flows into the next
@@ -125,47 +181,71 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.equipment.update()
     }
 
+    /** Set player's facing direction to sprite and physics body */
     setFacing(){
         this.animations.setFacing(this.steeredFacing())
         this.applyBodyOffset()
     }
 
-    private applyBodyOffset(): void {
-        const { width, offsetX, offsetY } = PLAYER_BODY
-        const mirrored = this.width - offsetX - width
-
-        this.setOffset(this.flipX ? mirrored : offsetX, offsetY)
-    }
-
-    // put an item in the player's hand - swapping straight from another is fine
+    /**
+     * Put an item in the player's hand
+     * 
+     * @param id - Item id we want to equip
+     * @returns item we equipped
+     */
     equip(id: ItemId): ItemDefinition {
         return this.equipment.equip(id)
     }
 
+    /** Remove an item from the player's hand */
     unequip(): ItemDefinition | null {
         return this.equipment.unequip()
     }
 
+    /** player's equipment component */
     get gear(): EquipmentComponent {
         return this.equipment
     }
 
-    // what a swing lands for, falling back to bare hands
+    /** damage of an equiped item */
     get attackDamage(): number {
         return this.equipment.damage
     }
 
-    // take a hit - returns false when i-frames or death swallowed it, so the
-    // caller can skip the knockback and the hit sound
+    /**
+     * Player takes a hit/damage. starts i-frames, flashes the sprite and moves
+     * to the hurt state or dead.
+     * 
+     * @param amount - amount of damage to take.
+     * @param source - source of hit/damage.
+     * @returns `false` if i-frames or death swallowed damage, `true` otherwise.
+     */
     takeDamage(amount: number, source?: unknown): boolean {
         return this.health.damage(amount, source)
     }
 
+    /**
+     * Heal the player - clamped to max health.
+     * 
+     * @param amount - amount to heal.
+     * @param source - healing source.
+     * @returns `true` if heal attempt was succesfull, `false` otherwise.
+     */
     heal(amount: number, source?: unknown): boolean {
         return this.health.heal(amount, source)
     }
 
-    // put the player back on their feet at `x, y` with a fresh bar and i-frames
+    /**
+     * Respawn player to the world
+     * 
+     * Reset position, velocity, acceleration, etc. Clears death animation
+     * lock and revives with {@link PLAYER_RESPAWN_INVULNERABILITY_MS} of i-frames,
+     * and move state machine back to idle. 
+     * 
+     * @param x - Respawn X coordinate (world)
+     * @param y - Respawn Y coordinate (world)
+     * @param current - new health to be spawned with
+     */
     respawn(x: number, y: number, current?: number): void {
         this.setPosition(x, y)
         this.setVelocity(0, 0)
@@ -177,6 +257,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.health.revive(current, PLAYER_RESPAWN_INVULNERABILITY_MS)
     }
 
+    /**
+     * Wire health events to player:
+     * - Damage - flash, and transition to hurt state if it wasn't fatal
+     * - Died - transition to death state
+     * - Revived - transition to idle state
+     * - Invulnerability End - make sure player is fully opaque
+     */
     private bindHealth(): void {
         // the health component owns these listeners, so destroy() unhooks them with it
         this.health.on(HealthEvent.Damaged, (change: HealthChange) => {
@@ -200,8 +287,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
-    // whatever's in hand decides how the next swing reaches - bare hands, or an
-    // item without a swing of its own, fall back to the unarmed one
+    /**
+     * bind equipment to the player which decides size of next swing
+     * if no item is equipped, it falls back to {@link PLAYER_UNARMED_ATTACK}.
+     */
     private bindEquipment(): void {
         const applySwing = () => {
             this.attack.setConfig(this.equipment.item?.swing ?? PLAYER_UNARMED_ATTACK)
@@ -212,8 +301,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.equipment.on(EquipmentEvent.Unequipped, applySwing)
     }
 
-    // brief white flash on the hit - FILL replaces the texture colour outright,
-    // so the silhouette reads even against a busy background
+    /**
+     * brief white flash on hit - FILL replaces the texture colout outright
+     * so the siljouetter reads even against a busy background
+     */
     private flashDamage(): void {
         this.setTint(DAMAGE_FLASH_COLOR).setTintMode(Phaser.TintModes.FILL)
         this.equipment.flash(DAMAGE_FLASH_COLOR)
@@ -224,6 +315,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
+    /**
+     * Blink/Flash sprite while the player has i-frames. Driven by game time,
+     * so it needs no timer of its own. No matter what last alpha value is
+     * it is set to 1 in {@link bindHealth} after i-frames end. 
+     * 
+     * @param time - Time elapsed since the game started
+     */
     private updateInvulnerabilityBlink(time: number): void {
         if (!this.health.isInvulnerable) return
 
@@ -231,31 +329,63 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.setAlpha(visible ? 1 : INVULNERABILITY_BLINK_ALPHA)
     }
 
-    // a swing needs a buffered press and a finished cooldown, and a state that
-    // isn't already busy - a flinch owns the animation, so it can't be swung out of
+    /**
+     * Whether a player can swing or not.
+     * 
+     * @returns `true` if player can swing, `false` otherwise.
+     */
     private canSwing(): boolean {
         return this.attack.canStart && !this.stateMachine.isCurrentState(PlayerState.Hurt)
     }
 
+    /** `true` while a hit has the player stunned and ignoring input */
+    get isStunned(): boolean {
+        return this.stateMachine.isCurrentState(PlayerState.Hurt)
+    }
+
+    /**
+     * Whether a player is staning on something
+     * 
+     * @returns `true` if player is touching ground, `false` otherwise.
+     */
     private isGrounded(): boolean {
         const body = this.body as Phaser.Physics.Arcade.Body
         return body.blocked.down || body.touching.down
     }
 
-    // kill the steering a grounded swing was given, without touching the vertical
-    // movement the MovementController just worked out
+    /**
+     * Apply drag to slow velocity.
+     * So a grounded swing bring player to a stop.
+     */
     private plantFeet(): void {
         const body = this.body as Phaser.Physics.Arcade.Body
-        body.setAccelerationX(0)
         body.velocity.x *= SWING_FOOT_DRAG
     }
 
+    /**
+     * Facing diretion based on currently held movement input.
+     * 
+     * @returns `-1` if left is held, `1` if right is held,
+     *  `0` if neither - keeps the current facing.
+     */
     private steeredFacing(): Facing {
         if (this.controls.moveLeft) return -1
         if (this.controls.moveRight) return 1
         return 0
     }
 
+    /**
+     * Flip player hitbox.
+     * Hitbox isn't symeterical so flipping only sprite causes uneven hitbox.
+     */
+    private applyBodyOffset(): void {
+        const { width, offsetX, offsetY } = PLAYER_BODY
+        const mirrored = this.width - offsetX - width
+
+        this.setOffset(this.flipX ? mirrored : offsetX, offsetY)
+    }
+
+    /** Destructor and cleanup */
     destroy(fromScene?: boolean): void {
         this.stateMachine?.destroy()
         this.animations?.destroy()
@@ -265,26 +395,32 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         super.destroy(fromScene)
     }
 
+    /** input controls of the player */
     get inputState(): InputState {
         return this.controls
     }
 
+    /** statemachine of the player */
     get states(): StateMachine<Player> {
         return this.stateMachine
     }
 
+    /** movementcontroller of the player */
     get getMovement(): MovementController {
         return this.movement
     }
-
+    
+    /** animation controller of the player */
     get getAnimations(): AnimationController<typeof PLAYER_ANIMS> {
         return this.animations
     }
 
+    /** health component of the player */
     get getHealth(): HealthComponent {
         return this.health
     }
 
+    /** attack component of the player */
     get getAttack(): MeleeAttack {
         return this.attack
     }

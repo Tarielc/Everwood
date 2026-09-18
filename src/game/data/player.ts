@@ -39,6 +39,13 @@ export const PLAYER_HEALTH:HealthConfig = {
     regenDelayMs: 4000,
 }
 
+/**
+ * How long a hit stuns the player - input is ignored until it runs out (and the
+ * hurt animation has finished). Kept below `PLAYER_HEALTH.invulnerabilityMs`
+ * so the player always gets a moment to act before they can be hit again
+ */
+export const PLAYER_HURT_STUN_MS:number = 400
+
 /** I-frames the player respawns with, long enough to walk away from whatever killed them */
 export const PLAYER_RESPAWN_INVULNERABILITY_MS:number = 1500
 

@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import type Player from '../../entities/Player';
 import { State } from './StateMachine';
-import { PLAYER_MOVEMENT } from '../../data/player';
+import { PLAYER_HURT_STUN_MS, PLAYER_MOVEMENT } from '../../data/player';
 
 /** List of player states, keyd by {@link PlayerStateName} */
 export const PlayerState = {
@@ -184,16 +184,19 @@ export function createPlayerStates(): State<Player>[] {
             },
         },
         {
-            // entered from Player's health listener, not by polling - a flinch that
-            // leaves the player in control, it only takes over the animation
+            // entered from Player's health listener, not by polling - a stun that
+            // takes the player out of control, Player.update() ignores input while
+            // this state is current
             name: PlayerState.Hurt,
             enter(player) {
                 player.getAnimations.play("hurt", { restart: true })
             },
             update(player) {
-                // the hurt animation locks itself, so the flinch lasts exactly as
-                // long as it plays instead of being timed twice in two places
-                if (!player.getAnimations.isLocked) player.states.transition(recoverState(player))
+                // held for the stun, and never cut shorter than the flinch is drawn for
+                const stunned = player.getAnimations.isLocked
+                    || player.states.stateTime < PLAYER_HURT_STUN_MS
+
+                if (!stunned) player.states.transition(recoverState(player))
             },
         },
         {

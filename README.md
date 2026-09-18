@@ -9,3 +9,4 @@
 - [Input System](/docs/input-system.md)
 - [State Machine](/docs/state-machine.md)
 - [Animation Controller](/docs/animation-controller.md)
+- [Player](/docs/player.md)
