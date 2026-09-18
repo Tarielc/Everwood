@@ -7,10 +7,26 @@ import { loadMapImages } from '../systems/world/WorldMap';
 import { onResize } from '../utils/viewport';
 import { BUTTONS } from '../config/input';
 
+/**
+ * Scene where the bulk of the game's assets load, behind a progress bar.
+ *
+ * Runs after {@link BootScene}, which has already loaded the essential stuff.
+ * Most loads are driven off data registries ({@link FOES}, {@link PROJECTILES},
+ * {@link BUTTONS}, {@link ITEMS}) and the map JSON, so adding an entry there is
+ * all it takes to get its art loaded.
+ *
+ * When loading is done starts `MainMenuScene`.
+ */
 export default class PreloadScene extends Phaser.Scene {
+    /** white fill that grows with load progress */
     private progressBar!: Phaser.GameObjects.Graphics
+    /** dark frame the progress bar is drawn inside */
     private progressBox!: Phaser.GameObjects.Graphics
 
+    /**
+     * Only the `Loader` and `Clock` plugins are needed - the loader for
+     * {@link preload}, the clock for the delayed hand-off in {@link create}.
+     */
     constructor() {
         super({
             key: "PreloadScene",
@@ -18,6 +34,21 @@ export default class PreloadScene extends Phaser.Scene {
         })
     }
 
+    /**
+     * Builds the loading screen, then queues every asset the game needs.
+     *
+     * The loading screen is laid out through {@link onResize}, so it stays
+     * centered and the background keeps covering the screen as the viewport
+     * changes while loading.
+     *
+     * Queued here:
+     * - map tileset sheets and backdrops, via {@link loadMapImages}
+     * - player spritesheet, and equippable item overlays on the same {@link CHARACTER_FRAME}
+     * - foe spritesheets, each cut on the frame size its definition declares
+     * - projectile images
+     * - touch control button SVGs (up and down textures), rasterized at {@link BUTTON_SVG_SCALE}
+     * - HUD bars, start and fullscreen buttons
+     */
     preload() {
         // add background image
         const background = this.add.image(0, 0, "load-bg").setOrigin(0)
@@ -25,7 +56,7 @@ export default class PreloadScene extends Phaser.Scene {
         // create a loading graph
         const loadingGraph = this.createLoadingGraph()
 
-        // he bar is drawn in its container, so we only need to move container
+        // the bar is drawn in its container, so we only need to move container
         onResize(this, (width, height) => {
             const scale = Math.max(
                 this.scale.width / background.width,
@@ -80,6 +111,10 @@ export default class PreloadScene extends Phaser.Scene {
         }
     }
 
+    /**
+     * Runs after everuthing loaded
+     * Starts `MainMenuScene` after a short delay, so the full bar is seen.
+     */
     create() {
         // start main menu scene after a short delay
         this.time.delayedCall(300, () => {
@@ -87,8 +122,15 @@ export default class PreloadScene extends Phaser.Scene {
         })
     }
 
-    // everything is drawn relative to (0, 0) - the returned container is what
-    // gets placed at the centre of the screen
+    /**
+     * Creates the progress bar and percent text, and wires them to the
+     * loader's `progress` event.
+     *
+     * Everything is drawn relative to (0, 0) - the returned container is what
+     * gets placed at the center of the screen, so resizing only moves it.
+     *
+     * @returns container holding the bar frame, the bar, and the percent text
+     */
     createLoadingGraph(): Phaser.GameObjects.Container {
         const barWidth = 320
         const barHeight = 24
