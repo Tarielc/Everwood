@@ -1,30 +1,73 @@
 import * as Phaser from 'phaser';
 import { InputState } from '../systems/inputs/InputController';
 
+/**
+ * Tuning for a {@link MovementController}. Speeds are in px/s,
+ * accelerations in px/s², times in ms.
+ */
 export interface MovementConfig{
+    /** Max horizontal speed while walking */
     speed: number,
+    /** Max horizontal speed while sprint is held */
     sprintSpeed: number,
+    /** Horizontal acceleration on the ground - 70% of it in the air */
     acceleration: number,
+    /** Not read yet - deceleration uses fixed per-frame damping instead */
     drag: number,
+    /** Vertical velocity set on jump - negative is up */
     jumpVelocity: number,
-    jumpCutMultiplier: number, // cut off jump velocity if jump button is released
+    /** Upward velocity is multiplied by this when jump is released mid-rise */
+    jumpCutMultiplier: number,
+    /**
+     * Base for the extra fall gravity - *not* the world gravity. While falling the
+     * body gets `gravity * (fallGravityMultiplier - 1)` on top of the world's own
+     */
     gravity: number,
-    fallGravityMultiplier: number, // increase gravity when falling
-    coyoteTimeMs: number, // allow jump small window gap to jump after leaving platform
-    jumpBufferMs: number, // allow jump if player pressed it slightly before langing
+    /** How much heavier falling feels than rising - `1` means no difference */
+    fallGravityMultiplier: number,
+    /** How long after walking off a ledge a jump is still allowed */
+    coyoteTimeMs: number,
+    /** How long a jump press is remembered, so a press slightly before landing still jumps */
+    jumpBufferMs: number,
+    /** Terminal downward speed */
     maxFallSpeed: number,
 }
 
+/**
+ * Playe movement: walking, sprinting, jumping, and falling driven
+ * by {@link InputState} each frame.
+ *
+ * It only touches the physics body velocity, acceleration, and gravity.
+ * Facing and animation is handled by `AnimationController`. Whether the owner is
+ * allowed ot act is the owners call.
+ *
+ * Jump feel comes from: coyote time, jump buffering, jump cut,
+ * and heavier fall gravity.
+ */
 export class MovementController {
+    /** ms left in which a jump is till allowed - refilled while on the ground */
     private coyoteTimer:number = 0
+    /** ms left for the last jump press to still trigger a jump */
     private jumpBufferTimer:number = 0
+    /** set on jump, cleared on landing - keeps one press from jumping twice */
     private isJumping:boolean = false
 
+    /**
+     * @param sprite - Sprite to move, it must have an arcade body.
+     * @param config - Movement configuration, see {@link MovementConfig}. e.g `PLAYER_MOVEMENT`
+     */
     constructor(
         private sprite: Phaser.Physics.Arcade.Sprite,
         private config: MovementConfig
     ) {}
 
+    /**
+     * Runs every frame. Call it from the owner's `update()`, before
+     * anything that reacts to the players speed or placement (e.g. state transitions).
+     *
+     * @param input - This frame's input
+     * @param dt - Time since last frame
+     */
     update(input: InputState, dt:number): void {
         this.updateTimers(input, dt)
         this.applyHorizontal(input)
@@ -33,6 +76,7 @@ export class MovementController {
         this.applyJumpCut(input)
     }
 
+    /** Refill and drain the coyote and jump-buffer timers */
     private updateTimers(input: InputState, dt:number){
         // check if player is grounded
         const grounded = this.sprite.body!.blocked.down
@@ -51,11 +95,12 @@ export class MovementController {
             this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - dt)
         }
     }
-    
+
+    /** Adds extra gravity while fallind and caps maximum fall speed at `maxFallSpeed` */
     private applyGravity() {
         const body = this.sprite.body as Phaser.Physics.Arcade.Body
 
-        // if sprite's vertical speed is positive, it's falling, so we need to increate sprite's gravity
+        // if sprite's vertical speed is positive, it's falling, so we need to increase sprite's gravity
         // otherwise trust world's general/base gravity
         if(body.velocity.y > 0){
             body.setGravityY(this.config.gravity * (this.config.fallGravityMultiplier - 1))
@@ -63,12 +108,13 @@ export class MovementController {
             body.setGravityY(0)
         }
 
-        // lock mack vertical speed to certain value
+        // lock max vertical speed to certain value
         if(body.velocity.y > this.config.maxFallSpeed) {
             body.setVelocityY(this.config.maxFallSpeed)
         }
     }
 
+    /** Jumps when a buffered press and coyote time overlap and jump is still held. */
     private tryConsumeJump(input: InputState){
         // check if sprite is allowed to jump
         if(this.jumpBufferTimer > 0
@@ -89,6 +135,7 @@ export class MovementController {
         }
     }
 
+    /** Variable jump height: releasing jump while rising cut vertical velocity by `jumpCutMultiplier` */
     private applyJumpCut(input: InputState){
         const vy = this.sprite.body!.velocity.y
         // if jump button is released and player still has negative vertical speed, it's moving upwards, so we need to cut the speed
@@ -97,10 +144,14 @@ export class MovementController {
         }
     }
 
+    /**
+     * Accelerates toward the held direction (weaker in the air), damps veocity
+     * when nothing is held, and clamps maximum walking or sprinting speed.
+     */
     private applyHorizontal(input: InputState): void {
         const body = this.sprite.body as Phaser.Physics.Arcade.Body
         const grounded = body.blocked.down || body.touching.down
-        const acceleration = this.config.acceleration * (grounded ? 1 : 0.7) // weak air controll
+        const acceleration = this.config.acceleration * (grounded ? 1 : 0.7) // weak air control
 
         // accelerate sprite - mirroring it belongs to AnimationController.setFacing()
         if(input.moveLeft) {
