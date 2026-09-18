@@ -5,7 +5,7 @@ export const SCALE_FACTOR:number = 2
 export const UI_SCALE_FACTOR:number = 3
 
 /** Touch button SVGs are rasterised this many times larger, then drawn back down so they stay sharp */
-export const BUTTON_SVG_SCALE:number = 1.5
+export const BUTTON_SVG_SCALE:number = 2
 
 /**
  * The fewest game pixels of height the screen ever shows. A shorter screen (a phone
