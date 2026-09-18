@@ -4,7 +4,7 @@ import { onResize, safeArea } from '../utils/viewport';
 import { UI_BUTTONS, UiButtonConfig } from '../config/ui';
 
 /**
- * Scene where UI buttons and elements are diplayed
+ * Scene where UI buttons and elements are displayed across different scenes
  * 
  * Launches from MainMenuScene. Currently this scene only contains
  * fullscreen toggle button.

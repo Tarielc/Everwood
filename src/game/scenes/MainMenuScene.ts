@@ -6,11 +6,21 @@ const TITLE_SIZE = 100
 /** Space kept clear on each side of the menu, in game pixels */
 const MENU_MARGIN = 24
 
+/**
+ * Main menu scene before starting the game.
+ * 
+ * Launches {@link UIScene} and starts {@link GameScene} on button click.
+ */
 export default class MainMenuScene extends Phaser.Scene {
+    /** Constructor */
     constructor() {
         super("MainMenuScene")
     }
 
+    /**
+     * Add logo text and button, which are resized
+     * Based on screen width
+     */
     create() {
         // add temporary logo
         const logo = this.add.bitmapText(0, 0, "Jacquard24", "Everwood", TITLE_SIZE)
