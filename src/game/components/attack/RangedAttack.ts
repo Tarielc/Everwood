@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import type { ProjectileDefinition } from '../data/projectiles';
+import type { ProjectileDefinition } from '../../data/projectiles';
 import { AttackComponent, AttackEvent } from './AttackComponent';
 
 /**

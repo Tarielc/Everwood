@@ -1,9 +1,9 @@
 import * as Phaser from 'phaser';
 
 import { AnimationController } from "../components/AnimationController"
-import { AttackComponent } from "../components/AttackComponent"
+import { AttackComponent } from "../components/attack/AttackComponent"
 import { MeleeAttack } from "../components/MeleeAttack"
-import { RangedAttack } from "../components/RangedAttack"
+import { RangedAttack } from "../components/attack/RangedAttack"
 import { HealthChange, HealthComponent, HealthEvent } from "../components/HealthComponent"
 import { FoeAnims } from '../data/animations';
 import { FoeDefinition } from '../data/foes';

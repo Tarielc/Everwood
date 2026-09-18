@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { AttackComponent, AttackEvent } from './AttackComponent';
+import { AttackComponent, AttackEvent } from './attack/AttackComponent';
 
 /**
  * Meele attack configuration:

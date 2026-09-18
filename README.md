@@ -9,5 +9,6 @@
 - [Input System](/docs/input-system.md)
 - [State Machine](/docs/state-machine.md)
 - [Animation Controller](/docs/animation-controller.md)
+- [Attack Component](/docs/attack-component.md)
 - [Player](/docs/player.md)
 - [Foe](/docs/foe.md)
