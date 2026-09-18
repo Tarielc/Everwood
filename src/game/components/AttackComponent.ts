@@ -1,61 +1,93 @@
 import * as Phaser from 'phaser';
 
+/**
+ * Events every attackcomponent emits - listenr with
+ * `attack.on(AttackEvent.EVNET, ...)
+ * 
+ * Keyed byt {@link AttackEventName}
+ */
 export const AttackEvent = {
+    /** An attack has begun */
     Started: "attack-started",
+    /** An attack is over, however it ended, and the cooldown has started */
     Ended: "attack-ended",
-    // MeleeAttack - the swing reached something it hadn't already hit
+    /** `MeleeAttack` only : the swing reached something it had's already hit */
     Hit: "attack-hit",
-    // RangedAttack - a shot has left, and wants putting in the world
+    /** `RangedAttack` only : a shot has left and needs to be putt in the world */
     Shot: "attack-shot",
 } as const
-
+/** Keys of {@link AttackEvent}*/
 export type AttackEventName = typeof AttackEvent[keyof typeof AttackEvent]
 
 /**
- * What every attack has in common: how far into it we are, when the next one is
- * allowed, and which way the attacker was pointed when it started.
- *
- * The base owns *when* an attack happens; a subclass owns *what* it does - a
- * rectangle that hurts for a few frames, or an arrow that leaves at one. Neither
- * knows what it can reach, so the scene stays the only place that decides who a
- * hit lands on, and the same class can be held by the player or by a foe.
+
+/**
+ * What every attack has in common: timer, whether attack is available,
+ * which way was attacker facing.
+ * 
+ * The base owns *when* an attack happes; a subclass owns *what* happens - a melee
+ * rectangle that hurts for a few seconds, or a projectile. Neither of them knows
+ * what it hits - the scene stays the only place that decide who as hit lands on.
+ * 
+ * Lifecycle: `queue()` (button-driven owners only) → `start()` → `update()` every
+ * frame → `end()`. Subclasses hook in through `onStart()`, `advance()` and `onEnd()`.
  */
 export abstract class AttackComponent extends Phaser.Events.EventEmitter {
-    // ms into the current attack, -1 while there isn't one
+    /** ms in the current attack, `-1` while there isn't one  */
     protected elapsed: number = -1
-    // ms until the next attack is allowed to start
+    /** ms until next attack is allowed */
     protected cooldown: number = 0
     // what's left of a queued press - a press slightly too early still lands
+    /** queue press - a press slightly early still lands */
     protected buffered: number = 0
 
-    // locked in when the attack starts, so turning around halfway through can't
-    // drag the reach - or the shot - across to the other side
+    /**
+     * Facing direction, locked in when it starts, so turning around can't
+     * drag the reach - or the shot - across the other side.
+     */
     protected facing: -1 | 1 = 1
 
+    /**
+     * @param owner - Sprite doing the attack; subclasses read the position
+     * and body to place the hit area or the shot.
+     */
     constructor(protected owner: Phaser.Physics.Arcade.Sprite) {
         super()
     }
 
-    // the whole attack, windup through to the end of whatever part of it can
-    // actually hurt somebody - what a caller times against when there's no
-    // animation to lock instead
+    /**
+     * The whole attack, from windup to the end of whatever part of it
+     * can actually hurt somebody - what a caller times against when there's
+     * no animation to lock instead
+     */
     abstract get durationMs(): number
 
-    // enforced after the attack ends, so a held button isn't a blender
+    /** cooldown between two attacks, so a held buttons isn't a blender */
     protected abstract get cooldownMs(): number
 
-    // how far ahead of being allowed a press still counts - 0 for anything not
-    // driven by a button, which is every foe
+    /**
+     * how far ahead of being allowed to attack stil queues attack -
+     * `0` for anything not driven by a button (every foe).
+     */
     protected get bufferMs(): number {
         return 0
     }
 
-    // remember a press - the attack itself starts when the owner decides it may
+    /**
+     * remember a press. The attack itself starts only when the owner
+     * decides it may - see `canStart`
+     */
     queue(): void {
         this.buffered = this.bufferMs
     }
 
-    // begin the attack, pointed the way the owner is facing right now
+    /**
+     * Begin attack,consuming any queued press. Doesn't check `isReady`
+     * that's the caller's job.
+     * 
+     * @param facing - the way the owner is facing right now. Locked for whole attack period.
+     * @fires AttackEvent.Started
+     */
     start(facing: -1 | 1): void {
         this.buffered = 0
         this.elapsed = 0
@@ -67,8 +99,13 @@ export abstract class AttackComponent extends Phaser.Events.EventEmitter {
         this.emit(AttackEvent.Started)
     }
 
-    // however the attack ended - played out, interrupted by a flinch, or cut
-    // short by death - this shuts it down and starts the cooldown
+    /**
+     * End attack - shut it down and start cooldown.
+     * 
+     * Does nothing if no attack is running currently.
+     * 
+     * @fires AttackEvent.Ended
+     */
     end(): void {
         if (this.elapsed < 0) return
 
@@ -79,6 +116,13 @@ export abstract class AttackComponent extends Phaser.Events.EventEmitter {
         this.emit(AttackEvent.Ended)
     }
 
+    /**
+     * update run every frame from `Owner.update()`
+     * 
+     * Tick the cooldown and queued press, then advance the running attack.
+     * 
+     * @param dt - frame delta in ms
+     */
     update(dt: number): void {
         if (this.cooldown > 0) this.cooldown = Math.max(0, this.cooldown - dt)
         if (this.buffered > 0) this.buffered = Math.max(0, this.buffered - dt)
@@ -89,28 +133,39 @@ export abstract class AttackComponent extends Phaser.Events.EventEmitter {
         this.advance(dt)
     }
 
-    // an attack that's allowed to start, whether or not anything has asked for
-    // one - a foe has no button to press, its state machine polls this instead
+    /**
+     * An attack that's allowed to start, whether or not anything asked for one - 
+     * a foe has no button to press, its state machine polss this instead.
+    */
     get isReady(): boolean {
         return this.cooldown <= 0 && this.elapsed < 0
     }
 
-    // a press waiting on an attack that's allowed to start
+    /** a press waiting on an attack that's allowed to start */
     get canStart(): boolean {
         return this.buffered > 0 && this.isReady
     }
 
+    /** `true` if currently attacking */
     get isAttacking(): boolean {
         return this.elapsed >= 0
     }
 
+    /** destructor - remove listeners */
     destroy(): void {
         this.removeAllListeners()
     }
 
     // what the attack does with the time the base is counting - all optional,
     // so a subclass only overrides the moments it actually cares about
+
+    /** Called by `start()` before `Started` is emitted */
     protected onStart(): void { }
+    /** Called by `end()` before `Ended` is emitted */
     protected onEnd(): void { }
+    /**
+     * Called every frame while an attack is running,
+     * as long as `elapsed` > 0 (we are in an attack)
+     */
     protected advance(_dt: number): void { }
 }
