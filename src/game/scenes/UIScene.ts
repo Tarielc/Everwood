@@ -3,18 +3,31 @@ import { UI_SCALE_FACTOR } from '../config/display';
 import { onResize, safeArea } from '../utils/viewport';
 import { UI_BUTTONS, UiButtonConfig } from '../config/ui';
 
+/**
+ * Scene where UI buttons and elements are diplayed
+ * 
+ * Launches from MainMenuScene. Currently this scene only contains
+ * fullscreen toggle button.
+ */
 export default class UIScene extends Phaser.Scene {
 
+    /** toggle fullscreen button */
     fullScreenButton: Phaser.GameObjects.Image
 
+    /** set appropriate enter fullscreen button icon */
     private readonly onEnterFullscreen = () => {
         this.fullScreenButton.setTexture("fullscreen-exit")
     }
 
+    /** set appropriate exit fullscreen button icon */
     private readonly onLeaveFullscreen = () => {
         this.fullScreenButton.setTexture("fullscreen-enter")
     }
 
+    /**
+     * Constructor
+     * @param config buttons configuration
+     */
     constructor(
         private config:UiButtonConfig = UI_BUTTONS
     ){
