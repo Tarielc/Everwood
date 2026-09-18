@@ -1,5 +1,5 @@
 import type { HealthConfig } from "../components/HealthComponent"
-import type { MeleeAttackConfig } from "../components/MeleeAttack"
+import { MeleeAttackConfig } from "../components/attack/MeleeAttack"
 import type { RangedAttackConfig } from "../components/attack/RangedAttack"
 import { CHARACTER_FRAME, SCALE_FACTOR } from "../config/display"
 import { ARCHER_ANIMS, FoeAnims, FOX_ANIMS, WARRIOR_ANIMS } from "./animations"

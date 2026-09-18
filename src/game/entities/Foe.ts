@@ -2,13 +2,13 @@ import * as Phaser from 'phaser';
 
 import { AnimationController } from "../components/AnimationController"
 import { AttackComponent } from "../components/attack/AttackComponent"
-import { MeleeAttack } from "../components/MeleeAttack"
 import { RangedAttack } from "../components/attack/RangedAttack"
 import { HealthChange, HealthComponent, HealthEvent } from "../components/HealthComponent"
 import { FoeAnims } from '../data/animations';
 import { FoeDefinition } from '../data/foes';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createFoeStates, FoeState } from '../systems/state/FoeStates';
+import { MeleeAttack } from '../components/attack/MeleeAttack';
 
 /** Anything a foe can chase and bump into - it only ever needs a position */
 export interface FoeTarget extends Phaser.GameObjects.GameObject {

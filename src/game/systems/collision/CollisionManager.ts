@@ -3,8 +3,8 @@ import * as Phaser from 'phaser';
 import Foe from '../../entities/Foe';
 import Player from '../../entities/Player';
 import Projectile from '../../entities/Projectile';
-import { Attackable, MeleeAttack } from '../../components/MeleeAttack';
 import { MapObject, WorldMap } from '../world/WorldMap';
+import { Attackable, MeleeAttack } from '../../components/attack/MeleeAttack';
 
 /** target that can receive damage */
 interface Combatant extends Attackable {

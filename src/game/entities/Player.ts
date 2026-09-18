@@ -4,7 +4,6 @@ import { MovementController } from "../components/MovementController"
 import { AnimationController, Facing } from "../components/AnimationController"
 import { HealthComponent, HealthChange, HealthEvent } from "../components/HealthComponent"
 import { EquipmentComponent, EquipmentEvent } from "../components/EquipmentComponent"
-import { MeleeAttack } from "../components/MeleeAttack"
 import { ItemDefinition, ItemId } from '../data/items';
 import { PLAYER_ANIMS } from '../data/animations';
 import {
@@ -18,6 +17,7 @@ import {
 import { InputState } from '../systems/inputs/InputController';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createPlayerStates, PlayerState } from '../systems/state/PlayerStates';
+import { MeleeAttack } from '../components/attack/MeleeAttack';
 
 /** How fast the sprite blinks while it is in i-frames */
 const INVULNERABILITY_BLINK_MS = 70

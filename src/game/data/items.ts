@@ -1,4 +1,4 @@
-import type { MeleeAttackConfig } from "../components/MeleeAttack"
+import { MeleeAttackConfig } from "../components/attack/MeleeAttack"
 
 /** A single equippable item */
 export interface ItemDefinition {

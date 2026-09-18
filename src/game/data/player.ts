@@ -1,5 +1,5 @@
+import { MeleeAttackConfig } from "../components/attack/MeleeAttack"
 import type { HealthConfig } from "../components/HealthComponent"
-import type { MeleeAttackConfig } from "../components/MeleeAttack"
 import type { MovementConfig } from "../components/MovementController"
 
 /** Player movement tuning */
