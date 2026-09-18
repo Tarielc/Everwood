@@ -32,7 +32,7 @@ export default class TouchSource implements InputSource {
             }
             // the SVGs are rasterised at BUTTON_SVG_SCALE, so draw them back down
             // to their authored size
-            this.addButton(action, this.scene.add.image(0, 0, texture).setScale(1 / BUTTON_SVG_SCALE))
+            this.addButton(action, this.scene.add.image(0, 0, texture).setScale(1.2 / BUTTON_SVG_SCALE))
         }
 
         this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
