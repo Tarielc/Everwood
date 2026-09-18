@@ -10,37 +10,64 @@ import { FoeDefinition } from '../data/foes';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createFoeStates, FoeState } from '../systems/state/FoeStates';
 
-// anything the foe can chase and bump into - it only ever needs a position
+/** Anything a foe can chase and bump into - it only ever needs a position */
 export interface FoeTarget extends Phaser.GameObjects.GameObject {
     x: number
     y: number
 }
 
-// the white flash on the frame a hit lands, matching the player's
+/** flash color when foe takes damage */
 const DAMAGE_FLASH_COLOR = 0xffffff
+/** ms of each flash */
 const DAMAGE_FLASH_MS = 60
 
 /**
+ * Config-driven enemy.
+ * 
  * A config-driven enemy. Everything that varies between foes lives in its
  * FoeDefinition, so a new one is a constants entry and a spritesheet rather
  * than a subclass - including how it fights, which is a swing for some, a bow
  * for others, and nothing at all for the ones that only walk into you.
+ * 
+ * {@link AnimationController}
+ * {@link StateMachine}
+ * {@link HealthComponent}
+ * {@link AttackComponent} (optional)
+ * 
+ * Finding a target is left to the scene.
  */
 export default class Foe extends Phaser.Physics.Arcade.Sprite {
+    /** foe animations and mirrors sprite's facing direction */
     private animations: AnimationController<FoeAnims>
+    /** behavior states and transition between them  */
     private stateMachine: StateMachine<Foe>
+    /** hitpoints, regenration, etc - broacasting on global event bus */
     private health: HealthComponent
 
-    // how it fights, or null for a foe that only walks into you. its timing and
-    // its cooldown are its own business - this class never asks which kind it is
+    /**
+     * attack components which is either melee swing,
+     * ranged attack, or null for foes that walk into you.
+    */
     private attack: AttackComponent | null = null
 
-    // where it spawned - patrol is measured from here, not from wherever it drifts to
+    /** where a foe spawned - patrol is measured from here */
     readonly homeX: number
 
+    /** direction a foe is facing */
     private direction: -1 | 1 = 1
+    /** target of foe - usually player */
     private chaseTarget: FoeTarget | null = null
 
+    /**
+     * Adds foe sprite to the scene and physics body to the world,
+     * sets worldcollider bounds, initializes all the class variables
+     * and creates components based on foe defition.
+     * 
+     * @param scene - Scene to spawn foe in
+     * @param x - spawn X coordinate (world)
+     * @param y - spawn Y coordinate (world)
+     * @param definition - foe definition - which foe type to spawn
+     */
     constructor(
         scene: Phaser.Scene,
         x: number,
@@ -83,7 +110,15 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
-    update(_time: number, delta: number): void {
+    /**
+     * Runs every frame, called from `GameScene.update()`
+     * 
+     * Order matters: health and attack ticj before statemachine, so states see
+     * this frame's i-frames and cooldowns.
+     * 
+     * @param delta - Time elapsed since the previous frame (16.67 for 60FPS)
+     */
+    update(delta: number): void {
         if (!this.active) return
 
         this.health.update(delta)
@@ -95,36 +130,59 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.stateMachine.update(delta)
     }
 
-    // who it hunts - handed in by the scene, since the foe doesn't know how to find one
+    /**
+     * Set who the foe hunts.
+     * 
+     * It is handed by the scene, because foe doesn't know how to find one.
+     * 
+     * @param target - who a foe hunts, `null` to if none
+     * @returns this foe object to allow chaining
+     */
     setTarget(target: FoeTarget | null): this {
         this.chaseTarget = target
         return this
     }
 
-    // take a hit - false means i-frames or death swallowed it
+    /**
+     * Take a hit/damage.
+     * 
+     * @param amount - amount of damage to take
+     * @param source - source of the damage
+     * @returns `true` if foe took damage, `false` otherwise.
+     */
     takeDamage(amount: number, source?: unknown): boolean {
         return this.health.damage(amount, source)
     }
 
-    // walk in `direction` at `speed`, facing the way it's going
+    /**
+     * Faces and moves the foe horizontally
+     * 
+     * @param direction - which direction to walk: `-1` left, `1` right
+     * @param speed - Horizontal speed to walk
+     */
     walk(direction: -1 | 1, speed: number): void {
         this.setFacing(direction)
         this.setVelocityX(direction * speed)
     }
 
+    /** turn the foe around - flip facing direction */
     turnAround(): void {
         this.setFacing(this.direction === 1 ? -1 : 1)
     }
 
-    // turn to whatever it's hunting, so a swing or a shot leaves on the right side
+    /** turn towards target, so a swing or a shot leaves on the right side */
     faceTarget(): void {
         if (!this.chaseTarget) return
         this.setFacing(this.chaseTarget.x < this.x ? -1 : 1)
     }
 
-    // begin whatever this foe's attack is - the state owns when, the component
-    // owns what. the facing is locked in here, so being knocked round halfway
-    // through can't drag the reach across with it
+    /**
+     * Begin whatever this foe's attack is -
+     * the state owns when, the component owns what.
+     * 
+     * The facing is locked in here, so being knocked round
+     * halfway through can't drag the reach across with it.
+     */
     beginAttack(): void {
         if (!this.attack) return
 
@@ -132,42 +190,43 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.attack.start(this.animations.facing)
     }
 
-    // however the attack ended - played out, flinched out of, or cut short by
-    // death - this shuts it down and starts the cooldown
+    /** However the attack ended this shuts it down and starts the cooldown. */
     endAttack(): void {
         this.attack?.end()
     }
 
-    // an attack this foe could start right now - whether the target is in range is
-    // the state machine's business, this is only about cooldowns
+    /** `true` if foe can start its attack right now - whether the target is in range, is the state machine'sbusiness */
     get isAttackReady(): boolean {
         return !this.health.isDead && this.attack?.isReady === true
     }
 
+    /** `true` if foe is currently attacking */
     get isAttacking(): boolean {
         return this.attack?.isAttacking === true
     }
 
-    // how long an attack takes on a sheet that hasn't got one drawn on it - with
-    // no animation to lock, this is all there is to time the state against
+    /** how long an attack takes - with no animation to lock, this is all there is to time the state against */
     get attackDurationMs(): number {
         return this.attack?.durationMs ?? 0
     }
 
-    // what one of its attacks costs the player - 0 for a foe that hasn't got one
+    /** whjat one of its attacks damage is - 0 for a foe that doesn't got one */
     get attackDamage(): number {
         return this.definition.attack?.damage ?? 0
     }
 
-    // how much room it wants between itself and its target, 0 for anything happy
-    // to close all the way in
+    /** how much room it wants between itself and its target - `0` for anything that's happy to close all the way in */
     get standoffRange(): number {
         const attack = this.definition.attack
         return attack?.kind === "ranged" ? attack.standoff : 0
     }
 
-    // stop dead and fall over, then remove itself - a sheet with a death animation
-    // plays it out first, the rest have only the fade to sell it
+    /**
+     * Stops dead, falls over, and removes iself.
+     * 
+     * A sheet with a death animation plays is out first,
+     * the rest have only the fade to sell it 
+     */
     collapse(): void {
         this.setVelocity(0, 0)
         this.setAccelerationX(0)
@@ -190,45 +249,57 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.fadeOut()
     }
 
+    /** target the foe chases, `null` if foe has no target */
     get target(): FoeTarget | null {
         return this.chaseTarget
     }
 
+    /** patrol direction of a foe */
     get patrolDirection(): -1 | 1 {
         return this.direction
     }
 
+    /** foe contact damage - `0` for anything that doesn't have contact damage  */
     get contactDamage(): number {
         return this.definition.contactDamage
     }
 
+    /** `true` if foe is dead, `false` otherwise */
     get isDead(): boolean {
         return this.health.isDead
     }
 
+    /** statemachine component of this foe */
     get states(): StateMachine<Foe> {
         return this.stateMachine
     }
 
+    /** animation controller of this foe */
     get getAnimations(): AnimationController<FoeAnims> {
         return this.animations
     }
 
+    /** health component of this foe */
     get getHealth(): HealthComponent {
         return this.health
     }
 
-    // the scene resolves melee reach and ranged shots itself, so it asks for the
-    // component that actually has one - two narrowings, rather than every caller
-    // re-deriving the kind from the definition
+    /** meele attack component if foe has one, `null` otherwise */
     get meleeAttack(): MeleeAttack | null {
         return this.attack instanceof MeleeAttack ? this.attack : null
     }
 
+    /** ranged attack component if foe has one, `null` otherwise */
     get rangedAttack(): RangedAttack | null {
         return this.attack instanceof RangedAttack ? this.attack : null
     }
 
+    /**
+     * Subscribe to health events
+     * 
+     * - `Damaged`: flash sprite and knockback enemy. if not fatal, transition to hurt state.
+     * - `Died`: transition to death state, which calls `collapse()`.
+     */
     private bindHealth(): void {
         this.health.on(HealthEvent.Damaged, (change: HealthChange) => {
             this.flashDamage()
@@ -243,16 +314,21 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
-    // the one place facing changes, so the body offset can't drift out of step
+    /**
+     * FlipX sprite and body in a direction
+     * 
+     * @param direction - Direction of the facing 
+     */
     private setFacing(direction: -1 | 1): void {
         this.direction = direction
         this.animations.setFacing(direction)
         this.applyBodyOffset()
     }
 
-    // a sheet's art doesn't have to sit in the middle of its frame, and flipping
-    // mirrors the drawing without mirroring the body - so the offset is mirrored
-    // by hand, which keeps the hitbox on the character instead of beside it
+    /**
+     * Physics body isn't symmetrical to spritesheet,
+     * so when sprite is mirrored, we also need to mirror physics body.
+     */
     private applyBodyOffset(): void {
         const { width, offsetX, offsetY } = this.definition.body
         const mirrored = this.definition.frame.frameWidth - offsetX - width
@@ -260,7 +336,12 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.setOffset(this.flipX ? mirrored : offsetX, offsetY)
     }
 
-    // shove away from whatever hit it, when that thing has a position to shove from
+    /**
+     * Knock foe back, away from the source.
+     * 
+     * @param source - source of knocback to derive a knockback direction
+     * @returns 
+     */
     private knockbackFrom(source: unknown): void {
         const from = source as Partial<FoeTarget> | undefined
         if (typeof from?.x !== 'number') return
@@ -270,6 +351,7 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.setVelocityY(this.definition.knockbackLift)
     }
 
+    /** flash tint on damage */
     private flashDamage(): void {
         this.setTint(DAMAGE_FLASH_COLOR).setTintMode(Phaser.TintModes.FILL)
         this.scene.time.delayedCall(DAMAGE_FLASH_MS, () => {
@@ -277,7 +359,7 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
-    // the fade is what actually removes the foe, however it got here
+    /** fade and remove the enemy - whether or not animation played before */
     private fadeOut(): void {
         if (!this.active) return
 
@@ -290,6 +372,7 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
+    /** destructor and cleanup */
     destroy(fromScene?: boolean): void {
         this.stateMachine?.destroy()
         this.animations?.destroy()
@@ -299,8 +382,15 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
     }
 }
 
-// the single place a definition's attack kind is turned into a component -
-// everything downstream of here only ever sees an AttackComponent
+/**
+ * Turns a definitions's attack into a component - the only place
+ * its `king` is checked. Everything downsstream ever sees only {@link AttackComponent}
+ * 
+ * @param owner - foe that owns the attack component
+ * @param definition - definition of the owner foe
+ * @returns ! {@link MeleeAttack} for king `melee`, a {@link RangedAttack} for king `ranged`,
+ *  or `null` if the definition has no attack component.
+ */
 function createAttack(owner: Foe, definition: FoeDefinition): AttackComponent | null {
     const attack = definition.attack
     if (!attack) return null

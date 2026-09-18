@@ -260,7 +260,7 @@ export default class GameScene extends Phaser.Scene {
 
         // backwards, so a foe removing itself mid-loop can't skip the next one
         for (let i = this.foes.length - 1; i >= 0; i--) {
-            this.foes[i].update(time, delta)
+            this.foes[i].update(delta)
         }
 
         // same again - a shot that expires this frame drops out of the list

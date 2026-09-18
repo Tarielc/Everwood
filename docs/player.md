@@ -5,6 +5,7 @@
 Source:
 [Player.ts](/src/game/entities/Player.ts)
 [player.ts](/src/game/data/player.ts)
+[PlayerStates.ts](/src/game/systems/state/PlayerStates.ts)
 
 ## Components
 | Component | Responsibility | Config |
