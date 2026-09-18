@@ -43,8 +43,8 @@ Creates event listener on resize which runs `layout(width, height)` every time e
 |Scene| What it does |
 | --- | --- |
 | `PreloadScene` | Background size, loading bar, and title centered |
-| `MainMenyScene` | Logo and start button centered |
-| `TouchSource` | Movement and action buttons distributed |
+| `MainMenyScene` | Logo and start button centered and resized |
+| `TouchSource` | Movement and action buttons distributed and scaled |
 | `WorldMap` | Stretched backdrops to cover the screen |
 
 ## Orientation

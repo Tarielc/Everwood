@@ -45,7 +45,7 @@ export default class TouchSource implements InputSource {
             }
             // the SVGs are rasterised at BUTTON_SVG_SCALE, so draw them back down
             // to their authored size
-            this.addButton(action, this.scene.add.image(0, 0, texture).setScale(1.2 / BUTTON_SVG_SCALE))
+            this.addButton(action, this.scene.add.image(0, 0, texture).setScale(1 / BUTTON_SVG_SCALE))
         }
 
         this.stopLayout = onResize(scene, (width, height) => this.layout(width, height))
@@ -61,7 +61,9 @@ export default class TouchSource implements InputSource {
      * @param height  - New scale height after resize
      */
     private layout(width: number, height: number): void {
-        const { radius, margin, gap } = this.config
+        const radius = this.buttonRadius(height)
+        const margin = radius * this.config.marginScale
+        const gap = radius * this.config.gapScale
         const inset = safeArea(this.scene.scale)
 
         const left = margin + inset.left
@@ -80,7 +82,23 @@ export default class TouchSource implements InputSource {
 
         for (const { action, button } of this.buttons) {
             button.setPosition(...positions[action])
+            button.setDisplaySize(radius * 2, radius * 2)
         }
+    }
+
+    /**
+     * Determine what touch buttons radius must be based on screen size
+     * 
+     * @param height - height to derive radius from
+     * @returns new radius
+     */
+    private buttonRadius(height: number): number {
+        const {diameterCss, minRadius, maxHeightFraction} = this.config
+        // displayScale is game pixel per CSS pixel - so a button stays the same physical
+        // size under the thumb whatever zoom fitToParent picked.
+        const radius = (diameterCss / 2) * this.scene.scale.displayScale.y
+        // but never so big it eats a short screen, or so small it's unhittable
+        return Phaser.Math.Clamp(radius, minRadius, height * maxHeightFraction)
     }
 
     // assign each button with corresponding "action" and value to track whether it's pressed or not

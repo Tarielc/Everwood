@@ -5,10 +5,12 @@ export const DOUBLE_TAP_SPRINT_MS:number = 250
 
 /** Configuration for button placement - used in `TouchSource` */
 export interface TouchControlsConfig {
-    radius: number,
+    diameterCss: 72,
+    minRadius: number,
+    maxHeightFraction: 0.12,
+    marginScale: number,
+    gapScale: number,
     hitRadiusScale: number,
-    margin: number,
-    gap: number,
     /** How many fingers can be tracked at once, e.g. hold move, jump and attack together */
     maxTouches: number,
     pressedAlpha: number,
@@ -17,10 +19,12 @@ export interface TouchControlsConfig {
 
 /** Default touch control configuration for `TouchSource` */
 export const TOUCH_CONTROLS:TouchControlsConfig = {
-    radius: 48,
+    diameterCss: 72,
+    minRadius: 32,
+    maxHeightFraction: 0.12,
+    marginScale: 0.4,
+    gapScale: 0.8,
     hitRadiusScale: 1,
-    margin: 20,
-    gap: 20,
     maxTouches: 3,
     pressedAlpha: 0.55,
     depth: 2000,

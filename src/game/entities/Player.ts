@@ -19,8 +19,9 @@ import { InputState } from '../systems/inputs/InputController';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createPlayerStates, PlayerState } from '../systems/state/PlayerStates';
 
-// how fast the sprite blinks while i-frames are running, in ms per half cycle
+/** How fast the sprite blinks while it is in i-frames */
 const INVULNERABILITY_BLINK_MS = 70
+/** How much transparent is sprite when its in i-frames */
 const INVULNERABILITY_BLINK_ALPHA = 0.35
 
 // the white "hit" flash on the frame damage lands
