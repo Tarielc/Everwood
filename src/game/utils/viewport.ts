@@ -87,7 +87,7 @@ export function fitToParent(game: Phaser.Game, minHeight: number, maxHeight: num
         if (width === 0 || height === 0) return
 
         // CSS pixels per game pixel - 1 on tall screens, below 1 on short ones
-        const zoom = Math.min(height / maxHeight, height / minHeight)
+        const zoom = Math.max(height / maxHeight, height / minHeight)
 
         // the canvas has to be its final on-screen size before resize() refreshes,
         // since that's what displayScale - and so every pointer - is measured from
