@@ -4,6 +4,9 @@ import { BUTTON_SVG_SCALE } from '../../config/display';
 import { BUTTONS, TOUCH_CONTROLS, TouchControlsConfig } from '../../config/input';
 import { onResize, safeArea } from '../../utils/viewport';
 
+/**
+ * Single touch control button to track user raw input
+ */
 interface TouchButton {
     action: Action
     button: Phaser.GameObjects.Image
@@ -12,13 +15,23 @@ interface TouchButton {
     pointers: Set<number>
 }
 
+/**
+ * Listen to button clicks and output data in shared `out` RawData
+ */
 export default class TouchSource implements InputSource {
-    // for touch device we use array of on-screen buttons
+    /** array of all on-screen buttons */
     private buttons: TouchButton[] = []
 
-    // stops the buttons following resizes once this source is destroyed
+    /** stops the buttons following resizes once this source is destroued */
     private stopLayout: () => void
 
+    /**
+     * Create and add buttons to the screen
+     * Add event listeners on them
+     * 
+     * @param scene - Scene we are adding buttons too
+     * @param config - Touch controls configuration e.g gap between buttons
+     */
     constructor(private scene: Phaser.Scene, private config: TouchControlsConfig = TOUCH_CONTROLS) {
         scene.input.addPointer(config.maxTouches - 1)
 
@@ -71,6 +84,13 @@ export default class TouchSource implements InputSource {
     }
 
     // assign each button with corresponding "action" and value to track whether it's pressed or not
+    /**
+     * Make buttons interactive and push them to array
+     * Add event listener on them
+     * 
+     * @param action - actions button is linked ot
+     * @param btn - Button we want to add
+     */
     private addButton(
         action: Action,
         btn: Phaser.GameObjects.Image
@@ -113,6 +133,12 @@ export default class TouchSource implements InputSource {
     // off the button keeps it down, and only lifting that finger (anywhere, even
     // off the canvas) lets it go. The button itself only hears "pointerup" if the
     // finger is still over it, so the release is caught at the scene level
+    /**
+     * A press is held by a finger that made it and even if player slides
+     * finger off button area, it still stays pressed and only lifting the finger lets it go.
+     * 
+     * @param pointer - filnger pressing the button 
+     */
     private readonly onPointerUp = (pointer: Phaser.Input.Pointer): void => {
         for (const entry of this.buttons) {
             if (entry.pointers.delete(pointer.id) && entry.pointers.size === 0) {
@@ -121,7 +147,7 @@ export default class TouchSource implements InputSource {
         }
     }
 
-    // read current state of the buttons and copy it into out
+    /** read current state of buttons and copy them to `out` */
     sample(out: RawInput): void {
         for(const {action, pressed} of this.buttons){
             if (pressed) {
@@ -130,6 +156,7 @@ export default class TouchSource implements InputSource {
         }
     }
 
+    /** destructor and cleanup */
     destroy(): void {
         this.stopLayout()
         this.scene.input.off(Phaser.Input.Events.POINTER_UP, this.onPointerUp)
