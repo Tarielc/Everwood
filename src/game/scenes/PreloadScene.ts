@@ -18,10 +18,10 @@ import { BUTTONS } from '../config/input';
  * When loading is done starts `MainMenuScene`.
  */
 export default class PreloadScene extends Phaser.Scene {
-    /** white fill that grows with load progress */
-    private progressBar!: Phaser.GameObjects.Graphics
-    /** dark frame the progress bar is drawn inside */
-    private progressBox!: Phaser.GameObjects.Graphics
+    /** red line that grows with load progress */
+    private progressBar!: Phaser.GameObjects.Image
+    /** frame the progress bar is drawn inside */
+    private progressBox!: Phaser.GameObjects.Image
 
     /**
      * Only the `Loader` and `Clock` plugins are needed - the loader for
@@ -50,23 +50,11 @@ export default class PreloadScene extends Phaser.Scene {
      * - HUD bars, start and fullscreen buttons
      */
     preload() {
-        // add background image
-        const background = this.add.image(0, 0, "load-bg").setOrigin(0)
-
         // create a loading graph
         const loadingGraph = this.createLoadingGraph()
 
         // the bar is drawn in its container, so we only need to move container
         onResize(this, (width, height) => {
-            const scale = Math.max(
-                this.scale.width / background.width,
-                this.scale.height / background.height
-            );
-
-            background
-                .setDisplaySize(width, height)
-                .setScale(scale);
-
             loadingGraph.setPosition(width / 2, height / 2)
         })
 
@@ -135,14 +123,13 @@ export default class PreloadScene extends Phaser.Scene {
         const barWidth = 320
         const barHeight = 24
 
-        this.progressBox = this.add.graphics()
-        this.progressBox.fillStyle(0x222222, 0.8)
-        this.progressBox.fillRect(-barWidth / 2, -barHeight / 2, barWidth, barHeight)
+        this.progressBox = this.add.image(0, 0, "progBar-frame")
 
-        this.progressBar = this.add.graphics()
+        this.progressBar = this.add.image(0, 0, "progBar-line")
 
         const percentText = this.add.text(0, barHeight / 2 + 20, "0%", {
             fontSize: "18px",
+            color: "#e52554"
         }).setOrigin(0.5)
 
         this.load.on("progress", (value:number) => {
@@ -150,13 +137,10 @@ export default class PreloadScene extends Phaser.Scene {
             percentText.setText(`${Phaser.Math.RoundTo(value * 100 * 10) / 10}%`)
 
             // update progress bar
-            this.progressBar.clear()
-            this.progressBar.fillStyle(0xffffff, 1)
-            this.progressBar.fillRect(
-                -barWidth / 2 + 4,
-                -barHeight / 2 + 4,
-                (barWidth - 8) * value,
-                barHeight - 8
+            this.progressBar.setCrop(
+                0, 0,
+                this.progressBar.width * value,
+                this.progressBar.height
             )
         })
 

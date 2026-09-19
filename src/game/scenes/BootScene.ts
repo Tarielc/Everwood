@@ -20,6 +20,9 @@ export default class BootScene extends Phaser.Scene{
         this.load.bitmapFont("Jacquard24", "assets/fonts/Jacquard24.png", "assets/fonts/Jacquard24.xml");
         this.load.image("load-bg", "assets/ui/load-bg.png");
 
+        this.load.image("progBar-frame", "assets/ui/progBar-frame.png")
+        this.load.image("progBar-line", "assets/ui/progBar-line.png")
+
         // the maps come in first, so PreloadScene can read the tileset and
         // backdrop images off them instead of listing them a second time
         loadMapDefinitions(this.load);

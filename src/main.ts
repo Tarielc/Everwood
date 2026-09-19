@@ -12,7 +12,7 @@ import UIScene from './game/scenes/UIScene';
 const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
     parent: 'game-container',
-    backgroundColor: '#028af8',
+    backgroundColor: '#323741',
     pixelArt: true,
     roundPixels: true,
     // sized by fitToParent() instead - RESIZE, but with a minimum height, so a
