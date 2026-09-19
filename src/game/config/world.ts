@@ -23,8 +23,8 @@ export const MAP = {
     collisionValues: [true, "true"],
     /** Object layers authored in tiled, but only one's listed here will be rendered */
     objectLayers: {
-        player: "Player Object Layer",
-        enemies: "EnemyObjectsLayer",
+        player: "player-object-layer",
+        enemies: "enemies-object-layer",
         npcs: "NPC Objects",
         decor: "Decor Objects",
     },
