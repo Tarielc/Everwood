@@ -63,6 +63,8 @@ Depth deserves a note. Neither Phaser, nor Tiled tracks a depth property, and wh
 
 **Foes** — Place an object on the enemies object layer with class/type `Foe`, and give it a `foeType` property naming the foe. `GameScene.spawnMapFoes()` spawns one per object; an object whose type doesn't match to a known foe is skipped with a warning.
 
+**Animated layer** — you need to set animated tiles layer Y offset to one tile (in this case 32px).
+
 ## Placing Things on the Map
 
 Tiled anchores an object by its top-left corner; a sprite is positioned byu it's center. `foot()` converts the one into the other, returning bottom-center point in the world pixels, and `marker()` looks up names object and returns it's foot point.

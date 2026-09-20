@@ -163,10 +163,13 @@ export default class GameScene extends Phaser.Scene {
     private watchForExit(): void {
         const exits = this.world.exit
         if (!exits) return
+        console.log(exits)
 
         for (const exit of exits) {
             const next = WorldMap.property<string>(exit, MAP.exitLevelProperty)
             if (!next) continue
+
+            console.log(next)
     
             if (!(next in LEVELS)) {
                 console.warn(`GameScene: "${exit.name}" leads to "${next}", which isn't a level`)

@@ -13,6 +13,7 @@ export interface LevelDefinition {
  */
 export const LEVELS = {
     everwood: { url: "assets/map/map.json" },
+    arena: {url: "assets/map/Arena.json"}
 } as const satisfies Record<string, LevelDefinition>
 
 /** Keys of {@link LEVELS} - a typo is a compile error, not a blank scene */
