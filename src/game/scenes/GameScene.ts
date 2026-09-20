@@ -4,7 +4,7 @@ import { MAP, MAP_CAMERA } from '../config/world';
 import { FOES, FoeDefinition, FoeId } from '../data/foes';
 import { ItemId } from '../data/items';
 import { LEVELS, LevelId, STARTING_LEVEL } from '../data/levels';
-import { PLAYER_HEALTH_BUS } from '../data/player';
+import { PLAYER_HEALTH, PLAYER_HEALTH_BUS } from '../data/player';
 import Foe from '../entities/Foe';
 import Player from '../entities/Player';
 import Projectile from '../entities/Projectile';
@@ -14,6 +14,8 @@ import { Shot } from '../components/attack/RangedAttack';
 import { HealthEvent } from '../components/HealthComponent';
 import { FootPoint, MapObject, WorldMap } from '../systems/world/WorldMap';
 import { CollisionManager } from '../systems/collision/CollisionManager';
+import { WaveDirector, WaveEvent } from '../systems/waves/WaveDirector';
+import { TextBanner } from '../ui/TextBanner';
 
 // used only if the map turns up without a PlayerStartPoint on it - somewhere to
 // stand is better than the top left corner of the world
@@ -56,6 +58,13 @@ export default class GameScene extends Phaser.Scene {
     private foes: Foe[] = []
     private projectiles: Projectile[] = []
 
+    // what sends in the waves, on the levels that fight them - null anywhere the
+    // map places its foes by hand
+    private waves: WaveDirector | null = null
+
+    // the "Wave 3" headline, up only on the levels that have waves to announce
+    private textBanner: TextBanner | null = null
+
     // read off the map once, and kept for every respawn after the first
     private spawn: FootPoint = FALLBACK_SPAWN
 
@@ -77,6 +86,11 @@ export default class GameScene extends Phaser.Scene {
         this.foes = []
         this.projectiles = []
         this.travelling = false
+
+        // both are torn down by the shutdown the restart ran through - what's left
+        // here is the stale handle, not the thing
+        this.waves = null
+        this.textBanner = null
     }
 
     create() {
@@ -108,16 +122,12 @@ export default class GameScene extends Phaser.Scene {
         this.bindItemHotkeys()
 
         this.spawnMapFoes()
+        this.startWaves()
         this.watchForExit()
 
         // listening on the component rather than the bus - it's torn down with the
         // player, so a scene restart can't leave a stale respawn timer behind
-        this.player.getHealth.on(HealthEvent.Died, () => {
-            this.time.delayedCall(RESPAWN_DELAY_MS, () => {
-                this.player.respawn(this.spawn.x, this.spawn.y)
-                this.world.stand(this.player, this.spawn)
-            })
-        })
+        this.player.getHealth.on(HealthEvent.Died, () => this.onPlayerDeath())
 
         // the HUD runs as its own scene - hand it the starting values so it draws
         // the right bar before the first health event arrives. it isn't torn
@@ -150,11 +160,33 @@ export default class GameScene extends Phaser.Scene {
         else this.player.unequip()
     }
 
-    private saveProgress(): void {
+    // `health` is spelled out for a player who is leaving dead - what they arrive
+    // with somewhere else is not what they had left when they fell over
+    private saveProgress(health: number = this.player.getHealth.current): void {
         this.registry.set(PROGRESS_KEY, {
-            health: this.player.getHealth.current,
+            health,
             item: this.player.gear.itemId,
         } satisfies Progress)
+    }
+
+    // the player is down. a level that names somewhere to be sent throws them out to
+    // it, kit and all and patched up on the way - an arena has no other exit. anywhere
+    // else they get back up where they fell, the way they always have
+    private onPlayerDeath(): void {
+        // nothing else arrives while the body is still on the floor
+        this.waves?.stop()
+
+        const returnTo = LEVELS[this.level].deathReturnsTo
+
+        this.time.delayedCall(RESPAWN_DELAY_MS, () => {
+            if (returnTo) {
+                this.travelTo(returnTo, PLAYER_HEALTH.max)
+                return
+            }
+
+            this.player.respawn(this.spawn.x, this.spawn.y)
+            this.world.stand(this.player, this.spawn)
+        })
     }
 
     // the exit is a marker like any other until the map says where it goes. a
@@ -163,13 +195,10 @@ export default class GameScene extends Phaser.Scene {
     private watchForExit(): void {
         const exits = this.world.exit
         if (!exits) return
-        console.log(exits)
 
         for (const exit of exits) {
             const next = WorldMap.property<string>(exit, MAP.exitLevelProperty)
             if (!next) continue
-
-            console.log(next)
     
             if (!(next in LEVELS)) {
                 console.warn(`GameScene: "${exit.name}" leads to "${next}", which isn't a level`)
@@ -181,11 +210,11 @@ export default class GameScene extends Phaser.Scene {
 
     // off to somewhere else. the overlap that calls this fires every frame the
     // player is stood in the exit, so the first one through wins
-    private travelTo(level: LevelId): void {
+    private travelTo(level: LevelId, health?: number): void {
         if (this.travelling) return
 
         this.travelling = true
-        this.saveProgress()
+        this.saveProgress(health)
         this.scene.restart({ level })
     }
 
@@ -196,6 +225,10 @@ export default class GameScene extends Phaser.Scene {
         for (const object of this.world.objects(MAP.objectLayers.enemies)) {
             if (object.type !== MAP.foeType) continue
 
+            // a wave marker sits on the same layer and wears the same type - it's a
+            // door the waves come through, not a foe standing there
+            if (isWaveSpawnPoint(object)) continue
+
             const definition = foeDefinitionFor(object)
             if (!definition) continue
 
@@ -203,9 +236,43 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    // levels that fight waves say so in their definition, and mark on the map where
+    // the waves come in. one without either simply never starts a run
+    private startWaves(): void {
+        const config = LEVELS[this.level].waves
+        if (!config) return
+
+        const points = this.world.objects(MAP.objectLayers.enemies)
+            .filter(isWaveSpawnPoint)
+            .map(object => this.world.foot(object))
+
+        if (points.length === 0) {
+            console.warn(`GameScene: "${this.level}" fights waves but has no "${MAP.waveSpawnPoint}" on its map`)
+            return
+        }
+
+        this.textBanner = new TextBanner(this)
+
+        // the director decides what arrives and when; spawnFoe() is what the scene
+        // already does with a foe the map placed, and waves get the same treatment
+        this.waves = new WaveDirector(this, config, points, (definition, at) => this.spawnFoe(definition, at))
+        this.waves.on(WaveEvent.Started, (wave: number) => this.textBanner?.announce(`Wave ${wave}`, true))
+        this.waves.start()
+    }
+
+    // a foe as this level fields it. on a level that hunts, both aggro ranges go
+    // unbounded - the wider one has to go too, or a foe would acquire the player from
+    // across the map and drop the chase again on the very next frame, over and over.
+    // the attack ranges are left alone, so what a foe can reach is still what it could
+    private asHuntedIn(definition: FoeDefinition): FoeDefinition {
+        if (!LEVELS[this.level].foesAlwaysHunt) return definition
+
+        return { ...definition, aggroRange: Infinity, deAggroRange: Infinity }
+    }
+
     // bring a foe into the world and hook it up to the player
     private spawnFoe(definition: FoeDefinition, at: FootPoint): Foe {
-        const foe = new Foe(this, at.x, at.y, definition).setTarget(this.player)
+        const foe = new Foe(this, at.x, at.y, this.asHuntedIn(definition)).setTarget(this.player)
         this.foes.push(foe)
 
         // Foe scales itself in its constructor, so its body is the right size by
@@ -274,6 +341,13 @@ export default class GameScene extends Phaser.Scene {
         // last, so every swing lands against where everything actually ended up
         this.collisions.update()
     }
+}
+
+// a marker the waves come in at rather than a foe standing on the spot. matched on
+// either the object's type or its name, so it can be authored in Tiled as a class of
+// its own or dropped in as a named object on the ordinary foe type
+function isWaveSpawnPoint(object: MapObject): boolean {
+    return object.type === MAP.waveSpawnPoint || object.name === MAP.waveSpawnPoint
 }
 
 // which foe an object on the enemies layer asks for - its `foeType` property wins,

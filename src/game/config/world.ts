@@ -41,6 +41,13 @@ export const MAP = {
     foeType: "Foe",
     /** Property naming which `FoeId` to spawn - the object's name is the fallback */
     foeTypeProperty: "foeType",
+    /**
+     * Object on the enemies layer a wave level pours its foes out of, matched on the
+     * object's type or its name. The marker says only where something arrives - what
+     * arrives, and how much of it, is the level's wave config, so one marker serves
+     * every wave and a map can hold as many of them as it likes
+     */
+    waveSpawnPoint: "FoeSpawnPoint",
 } as const
 
 /** Default depth for a backdrop(background) image layer that doesn't set {@link MAP.depthProperty} */

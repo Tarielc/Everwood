@@ -23,7 +23,7 @@ export const ITEMS = {
             activeMs: 260,
             cooldownMs: 240,
             bufferMs: 160,
-            width: 53,
+            width: 55,
             height: 64,
             offsetX: -8,
             offsetY: 8,

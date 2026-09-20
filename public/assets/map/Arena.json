@@ -539,10 +539,10 @@
                  "name":"FoeSpawnPoint",
                  "opacity":1,
                  "rotation":0,
-                 "type":"Foe",
+                 "type":"FoeSpawnPoint",
                  "visible":true,
                  "width":32,
-                 "x":32,
+                 "x":384,
                  "y":576
                 }, 
                 {
@@ -551,10 +551,10 @@
                  "name":"FoeSpawnPoint",
                  "opacity":1,
                  "rotation":0,
-                 "type":"Foe",
+                 "type":"FoeSpawnPoint",
                  "visible":true,
                  "width":32,
-                 "x":1248,
+                 "x":896,
                  "y":576
                 }],
          "opacity":1,

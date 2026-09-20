@@ -89,7 +89,7 @@ export class CollisionManager {
                 }),
                 // alongside the overlap rather than instead of it - contact costs
                 // health, and the two of them still can't stand in the same place
-                this.scene.physics.add.collider(player, foe),
+                //this.scene.physics.add.collider(player, foe),
             ])
         }
 

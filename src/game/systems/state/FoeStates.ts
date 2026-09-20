@@ -42,6 +42,11 @@ function canSee(foe: Foe, range: number): boolean {
     const target = foe.target
     if (!target || !target.active) return false
 
+    // an infinite range is a foe that simply always knows where the target is. the
+    // vertical reach is the other half of the same sight check, so it goes with it -
+    // otherwise a jump would still break line of sight on a foe that has none to break
+    if (!Number.isFinite(range)) return true
+
     const definition = foe.definition
     return Math.abs(target.x - foe.x) <= range
         && Math.abs(target.y - foe.y) <= definition.verticalReach

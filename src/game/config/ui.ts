@@ -46,3 +46,33 @@ export const UI_BUTTONS: UiButtonConfig = {
     gap: 10,
     depth: 2000,
 }
+
+/** Wave announcement - the "Wave 3" that drops in over an arena between waves */
+export interface TextBannerConfig {
+    /** Bitmap font key, loaded in `BootScene` */
+    font: string,
+    size: number,
+    tint: number,
+    /** Drop shadow colour, so the text reads over a bright backdrop */
+    shadow: number,
+    /** How far down the screen it sits, as a fraction of the view's height */
+    y: number,
+    depth: number,
+    /** How long it takes to fade in - and, yoyoed, back out again */
+    fadeMs: number,
+    /** How long it holds at full opacity between the two */
+    holdMs: number,
+}
+
+/** Default wave announcement configuration */
+export const TEXT_WAVE_BANNER: TextBannerConfig = {
+    font: "Jacquard24",
+    size: 72,
+    tint: 0xFBFEF9,
+    shadow: 0xA63446,
+    // high enough to stay clear of the player, low enough to read as a headline
+    y: 0.2,
+    depth: 1000,
+    fadeMs: 350,
+    holdMs: 1000,
+}

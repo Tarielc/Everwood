@@ -20,6 +20,8 @@ Source:
 
 A foe patrols in predefined patrol range and if it sees a taget (player) chases it. If target moves beyong `deAggroRange` it stops chasing - this is larger than `aggroRange` so a target standing near the edge doesn't make the foe switch between chase and idle every frame.
 
+Sight is horizontal range *and* `verticalReach` - a target far enough above or below is out of sight however close it stands. An **infinite** range is the exception: it skips the geometry outright, reach included, so a foe given one never loses the target to a jump. `LevelDefinition.foesAlwaysHunt` gives every foe in a level exactly that (see [Wave Director](/docs/wave-director.md)); the attack ranges are left finite, so what a foe can *reach* is unchanged.
+
 | State | Behavior |
 | --- | --- |
 | `Idle` | Pauses at the end of a patrol, or has nothing to do |
