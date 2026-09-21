@@ -83,6 +83,11 @@ export class WaveDirector extends Phaser.Events.EventEmitter {
         return this.running
     }
 
+    /** wave object configuration */
+    get waveConfig(): WaveConfig {
+        return this.config
+    }
+
     /** Open the run - the first wave lands after `openingDelayMs` */
     start(): void {
         if (this.running) return
@@ -170,6 +175,7 @@ export class WaveDirector extends Phaser.Events.EventEmitter {
         if (!this.standing.delete(foe)) return
         if (!this.running || this.queued > 0 || this.standing.size > 0) return
 
+        // heal the player
         this.emit(WaveEvent.Cleared, this.waveNumber)
         this.after(this.config.breakMs, () => this.beginWave())
     }

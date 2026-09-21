@@ -35,8 +35,8 @@ export const PLAYER_HEALTH_BUS:string = "player"
 export const PLAYER_HEALTH:HealthConfig = {
     max: 100,
     invulnerabilityMs: 700, // roughly the length of the hurt animation
-    regenPerSecond: 5,
-    regenDelayMs: 4000,
+    regenPerSecond: 4,
+    regenDelayMs: 12000,
 }
 
 /**

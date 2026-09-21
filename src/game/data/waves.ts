@@ -53,9 +53,9 @@ export interface WaveConfig {
  */
 export const ARENA_WAVES:WaveConfig = {
     roster: [
-        { foe: "fox", firstWave: 1, baseCount: 2, countPerWave: 0.7, maxCount: 8 },
-        { foe: "archer", firstWave: 2, baseCount: 1, countPerWave: 0.4, maxCount: 4 },
-        { foe: "warrior", firstWave: 3, baseCount: 1, countPerWave: 0.35, maxCount: 4 },
+        { foe: "fox", firstWave: 1, baseCount: 2, countPerWave: 0.7, maxCount: 0 },
+        { foe: "archer", firstWave: 1, baseCount: 1, countPerWave: 0.4, maxCount: 4 },
+        { foe: "warrior", firstWave: 2, baseCount: 1, countPerWave: 0.35, maxCount: 4 },
     ],
     // long enough to find your feet and see where the spawns are
     openingDelayMs: 2000,

@@ -256,7 +256,18 @@ export default class GameScene extends Phaser.Scene {
         // the director decides what arrives and when; spawnFoe() is what the scene
         // already does with a foe the map placed, and waves get the same treatment
         this.waves = new WaveDirector(this, config, points, (definition, at) => this.spawnFoe(definition, at))
-        this.waves.on(WaveEvent.Started, (wave: number) => this.textBanner?.announce(`Wave ${wave}`, true))
+        this.waves.on(WaveEvent.Started, (wave: number) => {
+            this.textBanner?.announce(`Wave ${wave}`, true)
+        })
+        // when wave ends, heal the player
+        this.waves.on(WaveEvent.Cleared, () => {
+            // heal the player to max hp in the middle of break
+            const wavesBreakMs = this.waves?.waveConfig.breakMs ?? 0
+            this.time.delayedCall(wavesBreakMs / 2, () => {
+                this.player.heal(this.player.getHealth.max)
+            })
+            
+        })
         this.waves.start()
     }
 
