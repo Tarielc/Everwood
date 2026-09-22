@@ -82,7 +82,7 @@ export const SOUNDS = {
     },
     // two takes of the same grunt, so a run of hits doesn't repeat itself
     "player-hurt": {
-        files: ["sfx/hurt1.mp3", "sfx/hurt2.wav"],
+        files: ["sfx/player/player-hurt.mp3"],
         channel: "sfx",
         volume: 0.6,
         rateJitter: 0.06,
@@ -132,6 +132,18 @@ export const SOUNDS = {
         channel: "sfx",
         volume: 0.45,
         rateJitter: 0.1,
+    },
+    "foe-hurt": {
+        files: ["sfx/foe/foe-hurt.wav"],
+        channel: "sfx",
+        volume: 0.3,
+        rateJitter: 0.02,
+    },
+    "foe-death": {
+        files: ["sfx/foe/foe-death.wav"],
+        channel: "sfx",
+        volume: 0.35,
+        rateJitter: 0.02,
     },
     "archer-draw": {
         files: ["sfx/foe/archer-bow-tension.wav"],

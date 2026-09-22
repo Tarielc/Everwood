@@ -7,7 +7,7 @@ import { ARENA_WAVES, WaveConfig } from "./waves"
  * {@link LEVELS}, because a level names another one in {@link LevelDefinition.deathReturnsTo}
  * and a type can't be built out of the thing it is used to describe
  */
-export type LevelId = "everwood" | "arena"
+export type LevelId = "everwood" | "arena" | "training-grounds"
 
 /** A level the game can be standing in */
 export interface LevelDefinition {
@@ -61,6 +61,12 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
         waves: ARENA_WAVES,
         deathReturnsTo: "arena",
         foesAlwaysHunt: true,
+    },
+    "training-grounds": {
+        url: "assets/map/training-grounds.json",
+        music: "arena",
+        ambience: "arena-crowd",
+        waves: ARENA_WAVES,
     },
 }
 

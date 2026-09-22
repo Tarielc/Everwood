@@ -27,8 +27,8 @@ export const ITEMS = {
             activeMs: 260,
             cooldownMs: 240,
             bufferMs: 160,
-            width: 55,
-            height: 64,
+            width: 58,
+            height: 44,
             offsetX: -8,
             offsetY: 8,
         }

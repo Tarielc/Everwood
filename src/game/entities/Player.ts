@@ -33,7 +33,7 @@ const DAMAGE_FLASH_COLOR = 0xFF2C2C
 const DAMAGE_FLASH_MS = 60
 
 /** How much of players speed is grounded while swinging */
-const SWING_FOOT_DRAG = 0.6
+const SWING_FOOT_DRAG = 0.9
 
 /** Input fed to the movement while stunned - nothing held, nothing pressed */
 const NO_INPUT: InputState = {

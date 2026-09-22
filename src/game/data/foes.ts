@@ -155,7 +155,7 @@ export const FOES = {
             damage: 25,
             swing: WARRIOR_SWING,
         },
-        sounds: { attack: "warrior-swing" },
+        sounds: { attack: "player-swing", hurt:"foe-hurt", death: "foe-death" },
         knockback: 40, // heavy, so it barely staggers
         knockbackLift: -20,
         deathFadeMs: 600,
@@ -201,7 +201,7 @@ export const FOES = {
             muzzleY: -6,
         },
         // the bow creaks as it commits, and the string goes as the arrow leaves
-        sounds: { attack: "archer-draw", shoot: "archer-loose" },
+        sounds: { attack: "archer-draw", shoot: "archer-loose", hurt:"foe-hurt", death: "foe-death" },
         knockback: 200,
         knockbackLift: -140,
         deathFadeMs: 600,
@@ -212,7 +212,7 @@ export const FOES = {
         texture: "warrior",
         frame: CHARACTER_FRAME,
         anims: WARRIOR_ANIMS,
-        facing: 'left', // drawn facing left, the same way the player sheet is
+        facing: 'right', // drawn facing left, the same way the player sheet is
         scale: SCALE_FACTOR,
         // the same footprint the player has in this grid, minus the sword arm
         body: { width: 16, height: 44, offsetX: 32, offsetY: 20 },
@@ -225,7 +225,7 @@ export const FOES = {
         speed: 0,
         chaseSpeed: 0,
         patrolRange: 0,
-        pauseMs: 1200,
+        pauseMs: Infinity,
         aggroRange: 0,
         deAggroRange: 0,
         verticalReach: 0,
@@ -235,11 +235,11 @@ export const FOES = {
         attack: {
             kind: "melee",
             // just inside the swing's reach, so it commits rather than nudging closer
-            range: 76,
+            range: 72,
             damage: 25,
             swing: WARRIOR_SWING,
         },
-        sounds: { attack: "warrior-swing" },
+        sounds: { attack: "warrior-swing", hurt: "foe-hurt", death: "foe-death" },
         knockback: 0, // heavy, so it barely staggers
         knockbackLift: 0,
         deathFadeMs: 600,

@@ -11,9 +11,11 @@ import Projectile from '../entities/Projectile';
 import InputController from '../systems/inputs/InputController';
 import { AttackEvent } from '../components/attack/AttackComponent';
 import { Shot } from '../components/attack/RangedAttack';
-import { HealthEvent } from '../components/HealthComponent';
+import { HealthChange, HealthEvent } from '../components/HealthComponent';
 import { FootPoint, MapObject, WorldMap } from '../systems/world/WorldMap';
 import { CollisionManager } from '../systems/collision/CollisionManager';
+import { ImpactController } from '../systems/feel/ImpactController';
+import { IMPACT, impactScale } from '../config/feel';
 import { WaveDirector, WaveEvent } from '../systems/waves/WaveDirector';
 import { TextBanner } from '../ui/TextBanner';
 import { AudioController } from '../systems/audio/AudioController';
@@ -57,6 +59,10 @@ export default class GameScene extends Phaser.Scene {
 
     // everything about who can hit what - the scene only says what's in the world
     private collisions!: CollisionManager
+
+    // what a landed blow does to the world around it - the hitstop and the shake
+    private impact!: ImpactController
+
     private foes: Foe[] = []
     private projectiles: Projectile[] = []
 
@@ -103,6 +109,10 @@ export default class GameScene extends Phaser.Scene {
         // built on the world, since what stops a body is the level itself
         this.collisions = new CollisionManager(this, this.world)
 
+        // stands before the player and the foes, because both are wired to it as
+        // they are built
+        this.impact = new ImpactController(this)
+
         // create input controller after game starts
         this.controls = new InputController(this)
 
@@ -134,6 +144,13 @@ export default class GameScene extends Phaser.Scene {
         // listening on the component rather than the bus - it's torn down with the
         // player, so a scene restart can't leave a stale respawn timer behind
         this.player.getHealth.on(HealthEvent.Died, () => this.onPlayerDeath())
+
+        // every hit that actually landed, whatever dealt it - a swing, an arrow or
+        // walking into something. i-frames swallowing one fires nothing, so a hit
+        // that cost no health shakes nothing either
+        this.player.getHealth.on(HealthEvent.Damaged, (change: HealthChange) => {
+            this.impact.hit(IMPACT.playerHurt, impactScale(change.amount, change.max))
+        })
 
         // the HUD runs as its own scene - hand it the starting values so it draws
         // the right bar before the first health event arrives. it isn't torn
@@ -318,6 +335,14 @@ export default class GameScene extends Phaser.Scene {
         this.world.stand(foe, at)
         this.collisions.addFoe(foe)
 
+        // the same listeners the player has, from the other side of the swing. both
+        // fire on a killing blow, and the impacts fold into one rather than stacking -
+        // which is what makes a kill land heavier than a hit without stuttering
+        foe.getHealth.on(HealthEvent.Damaged, (change: HealthChange) => {
+            this.impact.hit(IMPACT.foeHit, impactScale(change.amount, change.max))
+        })
+        foe.getHealth.on(HealthEvent.Died, () => this.impact.hit(IMPACT.foeDeath))
+
         // a bow only announces its shot - what one can hit is decided here, the
         // same as it is for a swing. this listens to the component rather than to
         // the foe, so a player bow would reuse it untouched
@@ -360,6 +385,11 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update(time:number, delta:number){
+        // a blow that just landed holds the whole frame, input included - a press made
+        // during the freeze is still a fresh press on the frame it lifts, rather than
+        // an edge sampled into a frame that never ran
+        if (this.impact.update(delta)) return
+
         // sample input once per frame, before anything consumes it
         this.controls.update()
 
