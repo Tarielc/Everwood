@@ -8,7 +8,7 @@ export const PLAYER_MOVEMENT:MovementConfig = {
     sprintSpeed: 225,
     acceleration: 900,
     drag: 700,
-    jumpVelocity: -200,
+    jumpVelocity: -230,
     jumpCutMultiplier: 0.7,
     gravity: 100,
     fallGravityMultiplier: 1.5,
