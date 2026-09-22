@@ -18,6 +18,13 @@ export interface FoeTarget extends Phaser.GameObjects.GameObject {
     y: number
 }
 
+/** Whatever hit the foe - how hard it shoves comes from what it swung, not from the foe */
+interface KnockbackSource {
+    x: number
+    attackKnockback: number
+    attackKnockbackLift: number
+}
+
 /** flash color when foe takes damage */
 const DAMAGE_FLASH_COLOR = 0xffffff
 /** ms of each flash */
@@ -203,6 +210,12 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         return !this.health.isDead && this.attack?.isReady === true
     }
 
+    /** `true` if foe is standing on something - the ground, or another body */
+    get isGrounded(): boolean {
+        const body = this.body as Phaser.Physics.Arcade.Body
+        return body.blocked.down || body.touching.down
+    }
+
     /** `true` if foe is currently attacking */
     get isAttacking(): boolean {
         return this.attack?.isAttacking === true
@@ -373,18 +386,19 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
     }
 
     /**
-     * Knock foe back, away from the source.
-     * 
-     * @param source - source of knocback to derive a knockback direction
-     * @returns 
+     * Knock foe back, away from the source, as hard as the source hits.
+     *
+     * @param source - source of knocback to derive a knockback direction and force
+     * @returns
      */
     private knockbackFrom(source: unknown): void {
-        const from = source as Partial<FoeTarget> | undefined
+        const from = source as Partial<KnockbackSource> | undefined
         if (typeof from?.x !== 'number') return
+        if (typeof from.attackKnockback !== 'number') return
 
         const away = from.x < this.x ? 1 : -1
-        this.setVelocityX(away * this.definition.knockback)
-        this.setVelocityY(this.definition.knockbackLift)
+        this.setVelocityX(away * from.attackKnockback)
+        this.setVelocityY(from.attackKnockbackLift ?? 0)
     }
 
     /** flash tint on damage */

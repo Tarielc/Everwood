@@ -219,6 +219,16 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         return this.equipment.damage
     }
 
+    /** shove of an equiped item */
+    get attackKnockback(): number {
+        return this.equipment.knockback
+    }
+
+    /** upward shove of an equiped item */
+    get attackKnockbackLift(): number {
+        return this.equipment.knockbackLift
+    }
+
     /**
      * Player takes a hit/damage. starts i-frames, flashes the sprite and moves
      * to the hurt state or dead.

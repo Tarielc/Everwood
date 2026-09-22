@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { ItemDefinition, ItemId, ITEMS, UNARMED_DAMAGE } from '../data/items';
+import { ItemDefinition, ItemId, ITEMS, UNARMED_DAMAGE, UNARMED_KNOCKBACK, UNARMED_KNOCKBACK_LIFT } from '../data/items';
 
 export const EquipmentEvent = {
     Equipped: "equipment-equipped",
@@ -101,6 +101,15 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
     // what a swing hits for right now - bare hands still do something
     get damage(): number {
         return this.current?.damage ?? UNARMED_DAMAGE
+    }
+
+    // how hard a swing shoves what it hits, and how far up
+    get knockback(): number {
+        return this.current?.knockback ?? UNARMED_KNOCKBACK
+    }
+
+    get knockbackLift(): number {
+        return this.current?.knockbackLift ?? UNARMED_KNOCKBACK_LIFT
     }
 
     destroy(): void {

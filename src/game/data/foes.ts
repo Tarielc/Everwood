@@ -63,9 +63,6 @@ export interface FoeDefinition {
     attack?: FoeAttack,
     /** What it sounds like, from `SOUNDS` - each one optional, a foe only makes the noises it has */
     sounds?: FoeSounds,
-    /** Shove the foe takes when hit, away from whatever hit it */
-    knockback: number,
-    knockbackLift: number,
     deathFadeMs: number,
 }
 
@@ -117,8 +114,6 @@ export const FOES = {
         contactDamage: 22,
         // no `sounds` - a fox fights by running into you, and the hit the player
         // takes is what announces that
-        knockback: 180,
-        knockbackLift: -120,
         deathFadeMs: 450,
     },
     // a swordsman built on the player's own sheet - slower than the player, but
@@ -156,8 +151,6 @@ export const FOES = {
             swing: WARRIOR_SWING,
         },
         sounds: { attack: "player-swing", hurt:"foe-hurt", death: "foe-death" },
-        knockback: 40, // heavy, so it barely staggers
-        knockbackLift: -20,
         deathFadeMs: 600,
     },
     // fragile, and no threat at all once you're stood next to it - it backs off to
@@ -202,8 +195,6 @@ export const FOES = {
         },
         // the bow creaks as it commits, and the string goes as the arrow leaves
         sounds: { attack: "archer-draw", shoot: "archer-loose", hurt:"foe-hurt", death: "foe-death" },
-        knockback: 200,
-        knockbackLift: -140,
         deathFadeMs: 600,
     },
 
@@ -240,8 +231,6 @@ export const FOES = {
             swing: WARRIOR_SWING,
         },
         sounds: { attack: "warrior-swing", hurt: "foe-hurt", death: "foe-death" },
-        knockback: 0, // heavy, so it barely staggers
-        knockbackLift: 0,
         deathFadeMs: 600,
     },
 } as const satisfies Record<string, FoeDefinition>

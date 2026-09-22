@@ -221,8 +221,12 @@ export function createFoeStates(): State<Foe>[] {
                     ? foe.getAnimations.isLocked
                     : foe.states.stateTime < HURT_STUN_MS
 
+                // a knockback can outlast the flinch - hold until it lands, so the
+                // foe doesn't start walking (or zero its shove) in mid-air
+                if (stunned || !foe.isGrounded) return
+
                 // come out of it angry, if whatever hit it is still in reach
-                if (!stunned) foe.states.transition(recoverState(foe))
+                foe.states.transition(recoverState(foe))
             },
         },
         {
