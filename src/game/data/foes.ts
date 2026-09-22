@@ -2,6 +2,7 @@ import type { HealthConfig } from "../components/HealthComponent"
 import { MeleeAttackConfig } from "../components/attack/MeleeAttack"
 import type { RangedAttackConfig } from "../components/attack/RangedAttack"
 import { CHARACTER_FRAME, SCALE_FACTOR } from "../config/display"
+import type { FoeSounds } from "./audio"
 import { ARCHER_ANIMS, FoeAnims, FOX_ANIMS, WARRIOR_ANIMS } from "./animations"
 import { PROJECTILES } from "./projectiles"
 
@@ -60,6 +61,8 @@ export interface FoeDefinition {
     contactDamage: number,
     /** How it fights once in range - left out, it just walks into you */
     attack?: FoeAttack,
+    /** What it sounds like, from `SOUNDS` - each one optional, a foe only makes the noises it has */
+    sounds?: FoeSounds,
     /** Shove the foe takes when hit, away from whatever hit it */
     knockback: number,
     knockbackLift: number,
@@ -84,6 +87,12 @@ export const WARRIOR_SWING:MeleeAttackConfig = {
 
 /** Every foe in the game, keyed by {@link FoeId} */
 export const FOES = {
+    /**
+     * This foe is no longer in use. It's broken. Not enough
+     * animations to feel natural.
+     * 
+     * @deprecated
+     */
     fox: {
         name: "Fox",
         texture: "fox",
@@ -106,6 +115,8 @@ export const FOES = {
         deAggroRange: 380,
         verticalReach: 80,
         contactDamage: 22,
+        // no `sounds` - a fox fights by running into you, and the hit the player
+        // takes is what announces that
         knockback: 180,
         knockbackLift: -120,
         deathFadeMs: 450,
@@ -144,6 +155,7 @@ export const FOES = {
             damage: 25,
             swing: WARRIOR_SWING,
         },
+        sounds: { attack: "warrior-swing" },
         knockback: 40, // heavy, so it barely staggers
         knockbackLift: -20,
         deathFadeMs: 600,
@@ -188,8 +200,48 @@ export const FOES = {
             muzzleX: 22,
             muzzleY: -6,
         },
+        // the bow creaks as it commits, and the string goes as the arrow leaves
+        sounds: { attack: "archer-draw", shoot: "archer-loose" },
         knockback: 200,
         knockbackLift: -140,
+        deathFadeMs: 600,
+    },
+
+    dummy: {
+        name: "Warrior",
+        texture: "warrior",
+        frame: CHARACTER_FRAME,
+        anims: WARRIOR_ANIMS,
+        facing: 'left', // drawn facing left, the same way the player sheet is
+        scale: SCALE_FACTOR,
+        // the same footprint the player has in this grid, minus the sword arm
+        body: { width: 16, height: 44, offsetX: 32, offsetY: 20 },
+        health: {
+            max: 8000,
+            invulnerabilityMs: 300,
+            regenPerSecond: 0,
+            regenDelayMs: 0,
+        },
+        speed: 0,
+        chaseSpeed: 0,
+        patrolRange: 0,
+        pauseMs: 1200,
+        aggroRange: 0,
+        deAggroRange: 0,
+        verticalReach: 0,
+        // nothing - the sword is what hurts, and body contact would only spend the
+        // player's i-frames on a hit the swing was about to land
+        contactDamage: 0,
+        attack: {
+            kind: "melee",
+            // just inside the swing's reach, so it commits rather than nudging closer
+            range: 76,
+            damage: 25,
+            swing: WARRIOR_SWING,
+        },
+        sounds: { attack: "warrior-swing" },
+        knockback: 0, // heavy, so it barely staggers
+        knockbackLift: 0,
         deathFadeMs: 600,
     },
 } as const satisfies Record<string, FoeDefinition>

@@ -1,4 +1,5 @@
 import { SCALE_FACTOR } from "../config/display"
+import type { SoundId } from "./audio"
 
 /** A single projectile type */
 export interface ProjectileDefinition {
@@ -12,6 +13,8 @@ export interface ProjectileDefinition {
     body: { width: number, height: number, offsetX: number, offsetY: number },
     /** Removed after this time, so a shot that hits nothing can't live forever */
     lifetimeMs: number,
+    /** What it sounds like when it lands, from `SOUNDS` - played where it landed */
+    impactSound?: SoundId,
 }
 
 /** Every projectile in the game, keyed by {@link ProjectileId} */
@@ -24,6 +27,7 @@ export const PROJECTILES = {
         scale: SCALE_FACTOR,
         body: { width: 26, height: 5, offsetX: 2, offsetY: 0 },
         lifetimeMs: 2200,
+        impactSound: "arrow-impact",
     },
 } as const satisfies Record<string, ProjectileDefinition>
 

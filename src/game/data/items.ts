@@ -1,4 +1,5 @@
 import { MeleeAttackConfig } from "../components/attack/MeleeAttack"
+import type { SoundId } from "./audio"
 
 /** A single equippable item */
 export interface ItemDefinition {
@@ -10,6 +11,8 @@ export interface ItemDefinition {
     damage: number,
     /** The swing's timing and reach while this is held - left out, it's swung like bare hands */
     swing?: MeleeAttackConfig,
+    /** What swinging it sounds like, from `SOUNDS` - left out, it sounds like a bare hand */
+    swingSound?: SoundId,
 }
 
 /** Every item in the game, keyed by {@link ItemId} */
@@ -18,6 +21,7 @@ export const ITEMS = {
         name: "Diamond Sword",
         texture: "diamond-sword",
         damage: 150,
+        swingSound: "player-swing-sword",
         swing: {
             windupMs: 180,
             activeMs: 260,
@@ -33,6 +37,7 @@ export const ITEMS = {
         name: "Diamond Axe",
         texture: "diamond-axe",
         damage: 18,
+        swingSound: "player-swing-axe",
         swing: {
             windupMs: 180,
             activeMs: 260,
@@ -48,6 +53,8 @@ export const ITEMS = {
         name: "Diamond Pickaxe",
         texture: "diamond-pickaxe",
         damage: 12,
+        // no pick of its own - it is swung like the axe it is shaped like
+        swingSound: "player-swing-axe",
         swing: {
             windupMs: 180,
             activeMs: 260,

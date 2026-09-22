@@ -9,6 +9,8 @@ import { FoeDefinition } from '../data/foes';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createFoeStates, FoeState } from '../systems/state/FoeStates';
 import { MeleeAttack } from '../components/attack/MeleeAttack';
+import { AttackEvent } from '../components/attack/AttackComponent';
+import { AudioController } from '../systems/audio/AudioController';
 
 /** Anything a foe can chase and bump into - it only ever needs a position */
 export interface FoeTarget extends Phaser.GameObjects.GameObject {
@@ -106,6 +108,7 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
             .start(FoeState.Idle)
 
         this.bindHealth()
+        this.bindAudio()
 
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
@@ -312,6 +315,39 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.health.on(HealthEvent.Died, () => {
             this.stateMachine.transition(FoeState.Dead)
         })
+    }
+
+    /**
+     * Give the foe a voice, from the `sounds` its definition names - each one optional,
+     * so a foe with nothing to say makes no noise.
+     *
+     * Everything here is played at the foe rather than flat, so what is happening across
+     * the arena is heard from across the arena. The listeners hang off the components and
+     * the health, which are destroyed with the foe, so they leave when it does
+     */
+    private bindAudio(): void {
+        const sounds = this.definition.sounds
+        if (!sounds) return
+
+        const audio = AudioController.instance
+
+        // as it commits - the swing leaving, or the bow being drawn
+        if (sounds.attack) {
+            this.attack?.on(AttackEvent.Started, () => audio.playAt(sounds.attack!, this.x, this.y))
+        }
+
+        // the moment the shot itself leaves, which is a beat later
+        if (sounds.shoot) {
+            this.attack?.on(AttackEvent.Shot, () => audio.playAt(sounds.shoot!, this.x, this.y))
+        }
+
+        if (sounds.hurt) {
+            this.health.on(HealthEvent.Damaged, () => audio.playAt(sounds.hurt!, this.x, this.y))
+        }
+
+        if (sounds.death) {
+            this.health.on(HealthEvent.Died, () => audio.playAt(sounds.death!, this.x, this.y))
+        }
     }
 
     /**

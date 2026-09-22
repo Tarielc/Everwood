@@ -1,3 +1,4 @@
+import type { AmbienceId, MusicId } from "./audio"
 import { ARENA_WAVES, WaveConfig } from "./waves"
 
 /**
@@ -21,6 +22,13 @@ export interface LevelDefinition {
      */
     waves?: WaveConfig,
     /**
+     * The music bed this level is played under, from `MUSIC`. A level without one is
+     * played in whatever was already on - a bed is never cut by a level change
+     */
+    music?: MusicId,
+    /** The room tone underneath it, from `AMBIENCE` - the crowd in an arena, the birds in a wood */
+    ambience?: AmbienceId,
+    /**
      * Where dying here sends the player. Without one they get back up where they fell,
      * which is what an ordinary level wants; a level you can only be thrown out of
      * names the one that catches them
@@ -40,10 +48,16 @@ export interface LevelDefinition {
 
 /** Every level, keyed by {@link LevelId} - a typo is a compile error, not a blank scene */
 export const LEVELS:Record<LevelId, LevelDefinition> = {
-    everwood: { url: "assets/map/map.json" },
+    everwood: {
+        url: "assets/map/map.json",
+        music: "wood",
+        ambience: "forest",
+    },
     // no exit of its own - the way out is dying, which puts the player back in the wood
     arena: {
         url: "assets/map/Arena.json",
+        music: "arena",
+        ambience: "arena-crowd",
         waves: ARENA_WAVES,
         deathReturnsTo: "arena",
         foesAlwaysHunt: true,

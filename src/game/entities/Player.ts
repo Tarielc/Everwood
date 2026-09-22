@@ -16,6 +16,9 @@ import {
 } from '../data/player';
 import { InputState } from '../systems/inputs/InputController';
 import { StateMachine } from '../systems/state/StateMachine';
+import { AudioController } from '../systems/audio/AudioController';
+import { PLAYER_SOUNDS } from '../data/audio';
+import { LOW_HEALTH_RATIO } from '../config/audio';
 import { createPlayerStates, PlayerState } from '../systems/state/PlayerStates';
 import { MeleeAttack } from '../components/attack/MeleeAttack';
 
@@ -116,7 +119,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // animation/behaviour states - movement physics stays in MovementController
         this.stateMachine = new StateMachine<Player>(this)
             .addStates(...createPlayerStates())
-            .start(PlayerState.Idle)
 
         // the equipped item is drawn as an overlay that copies this sprite's frames
         this.equipment = new EquipmentComponent(this);
@@ -124,6 +126,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // the swing's timing and reach - both follow the equipment, and who it
         // lands on is the scene's business
         this.attack = new MeleeAttack(this, PLAYER_UNARMED_ATTACK);
+
+        // started last, and deliberately not chained onto the line that built it: the
+        // first state's enter() runs inside this call, and it reads the player back
+        // through the getters - all of which have to be standing up by then
+        this.stateMachine.start(PlayerState.Idle)
 
         // health drives the states, the states never poll it back
         this.bindHealth()
@@ -284,6 +291,18 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         this.health.on(HealthEvent.InvulnerabilityEnd, () => {
             this.setAlpha(1)
+        })
+
+        // the heartbeat that says the next hit is the last one. on the crossing rather
+        // than on every change, so regen ticking back over the line and a second hit
+        // below it don't both set it off - the sound's own throttle catches the rest
+        this.health.on(HealthEvent.Changed, (change: HealthChange) => {
+            const ratio = change.current / change.max
+            const was = change.previous / change.max
+
+            if (ratio > 0 && ratio <= LOW_HEALTH_RATIO && was > LOW_HEALTH_RATIO) {
+                AudioController.instance.play(PLAYER_SOUNDS.lowHealth)
+            }
         })
     }
 

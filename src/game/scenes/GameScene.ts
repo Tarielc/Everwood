@@ -16,6 +16,8 @@ import { FootPoint, MapObject, WorldMap } from '../systems/world/WorldMap';
 import { CollisionManager } from '../systems/collision/CollisionManager';
 import { WaveDirector, WaveEvent } from '../systems/waves/WaveDirector';
 import { TextBanner } from '../ui/TextBanner';
+import { AudioController } from '../systems/audio/AudioController';
+import { PLAYER_SOUNDS } from '../data/audio';
 
 // used only if the map turns up without a PlayerStartPoint on it - somewhere to
 // stand is better than the top left corner of the world
@@ -118,6 +120,10 @@ export default class GameScene extends Phaser.Scene {
         // everything registered after this point is registered against the player
         this.collisions.setPlayer(this.player)
 
+        // everything spatial is heard from where the player is standing
+        AudioController.instance.setListener(this.player)
+        this.startLevelAudio()
+
         this.restoreProgress()
         this.bindItemHotkeys()
 
@@ -140,6 +146,17 @@ export default class GameScene extends Phaser.Scene {
                 busPrefix: PLAYER_HEALTH_BUS,
             })
         }
+    }
+
+    // what the level sounds like. both beds are crossfaded rather than cut, and asking
+    // for what is already playing does nothing - so walking back into a level that shares
+    // a track with the last one carries straight on rather than starting it over
+    private startLevelAudio(): void {
+        const { music, ambience } = LEVELS[this.level]
+        const audio = AudioController.instance
+
+        if (music) audio.playMusic(music)
+        if (ambience) audio.playAmbience(ambience)
     }
 
     // pick the player back up where they left the last level off, or kit them
@@ -252,19 +269,29 @@ export default class GameScene extends Phaser.Scene {
         }
 
         this.textBanner = new TextBanner(this)
+        const audio = AudioController.instance
 
         // the director decides what arrives and when; spawnFoe() is what the scene
         // already does with a foe the map placed, and waves get the same treatment
         this.waves = new WaveDirector(this, config, points, (definition, at) => this.spawnFoe(definition, at))
         this.waves.on(WaveEvent.Started, (wave: number) => {
             this.textBanner?.announce(`Wave ${wave}`, true)
+            // both of these duck the music while they play, so the arena is heard
+            // announcing itself rather than competing with the drums
+            audio.play("wave-start")
         })
         // when wave ends, heal the player
         this.waves.on(WaveEvent.Cleared, () => {
+            audio.play("wave-cleared")
+
             // heal the player to max hp in the middle of break
             const wavesBreakMs = this.waves?.waveConfig.breakMs ?? 0
             this.time.delayedCall(wavesBreakMs / 2, () => {
-                this.player.heal(this.player.getHealth.max)
+                // played on the heal itself rather than on the health event, which
+                // regen also fires - this is the moment the player is meant to notice
+                if (this.player.heal(this.player.getHealth.max)) {
+                    audio.play(PLAYER_SOUNDS.heal)
+                }
             })
             
         })

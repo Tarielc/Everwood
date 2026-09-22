@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { onResize, safeArea } from '../utils/viewport';
+import { AudioController } from '../systems/audio/AudioController';
 
 /** Title font size on screens wide enough to fit it */
 const TITLE_SIZE = 100
@@ -58,6 +59,12 @@ export default class MainMenuScene extends Phaser.Scene {
             }
         })
 
+        // the menu has a voice of its own. a browser gives no audio until the page has
+        // been clicked on, so this may well start on the press of the start button -
+        // the mixer remembers what was asked for and puts it on the moment it can
+        AudioController.instance.playMusic("menu")
+        AudioController.instance.playAmbience("town")
+
         if (!this.scene.isActive("UIScene")){
             this.scene.launch("UIScene")
         }
@@ -101,6 +108,7 @@ export default class MainMenuScene extends Phaser.Scene {
         // pointerup rather than pointerdown - browsers only grant fullscreen on
         // the release half of a gesture
         startButton.on("pointerup", () => {
+            AudioController.instance.play("ui-confirm")
             this.scene.start("GameScene")
         })
     }

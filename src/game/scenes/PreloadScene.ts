@@ -6,6 +6,7 @@ import { PROJECTILES } from '../data/projectiles';
 import { loadMapImages } from '../systems/world/WorldMap';
 import { onResize } from '../utils/viewport';
 import { BUTTONS } from '../config/input';
+import { AudioController } from '../systems/audio/AudioController';
 
 /**
  * Scene where the bulk of the game's assets load, behind a progress bar.
@@ -48,6 +49,7 @@ export default class PreloadScene extends Phaser.Scene {
      * - projectile images
      * - touch control button SVGs (up and down textures), rasterized at {@link BUTTON_SVG_SCALE}
      * - HUD bars, start and fullscreen buttons
+     * - every music track, ambience bed and sound effect in the audio bank
      */
     preload() {
         // create a loading graph
@@ -60,6 +62,9 @@ export default class PreloadScene extends Phaser.Scene {
 
         // load stuff...
         this.load.image("startBtn", "assets/ui/start-btn.png")
+
+        // the whole audio bank, driven off the registries in data/audio.ts
+        AudioController.load(this.load)
 
         // every sheet and backdrop the map names, queued off the map data that
         // BootScene already fetched

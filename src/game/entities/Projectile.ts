@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { ProjectileDefinition } from '../data/projectiles';
+import { AudioController } from '../systems/audio/AudioController';
 
 /**
  * A shot in flight. It carries its own damage and remembers who fired it, so
@@ -68,6 +69,12 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
 
     /** discard/spend arrow after it hits something */
     strike(): void {
+        // where it landed rather than where the player is, so an arrow that misses
+        // somebody across the arena is heard over there
+        if (this.definition.impactSound) {
+            AudioController.instance.playAt(this.definition.impactSound, this.x, this.y)
+        }
+
         this.destroy()
     }
 

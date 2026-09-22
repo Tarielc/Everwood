@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { UI_SCALE_FACTOR } from '../config/display';
 import { onResize, safeArea } from '../utils/viewport';
 import { UI_BUTTONS, UiButtonConfig } from '../config/ui';
+import { AudioController } from '../systems/audio/AudioController';
 
 /**
  * Scene where UI buttons and elements are displayed across different scenes
@@ -60,6 +61,7 @@ export default class UIScene extends Phaser.Scene {
                 Phaser.Geom.Rectangle.Contains
             )
             .on("pointerup", ()=> {
+                AudioController.instance.play("ui-click")
                 this.scale.toggleFullscreen()
             })
 

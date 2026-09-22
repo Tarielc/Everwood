@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { AudioController } from '../systems/audio/AudioController';
 import { loadMapDefinitions } from '../systems/world/WorldMap';
 
 /**
@@ -17,6 +18,10 @@ export default class BootScene extends Phaser.Scene{
      * BootSene's most preload where resource loading is handled
      */
     preload(){
+        // the game's mixer, built the moment there is a game to build it on - the bank
+        // it plays out of is loaded later, in PreloadScene
+        AudioController.init(this.game)
+
         this.load.bitmapFont("Jacquard24", "assets/fonts/Jacquard24.png", "assets/fonts/Jacquard24.xml");
         this.load.image("load-bg", "assets/ui/load-bg.png");
 

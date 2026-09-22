@@ -13,3 +13,6 @@
 - [Movement Controller](/docs/movement-controller.md)
 - [Player](/docs/player.md)
 - [Foe](/docs/foe.md)
+- [Text Banner](/docs/text-banner.md)
+- [Wave Director](/docs/wave-director.md)
+- [Audio Controller](/docs/audio-controller.md)

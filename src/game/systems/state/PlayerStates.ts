@@ -2,6 +2,8 @@ import * as Phaser from 'phaser';
 import type Player from '../../entities/Player';
 import { State } from './StateMachine';
 import { PLAYER_HURT_STUN_MS, PLAYER_MOVEMENT } from '../../data/player';
+import { PLAYER_SOUNDS, UNARMED_SWING_SOUND } from '../../data/audio';
+import { AudioController } from '../audio/AudioController';
 
 /** List of player states, keyd by {@link PlayerStateName} */
 export const PlayerState = {
@@ -44,6 +46,21 @@ function isMoving(player: Player): boolean {
     return player.inputState.moveLeft
         || player.inputState.moveRight
         || Math.abs(body.velocity.x) > IDLE_SPEED_EPSILON
+}
+
+/**
+ * Play the landing thud, if the player got here by coming down.
+ *
+ * Every grounded state checks this on the way in rather than the movement controller
+ * announcing it, because touching the floor and being stood on it are the same moment
+ *
+ * @param player - Player that just landed
+ */
+function playLanding(player: Player): void {
+    const from = player.states.previous
+    if (from !== PlayerState.Jump && from !== PlayerState.Fall) return
+
+    AudioController.instance.play(PLAYER_SOUNDS.land)
 }
 
 /**
@@ -104,6 +121,7 @@ export function createPlayerStates(): State<Player>[] {
         {
             name: PlayerState.Idle,
             enter(player) {
+                playLanding(player)
                 player.getAnimations.play("idle")
             },
             update(player) {
@@ -116,6 +134,7 @@ export function createPlayerStates(): State<Player>[] {
         {
             name: PlayerState.Walk,
             enter(player) {
+                playLanding(player)
                 player.getAnimations.play("walk")
             },
             update(player) {
@@ -128,6 +147,7 @@ export function createPlayerStates(): State<Player>[] {
         {
             name: PlayerState.Sprint,
             enter(player) {
+                playLanding(player)
                 player.getAnimations.play("sprint")
             },
             update(player) {
@@ -140,6 +160,7 @@ export function createPlayerStates(): State<Player>[] {
         {
             name: PlayerState.Jump,
             enter(player) {
+                AudioController.instance.play(PLAYER_SOUNDS.jump)
                 player.getAnimations.play("jump")
             },
             update(player) {
@@ -171,6 +192,10 @@ export function createPlayerStates(): State<Player>[] {
                 // halfway through can't drag the hit area across with it
                 player.getAttack.start(player.getAnimations.facing)
                 player.getAnimations.play("attack", { restart: true })
+
+                // whatever is in hand is what the swing sounds like - bare hands have
+                // their own, so there is always something to play
+                AudioController.instance.play(player.gear.item?.swingSound ?? UNARMED_SWING_SOUND)
             },
             update(player) {
                 // the swing animation locks itself, so windup, hit and recovery all
@@ -189,6 +214,7 @@ export function createPlayerStates(): State<Player>[] {
             // this state is current
             name: PlayerState.Hurt,
             enter(player) {
+                AudioController.instance.play(PLAYER_SOUNDS.hurt)
                 player.getAnimations.play("hurt", { restart: true })
             },
             update(player) {
@@ -207,6 +233,8 @@ export function createPlayerStates(): State<Player>[] {
                 body.setAccelerationX(0)
                 body.setVelocityX(0)
 
+                // ducks the music with it, so the last thing heard is the player
+                AudioController.instance.play(PLAYER_SOUNDS.death)
                 player.getAnimations.play("death", { restart: true, force: true })
             },
             // no update - only revive() leaves this state, through the health listener
