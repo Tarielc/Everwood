@@ -6,21 +6,34 @@ import type { AudioChannel } from "../config/audio"
  */
 export const AUDIO_ROOT: string = "assets/audio"
 
+/**
+ * The one audio sprite every sound effect is cut from - a single file, so the whole sfx
+ * bank is one request and one decode rather than twenty
+ */
+export const SFX_SPRITE = {
+    /** Cache key the sprite and its spritemap are both loaded under */
+    key: "sfx",
+    /** The spritemap, under {@link AUDIO_ROOT} - its marker names are what {@link SOUNDS} plays */
+    json: "sfx/sfx.json",
+    /** The audio, under {@link AUDIO_ROOT}, in the order the browser should try them */
+    audio: ["sfx/sfx.ogg", "sfx/sfx.mp3"],
+} as const
+
 /** What every bank entry has, whatever bank it is in */
 interface AudioEntry {
-    /**
-     * The files this entry is played from, under {@link AUDIO_ROOT}.
-     *
-     * One file is one sound. Several are variations of the same sound for {@link SOUNDS} -
-     * picked at random, never the same one twice in a row - and a playlist for a bed
-     */
-    files: readonly string[],
-    /** How loud the file itself is mixed, before the bus and before anything the caller asks for */
+    /** How loud the sound itself is mixed, before the bus and before anything the caller asks for */
     volume: number,
 }
 
 /** A sound effect: a one-shot, or a short loop something else starts and stops */
 export interface SoundDefinition extends AudioEntry {
+    /**
+     * The markers this sound is played from, in the {@link SFX_SPRITE} spritemap.
+     *
+     * One marker is one sound. Several are variations of the same sound - picked at
+     * random, never the same one twice in a row
+     */
+    markers: readonly string[],
     /** Which bus it is played on - what a settings slider moves it with */
     channel: Extract<AudioChannel, "sfx" | "ui">,
     /**
@@ -48,6 +61,11 @@ export interface SoundDefinition extends AudioEntry {
  * cut, and a bed with several files plays them as a playlist rather than as variations
  */
 export interface BedDefinition extends AudioEntry {
+    /**
+     * The files this bed is played from, under {@link AUDIO_ROOT}. Several are a playlist,
+     * played back to back
+     */
+    files: readonly string[],
     /** Deal the playlist out in a random order, reshuffled each time round */
     shuffle?: boolean,
     /** How long this bed takes to fade in and out - defaults to its channel's fade */
@@ -63,26 +81,26 @@ export interface BedDefinition extends AudioEntry {
 export const SOUNDS = {
     // player -----------------------------------------------------------------
     "player-swing": {
-        files: ["sfx/player/player-attack-barehand2.wav"],
+        markers: ["player-attack-barehand2"],
         channel: "sfx",
         volume: 0.45,
         rateJitter: 0.1,
     },
     "player-swing-sword": {
-        files: ["sfx/player/player-attack-sword.wav"],
+        markers: ["player-attack-sword"],
         channel: "sfx",
         volume: 0.5,
         rateJitter: 0.08,
     },
     "player-swing-axe": {
-        files: ["sfx/player/player-attack-axe.wav"],
+        markers: ["player-attack-axe"],
         channel: "sfx",
         volume: 0.5,
         rateJitter: 0.08,
     },
     // two takes of the same grunt, so a run of hits doesn't repeat itself
     "player-hurt": {
-        files: ["sfx/player/player-hurt.mp3"],
+        markers: ["player-hurt"],
         channel: "sfx",
         volume: 0.6,
         rateJitter: 0.06,
@@ -91,19 +109,19 @@ export const SOUNDS = {
         maxVoices: 2,
     },
     "player-death": {
-        files: ["sfx/player/player-death.mp3"],
+        markers: ["player-death"],
         channel: "sfx",
         volume: 0.8,
         duck: true,
     },
     "player-jump": {
-        files: ["sfx/player/player-jump.wav"],
+        markers: ["player-jump"],
         channel: "sfx",
         volume: 0.3,
         rateJitter: 0.12,
     },
     "player-land": {
-        files: ["sfx/player/player-landing.wav"],
+        markers: ["player-landing"],
         channel: "sfx",
         volume: 0.25,
         rateJitter: 0.1,
@@ -112,14 +130,14 @@ export const SOUNDS = {
         maxVoices: 2,
     },
     "player-heal": {
-        files: ["sfx/player/player-heal.ogg"],
+        markers: ["player-heal"],
         channel: "sfx",
         volume: 0.55,
     },
     // the warning that goes with a nearly empty bar - long throttle, it is a warning
     // rather than a readout
     "player-low-health": {
-        files: ["sfx/player/player-low-health.mp3"],
+        markers: ["player-low-health"],
         channel: "sfx",
         volume: 0.6,
         throttleMs: 8000,
@@ -128,37 +146,37 @@ export const SOUNDS = {
 
     // foes -------------------------------------------------------------------
     "warrior-swing": {
-        files: ["sfx/foe/warrior-attack.ogg"],
+        markers: ["warrior-attack"],
         channel: "sfx",
         volume: 0.65,
         rateJitter: 0.1,
     },
     "foe-hurt": {
-        files: ["sfx/foe/foe-hurt.wav"],
+        markers: ["foe-hurt"],
         channel: "sfx",
         volume: 0.3,
         rateJitter: 0.02,
     },
     "foe-death": {
-        files: ["sfx/foe/foe-death.wav"],
+        markers: ["foe-death"],
         channel: "sfx",
         volume: 0.35,
         rateJitter: 0.02,
     },
     "archer-draw": {
-        files: ["sfx/foe/archer-bow-tension.wav"],
+        markers: ["archer-bow-tension"],
         channel: "sfx",
         volume: 0.4,
         rateJitter: 0.08,
     },
     "archer-loose": {
-        files: ["sfx/foe/archer-arrow-loose.wav"],
+        markers: ["archer-arrow-loose"],
         channel: "sfx",
         volume: 0.45,
         rateJitter: 0.1,
     },
     "arrow-impact": {
-        files: ["sfx/foe/archer-arrow-Impact-1.wav", "sfx/foe/archer-arrow-Impact-2.wav"],
+        markers: ["archer-arrow-Impact-1", "archer-arrow-Impact-2"],
         channel: "sfx",
         volume: 0.4,
         rateJitter: 0.12,
@@ -167,36 +185,36 @@ export const SOUNDS = {
 
     // events -----------------------------------------------------------------
     "wave-start": {
-        files: ["sfx/events/arena-wave-start.mp3"],
+        markers: ["arena-wave-start"],
         channel: "sfx",
         volume: 0.7,
         duck: true,
     },
     "wave-cleared": {
-        files: ["sfx/events/arena-wave-vistory.mp3"],
+        markers: ["arena-wave-vistory"],
         channel: "sfx",
         volume: 0.7,
         duck: true,
     },
     "reward": {
-        files: ["sfx/events/positive-ring.wav"],
+        markers: ["positive-ring"],
         channel: "sfx",
         volume: 0.5,
     },
 
     // interface --------------------------------------------------------------
     "ui-click": {
-        files: ["sfx/ui/click-button.wav"],
+        markers: ["click-button"],
         channel: "ui",
         volume: 0.5,
     },
     "ui-confirm": {
-        files: ["sfx/ui/positive-button.wav"],
+        markers: ["positive-button"],
         channel: "ui",
         volume: 0.6,
     },
     "ui-cancel": {
-        files: ["sfx/ui/negative-button.wav"],
+        markers: ["negative-button"],
         channel: "ui",
         volume: 0.6,
     },
@@ -248,9 +266,11 @@ export const AMBIENCE = {
 /** Keys of {@link AMBIENCE} */
 export type AmbienceId = keyof typeof AMBIENCE
 
-/** The three registries the loader walks, keyed by {@link AudioBankName} */
+/**
+ * The bed registries the loader walks, file by file, keyed by {@link AudioBankName}.
+ * {@link SOUNDS} isn't one of them - it is played out of {@link SFX_SPRITE}
+ */
 export const AUDIO_BANKS = {
-    sound: SOUNDS,
     music: MUSIC,
     ambience: AMBIENCE,
 } as const
@@ -267,7 +287,7 @@ export type AudioBankName = keyof typeof AUDIO_BANKS
  * @param bank - Which registry the entry is in
  * @param id - The entry's key in that registry
  * @param index - Which of the entry's files, counting from 0
- * @returns The cache key, e.g. `"sound:player-hurt:1"`
+ * @returns The cache key, e.g. `"music:wood:1"`
  */
 export function audioKey(bank: AudioBankName, id: string, index: number): string {
     return `${bank}:${id}:${index}`
@@ -278,7 +298,7 @@ export function audioKey(bank: AudioBankName, id: string, index: number): string
  *
  * Encoded, because a couple of the music tracks are named with spaces in them
  *
- * @param file - The entry's file, as it is written in the bank
+ * @param file - The file, as it is written in the bank or in {@link SFX_SPRITE}
  * @returns Path under `public/`, ready for the loader
  */
 export function audioPath(file: string): string {

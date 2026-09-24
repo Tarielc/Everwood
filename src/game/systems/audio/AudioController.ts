@@ -10,6 +10,7 @@ import {
     audioPath,
     MUSIC,
     MusicId,
+    SFX_SPRITE,
     SOUNDS,
     SoundDefinition,
     SoundId,
@@ -218,14 +219,18 @@ export class AudioController extends Phaser.Events.EventEmitter {
     }
 
     /**
-     * Queue every file in the bank onto a loader.
+     * Queue every file in the bank onto a loader - the sfx sprite, and every bed.
      *
-     * Driven off the registries, so a new sound is an entry in `data/audio.ts` and
-     * nothing else
+     * Driven off the registries, so a new bed is an entry in `data/audio.ts` and nothing
+     * else, and a new sound is that plus a marker in the sprite
      *
      * @param load - Loader to queue against, from a scene's `preload()`
      */
     static load(load: Phaser.Loader.LoaderPlugin): void {
+        // the audio is named here rather than read out of the json's own `resources`,
+        // which lists formats that were never exported and resolves against the wrong folder
+        load.audioSprite(SFX_SPRITE.key, audioPath(SFX_SPRITE.json), SFX_SPRITE.audio.map(audioPath))
+
         const banks = Object.entries(AUDIO_BANKS) as [AudioBankName, Record<string, { files: readonly string[] }>][]
 
         for (const [bank, entries] of banks) {
@@ -261,26 +266,32 @@ export class AudioController extends Phaser.Events.EventEmitter {
         const last = this.lastPlayed.get(id)
         if (last !== undefined && this.now - last < throttleMs) return null
 
+        const marker = definition.markers[this.pickVariant(id, definition)]
+        if (!this.hasMarker(marker)) return null
+
         this.makeRoom(id, definition)
 
         const gain = definition.volume * (options.volume ?? 1)
 
-        const sound = this.createSound(audioKey("sound", id, this.pickVariant(id, definition)), {
-            volume: gain * level,
-            rate: options.rate ?? jitter(definition.rateJitter),
-            pan: options.pan ?? 0,
-            loop: options.loop ?? definition.loop ?? false,
-            delay: (options.delayMs ?? 0) / 1000,
-        })
+        const sound = this.createSprite()
         if (!sound) return null
 
         this.gains.set(sound, gain)
         this.lastPlayed.set(id, this.now)
         this.track(id, sound)
 
-        // a sound that refuses to start would otherwise sit in the voice list forever,
-        // holding a slot against everything that comes after it
-        if (!sound.play()) {
+        // a marker plays on its own config rather than the sound's, so everything about
+        // this play is handed over here. a sound that refuses to start would otherwise
+        // sit in the voice list forever, holding a slot against everything after it
+        const started = sound.play(marker, {
+            volume: gain * level,
+            rate: options.rate ?? jitter(definition.rateJitter),
+            pan: options.pan ?? 0,
+            loop: options.loop ?? definition.loop ?? false,
+            delay: (options.delayMs ?? 0) / 1000,
+        })
+
+        if (!started) {
             this.release(id, sound)
             return null
         }
@@ -593,17 +604,57 @@ export class AudioController extends Phaser.Events.EventEmitter {
      * @returns The sound, or `null` when its file isn't in the cache
      */
     private createSound(key: string, config: Phaser.Types.Sound.SoundConfig): GameSound | null {
-        if (!this.game.cache.audio.exists(key)) {
-            // once per key - a missing file would otherwise warn on every swing
-            if (!this.missing.has(key)) {
-                this.missing.add(key)
-                console.warn(`AudioController: "${key}" isn't loaded - was AudioController.load() run?`)
-            }
-
-            return null
-        }
+        if (!this.isLoaded(key)) return null
 
         return this.manager.add(key, config) as GameSound
+    }
+
+    /**
+     * Whether a file is in the audio cache, warning once when it isn't
+     *
+     * @param key - Cache key
+     */
+    private isLoaded(key: string): boolean {
+        if (this.game.cache.audio.exists(key)) return true
+
+        // once per key - a missing file would otherwise warn on every swing
+        if (!this.missing.has(key)) {
+            this.missing.add(key)
+            console.warn(`AudioController: "${key}" isn't loaded - was AudioController.load() run?`)
+        }
+
+        return false
+    }
+
+    /**
+     * A fresh voice on the sfx sprite, with every marker in its spritemap on it
+     *
+     * @returns The sound, or `null` when the sprite isn't in the cache
+     */
+    private createSprite(): GameSound | null {
+        if (!this.isLoaded(SFX_SPRITE.key) || !this.game.cache.json.exists(SFX_SPRITE.key)) return null
+
+        return this.manager.addAudioSprite(SFX_SPRITE.key) as GameSound
+    }
+
+    /**
+     * Whether the sfx sprite has a marker by this name - warns once when it doesn't, so a
+     * sound missing from the sprite is reported rather than silently never heard
+     *
+     * @param marker - Marker name, from a {@link SOUNDS} entry
+     */
+    private hasMarker(marker: string): boolean {
+        const spritemap = this.game.cache.json.get(SFX_SPRITE.key)?.spritemap
+        // no spritemap at all is the sprite failing to load, which createSprite() reports
+        if (!spritemap || marker in spritemap) return true
+
+        const key = `${SFX_SPRITE.key}#${marker}`
+        if (!this.missing.has(key)) {
+            this.missing.add(key)
+            console.warn(`AudioController: "${marker}" isn't a marker in ${SFX_SPRITE.json}`)
+        }
+
+        return false
     }
 
     /**
@@ -664,15 +715,15 @@ export class AudioController extends Phaser.Events.EventEmitter {
     }
 
     /**
-     * Which of a sound's files to play - anything but the one it used last, so a
+     * Which of a sound's markers to play - anything but the one it used last, so a
      * two-take sound alternates instead of repeating
      *
      * @param id - Which sound
      * @param definition - Its bank entry
-     * @returns Index into the entry's files
+     * @returns Index into the entry's markers
      */
     private pickVariant(id: SoundId, definition: SoundDefinition): number {
-        const count = definition.files.length
+        const count = definition.markers.length
         if (count === 1) return 0
 
         const last = this.lastVariant.get(id)
@@ -691,8 +742,8 @@ export class AudioController extends Phaser.Events.EventEmitter {
      */
     private duckFor(sound: GameSound, duck: boolean | number): void {
         const amount = typeof duck === "number" ? duck : AUDIO.duckVolume
-        // totalDuration is in seconds, and is 0 on a build with no audio at all
-        const holdMs = sound.totalDuration * 1000 + AUDIO.duckHoldMs
+        // duration is the marker's, in seconds - totalDuration would be the whole sprite
+        const holdMs = sound.duration * 1000 + AUDIO.duckHoldMs
 
         this.duck(amount, holdMs)
     }
