@@ -25,8 +25,7 @@ export const MAP = {
     objectLayers: {
         player: "player-object-layer",
         enemies: "enemies-object-layer",
-        npcs: "NPC Objects",
-        decor: "Decor Objects",
+        npcs: "npc-object-layer",
     },
     /** Custom property on a layer for render depth */
     depthProperty: "depth",
@@ -48,6 +47,10 @@ export const MAP = {
      * every wave and a map can hold as many of them as it likes
      */
     waveSpawnPoint: "FoeSpawnPoint",
+    /** Object type/class on the npcs layer that spawns an npc*/
+    npcType: "Npc",
+    /** Property naming which `NpcId` to spawn - the object's name is the fallback */
+    npcTypeProperty: "npcType",
 } as const
 
 /** Default depth for a backdrop(background) image layer that doesn't set {@link MAP.depthProperty} */

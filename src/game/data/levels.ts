@@ -7,7 +7,7 @@ import { ARENA_WAVES, WaveConfig } from "./waves"
  * {@link LEVELS}, because a level names another one in {@link LevelDefinition.deathReturnsTo}
  * and a type can't be built out of the thing it is used to describe
  */
-export type LevelId = "everwood" | "arena" | "training-grounds"
+export type LevelId = "arena"
 
 /** A level the game can be standing in */
 export interface LevelDefinition {
@@ -48,26 +48,15 @@ export interface LevelDefinition {
 
 /** Every level, keyed by {@link LevelId} - a typo is a compile error, not a blank scene */
 export const LEVELS:Record<LevelId, LevelDefinition> = {
-    everwood: {
-        url: "assets/map/map.json",
-        music: "wood",
-        ambience: "forest",
-    },
     // no exit of its own - the way out is dying, which puts the player back in the wood
     arena: {
-        url: "assets/map/Arena.json",
+        url: "assets/map/arena.json",
         music: "arena",
         ambience: "arena-crowd",
         waves: ARENA_WAVES,
         deathReturnsTo: "arena",
         foesAlwaysHunt: true,
-    },
-    "training-grounds": {
-        url: "assets/map/training-grounds.json",
-        music: "arena",
-        ambience: "arena-crowd",
-        waves: ARENA_WAVES,
-    },
+    }
 }
 
 /** Where a fresh game begins */
