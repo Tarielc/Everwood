@@ -2,7 +2,7 @@ import * as Phaser from 'phaser';
 
 import { MovementController } from "../components/MovementController"
 import { AnimationController, Facing } from "../components/AnimationController"
-import { HealthComponent, HealthChange, HealthEvent } from "../components/HealthComponent"
+import { HealthComponent, HealthChange, HealthEvent, REGEN_SOURCE } from "../components/HealthComponent"
 import { EquipmentComponent, EquipmentEvent } from "../components/EquipmentComponent"
 import { ItemDefinition, ItemId } from '../data/items';
 import { PLAYER_ANIMS } from '../data/animations';
@@ -31,6 +31,12 @@ const INVULNERABILITY_BLINK_ALPHA = 0.35
 const DAMAGE_FLASH_COLOR = 0xFF2C2C
 /** How fast sprite blinkc when it takes damage */
 const DAMAGE_FLASH_MS = 60
+/** color added over the sprite when the player is healed */
+const HEAL_FLASH_COLOR = 0x3CFF5A
+/** ms the heal glow holds at full strength */
+const HEAL_FLASH_HOLD_MS = 250
+/** ms the heal glow then takes to fade back to the plain sprite */
+const HEAL_FLASH_FADE_MS = 900
 
 /** How much of players speed is grounded while swinging */
 const SWING_FOOT_DRAG = 0.9
@@ -70,6 +76,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     private stateMachine: StateMachine<Player>
     /** hitpoints, regenration, etc - broacasting on global event bus*/
     private health: HealthComponent
+    // the fading green glow after a heal, stopped early if a hit lands mid-fade
+    private healGlow?: Phaser.Tweens.Tween
     /** item currently held, drawn as an overlay on top of this sprite */
     private equipment: EquipmentComponent
     /** Meele swing - its config follows whatever items is equipped */
@@ -277,6 +285,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     /**
      * Wire health events to player:
      * - Damage - flash, and transition to hurt state if it wasn't fatal
+     * - Healed - green glow (not for regen)
      * - Died - transition to death state
      * - Revived - transition to idle state
      * - Invulnerability End - make sure player is fully opaque
@@ -289,6 +298,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             // Died fires right after this one and owns the death animation - flinching
             // first would start a hurt state that lives for less than a frame
             if (change.current > 0) this.stateMachine.transition(PlayerState.Hurt, change)
+        })
+
+        // regen ticks several times a second - only a real heal gets the glow
+        this.health.on(HealthEvent.Healed, (change: HealthChange) => {
+            if (change.source !== REGEN_SOURCE) this.flashHeal()
         })
 
         this.health.on(HealthEvent.Died, () => {
@@ -305,13 +319,18 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         // the heartbeat that says the next hit is the last one. on the crossing rather
         // than on every change, so regen ticking back over the line and a second hit
-        // below it don't both set it off - the sound's own throttle catches the rest
+        // below it don't both set it off - the sound's own throttle catches the rest.
+        // the clip runs for over 20s, so it's cut the moment the danger is over -
+        // healed back above the line, or dead - rather than left to play out
         this.health.on(HealthEvent.Changed, (change: HealthChange) => {
             const ratio = change.current / change.max
             const was = change.previous / change.max
+            const low = ratio > 0 && ratio <= LOW_HEALTH_RATIO
 
-            if (ratio > 0 && ratio <= LOW_HEALTH_RATIO && was > LOW_HEALTH_RATIO) {
+            if (low && was > LOW_HEALTH_RATIO) {
                 AudioController.instance.play(PLAYER_SOUNDS.lowHealth)
+            } else if (!low) {
+                AudioController.instance.stop(PLAYER_SOUNDS.lowHealth)
             }
         })
     }
@@ -335,12 +354,52 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
      * so the siljouetter reads even against a busy background
      */
     private flashDamage(): void {
+        // the hit flash wins - otherwise the fading glow would paint over it next frame
+        this.healGlow?.stop()
+        this.healGlow = undefined
+
         this.setTint(DAMAGE_FLASH_COLOR).setTintMode(Phaser.TintModes.FILL)
         this.equipment.flash(DAMAGE_FLASH_COLOR)
 
         this.scene.time.delayedCall(DAMAGE_FLASH_MS, () => {
             this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)
             this.equipment.clearFlash()
+        })
+    }
+
+    /**
+     * green glow on heal - ADD keeps the sprite's detail and brightens it
+     * towards green, rather than replacing it like the damage flash does.
+     * Fades out by easing the added colour to black, which ADD treats as no change
+     */
+    private flashHeal(): void {
+        this.healGlow?.stop()
+
+        const from = Phaser.Display.Color.IntegerToColor(HEAL_FLASH_COLOR)
+        const glow = { strength: 1 }
+        const apply = () => {
+            const color = Phaser.Display.Color.GetColor(
+                from.red * glow.strength,
+                from.green * glow.strength,
+                from.blue * glow.strength,
+            )
+            this.setTint(color).setTintMode(Phaser.TintModes.ADD)
+            this.equipment.flash(color, Phaser.TintModes.ADD)
+        }
+
+        apply()
+        this.healGlow = this.scene.tweens.add({
+            targets: glow,
+            strength: 0,
+            delay: HEAL_FLASH_HOLD_MS,
+            duration: HEAL_FLASH_FADE_MS,
+            ease: "Sine.easeIn",
+            onUpdate: apply,
+            onComplete: () => {
+                this.healGlow = undefined
+                this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)
+                this.equipment.clearFlash()
+            },
         })
     }
 
@@ -416,6 +475,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     /** Destructor and cleanup */
     destroy(fromScene?: boolean): void {
+        this.healGlow?.stop()
         this.stateMachine?.destroy()
         this.animations?.destroy()
         this.health?.destroy()

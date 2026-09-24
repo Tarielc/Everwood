@@ -1,11 +1,4 @@
 { "compressionlevel":-1,
- "editorsettings":
-    {
-     "export":
-        {
-         "format":"json"
-        }
-    },
  "height":30,
  "infinite":false,
  "layers":[
@@ -310,7 +303,7 @@
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0, 4831, 0, 4137, 0, 0, 0, 0, 0, 0, 0, 0, 6544, 4575, 0, 4255, 5968, 6539, 0, 0, 0, 0, 0, 0, 0, 5456, 4230, 5190, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 4831, 0, 4137, 0, 0, 0, 0, 0, 0, 0, 0, 6544, 4575, 4191, 4255, 5968, 6539, 0, 0, 0, 0, 0, 0, 0, 5456, 4230, 5190, 0, 0, 0, 0, 0, 0, 0, 0,
                     4772, 5254, 0, 0, 4560, 4688, 0, 0, 0, 4895, 0, 4836, 0, 4742, 5013, 0, 4767, 0, 0, 0, 0, 0, 0, 4703, 4225, 0, 4457, 4102, 0, 5023, 0, 0, 0, 5151, 4939, 0, 4865, 4673, 0, 4417, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -498,52 +491,29 @@
          "draworder":"topdown",
          "id":13,
          "name":"enemies-object-layer",
-         "objects":[],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
-        }, 
-        {
-         "draworder":"topdown",
-         "id":24,
-         "name":"npc-object-layer",
          "objects":[
                 {
                  "height":64,
-                 "id":9,
-                 "name":"general",
+                 "id":7,
+                 "name":"FoeSpawnPoint",
                  "opacity":1,
-                 "properties":[
-                        {
-                         "name":"npcType",
-                         "type":"string",
-                         "value":"general"
-                        }],
                  "rotation":0,
-                 "type":"Npc",
+                 "type":"FoeSpawnPoint",
                  "visible":true,
                  "width":32,
-                 "x":624,
-                 "y":352
+                 "x":800,
+                 "y":544
                 }, 
                 {
                  "height":64,
-                 "id":10,
-                 "name":"godess",
+                 "id":8,
+                 "name":"FoeSpawnPoint",
                  "opacity":1,
-                 "properties":[
-                        {
-                         "name":"npcType",
-                         "type":"string",
-                         "value":"godess"
-                        }],
                  "rotation":0,
-                 "type":"Npc",
+                 "type":"FoeSpawnPoint",
                  "visible":true,
                  "width":32,
-                 "x":768,
+                 "x":416,
                  "y":544
                 }],
          "opacity":1,
@@ -593,7 +563,7 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":25,
+ "nextlayerid":26,
  "nextobjectid":11,
  "orientation":"orthogonal",
  "renderorder":"right-down",

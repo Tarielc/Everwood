@@ -37,6 +37,9 @@ export const HealthEvent = {
 
 export type HealthEventName = typeof HealthEvent[keyof typeof HealthEvent]
 
+// the `source` regen heals carry - lets listeners tell a passive trickle from a real heal
+export const REGEN_SOURCE = "regen"
+
 // the key an event travels under on the global EventBus - the emitter and every
 // listener build it the same way, so a renamed prefix can't silently unhook a HUD
 export function healthEventKey(busPrefix: string, event: HealthEventName): string {
@@ -230,7 +233,7 @@ export class HealthComponent extends Phaser.Events.EventEmitter {
         // heal in whole points, keeping the remainder for the next frame
         const whole = Math.floor(this.regenCarry)
         this.regenCarry -= whole
-        this.heal(whole)
+        this.heal(whole, REGEN_SOURCE)
     }
 
     // the single place hp moves, so every event carries a consistent payload

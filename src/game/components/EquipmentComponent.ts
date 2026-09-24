@@ -78,8 +78,8 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
     }
 
     // mirror the owner's damage flash onto the item, so the two read as one figure
-    flash(color: number): void {
-        this.overlay?.setTint(color).setTintMode(Phaser.TintModes.FILL)
+    flash(color: number, mode: Phaser.TintModes = Phaser.TintModes.FILL): void {
+        this.overlay?.setTint(color).setTintMode(mode)
     }
 
     clearFlash(): void {
