@@ -482,7 +482,8 @@ export class WorldMap {
         const tilesets = this.addTilesets()
 
         for (const data of this.map.layers) {
-            const layer = this.map.createLayer(data.name, tilesets, 0, 0)
+            // Phaser already resolved the Tiled offset, group offsets included, into data.x/y
+            const layer = this.map.createLayer(data.name, tilesets, data.x * this.scale, data.y * this.scale)
             // a layer drawn with a tileset that failed to resolve, can come back null
             // warn and keep building rest of the level
             if (!(layer instanceof Phaser.Tilemaps.TilemapLayer)) {
@@ -534,7 +535,16 @@ export class WorldMap {
             }
 
             const added = this.map.addTilesetImage(tileset.name, key)
-            if (added) tilesets.push(added)
+            if (!added) continue
+
+            // Tiled anchors a tile taller than the grid at its cell's bottom, so the extra
+            // height rises above the cell; Phaser anchors it at the top and it hangs below.
+            // Lift it by the difference. The WebGL renderer subtracts tileOffset after the
+            // layer's scale, so the lift is in scaled pixels
+            const lift = Math.max(0, added.tileHeight - this.map.tileHeight) * this.scale
+            added.tileOffset.y += lift
+
+            tilesets.push(added)
         }
 
         return tilesets
