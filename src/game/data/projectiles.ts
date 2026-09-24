@@ -22,7 +22,7 @@ export const PROJECTILES = {
     // arrow.png is drawn pointing right, so a shot travelling left is mirrored
     arrow: {
         texture: "arrow",
-        speed: 430,
+        speed: 360,
         gravity: 0,
         scale: SCALE_FACTOR,
         body: { width: 26, height: 5, offsetX: 2, offsetY: 0 },

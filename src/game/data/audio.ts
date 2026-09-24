@@ -111,7 +111,7 @@ export const SOUNDS = {
     "player-death": {
         markers: ["player-death"],
         channel: "sfx",
-        volume: 0.8,
+        volume: 0.65,
         duck: true,
     },
     "player-jump": {

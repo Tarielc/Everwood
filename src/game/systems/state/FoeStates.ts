@@ -47,15 +47,30 @@ function canSee(foe: Foe, range: number): boolean {
     // otherwise a jump would still break line of sight on a foe that has none to break
     if (!Number.isFinite(range)) return true
 
-    const definition = foe.definition
+    return inReach(foe, range)
+}
+
+/**
+ * Whether the target is physically within `range` across and `verticalReach` up or
+ * down. Unlike {@link canSee}, an infinite range doesn't skip the height check -
+ * a foe that always knows where you are still can't hit you on a ledge above it.
+ *
+ * @param foe - Foe we are checking
+ * @param range - Horizontal distance that counts as in reach
+ * @returns `true` if the target is inside both, `false` otherwise
+ */
+function inReach(foe: Foe, range: number): boolean {
+    const target = foe.target
+    if (!target || !target.active) return false
+
     return Math.abs(target.x - foe.x) <= range
-        && Math.abs(target.y - foe.y) <= definition.verticalReach
+        && Math.abs(target.y - foe.y) <= foe.definition.verticalReach
 }
 
 /**
  * Check whether a foe can attack or not
  * close enought to commit and no cooldown
- * 
+ *
  * @param foe - Foe we are checking
  * @returns `true` if target is in range and foe attack is ready, `false` otherwise
  */
@@ -63,8 +78,9 @@ function canAttack(foe: Foe): boolean {
     const attack = foe.definition.attack
     if (!attack) return false
 
-    // cann see here used to detect if target is in attack range
-    return foe.isAttackReady && canSee(foe, attack.range)
+    // always the real reach check, never sight - on a hunting level sight is
+    // unbounded, but a swing or a shot still has to be level enough to land
+    return foe.isAttackReady && inReach(foe, attack.range)
 }
 
 /**

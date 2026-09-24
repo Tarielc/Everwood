@@ -83,12 +83,13 @@ export const LOW_HEALTH_VIGNETTE: VignetteConfig & {
 } = {
     edge: 0x8B0000,
     corner: 0x000000,
-    inner: 0.55,
-    maxAlpha: 0.85,
+    // a wide clear middle and a soft ceiling - a warning at the edges, never a blindfold
+    inner: 0.8,
+    maxAlpha: 0.5,
     fadeMs: 600,
     pulse: { periodMs: 1100, depth: 0.3 },
-    minStrength: 0.5,
-    textureSize: 256,
+    minStrength: 0.3,
+    textureSize: 192,
     // kept below the HUD so the bars stay readable
     depth: 900,
 }
@@ -97,26 +98,26 @@ export const LOW_HEALTH_VIGNETTE: VignetteConfig & {
 export const DAMAGE_VIGNETTE: VignetteConfig & { flash: VignetteFlash } = {
     edge: 0xB01010,
     corner: 0x3A0000,
-    inner: 0.65,
+    inner: 0.9,
     // slight - a nudge that a hit landed, the sprite flash and screen shake do the rest
     maxAlpha: 0.3,
     fadeMs: 0, // only ever flashed
     flash: { inMs: 60, holdMs: 40, outMs: 350 },
-    textureSize: 256,
+    textureSize: 64,
     // under the low-health vignette, which already covers the edges when a hit matters most
     depth: 899,
 }
 
 /** Green glow at the screen edges when the player is healed */
 export const HEAL_VIGNETTE: VignetteConfig & { flash: VignetteFlash } = {
-    edge: 0x3CFF5A,
+    edge: 0x4aa859,
     // a deep green rather than black, so a heal reads as a glow and not a darkening
     corner: 0x0B5A1E,
-    inner: 0.6,
+    inner: 0.8,
     maxAlpha: 0.2,
     fadeMs: 0, // only ever flashed
     flash: { inMs: 200, holdMs: 150, outMs: 1000 },
-    textureSize: 256,
+    textureSize: 128,
     // over the low-health vignette, so a heal out of danger shows green as the red fades
     depth: 901,
 }

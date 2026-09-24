@@ -76,9 +76,9 @@ export const WARRIOR_SWING:MeleeAttackConfig = {
     // on top of the 600ms the animation itself takes, so there's a beat between swings
     cooldownMs: 450,
     bufferMs: 0, // unused - a foe's swing is started by its state, never queued
-    width: 46,
+    width: 48,
     height: 70,
-    offsetX: 2,
+    offsetX: -2,
     offsetY: 6,
 }
 
@@ -133,13 +133,13 @@ export const FOES = {
             regenPerSecond: 0,
             regenDelayMs: 0,
         },
-        speed: 55,
+        speed: 50,
         chaseSpeed: 150,
         patrolRange: 160,
         pauseMs: 1200,
         aggroRange: 300,
         deAggroRange: 420,
-        verticalReach: 90,
+        verticalReach: 20,
         // nothing - the sword is what hurts, and body contact would only spend the
         // player's i-frames on a hit the swing was about to land
         contactDamage: 0,
@@ -171,14 +171,14 @@ export const FOES = {
             regenPerSecond: 0,
             regenDelayMs: 0,
         },
-        speed: 40,
+        speed: 35,
         chaseSpeed: 110,
         patrolRange: 120,
         pauseMs: 1500,
         // it spots you from further off than anything else, which is the whole point
         aggroRange: 440,
         deAggroRange: 540,
-        verticalReach: 90,
+        verticalReach: 20,
         contactDamage: 0,
         attack: {
             kind: "ranged",
@@ -187,8 +187,8 @@ export const FOES = {
             projectile: PROJECTILES.arrow,
             // the frame the arrow leaves the bow, eight frames into the eleven
             windupMs: 570,
-            cooldownMs: 900,
-            standoff: 200,
+            cooldownMs: 2500,
+            standoff: 210,
             // out at the bow, roughly level with the archer's hands
             muzzleX: 22,
             muzzleY: -6,

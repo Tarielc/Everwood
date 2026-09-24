@@ -54,7 +54,7 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
         music: "arena",
         ambience: "arena-crowd",
         waves: ARENA_WAVES,
-        deathReturnsTo: "everwood",
+        deathReturnsTo: "arena",
         foesAlwaysHunt: true,
     },
     everwood: {
@@ -63,4 +63,4 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
 }
 
 /** Where a fresh game begins */
-export const STARTING_LEVEL:LevelId = "everwood"
+export const STARTING_LEVEL:LevelId = "arena"
