@@ -150,7 +150,7 @@ export const FOES = {
             damage: 25,
             swing: WARRIOR_SWING,
         },
-        sounds: { attack: "player-swing", hurt:"foe-hurt", death: "foe-death" },
+        sounds: { attack: "warrior-swing", hurt:"foe-hurt", death: "foe-death" },
         deathFadeMs: 600,
     },
     // fragile, and no threat at all once you're stood next to it - it backs off to

@@ -128,9 +128,9 @@ export const SOUNDS = {
 
     // foes -------------------------------------------------------------------
     "warrior-swing": {
-        files: ["sfx/foe/warrior-attack.wav"],
+        files: ["sfx/foe/warrior-attack.ogg"],
         channel: "sfx",
-        volume: 0.45,
+        volume: 0.65,
         rateJitter: 0.1,
     },
     "foe-hurt": {
@@ -232,15 +232,15 @@ export type MusicId = keyof typeof MUSIC
 /** Every ambience bed - the room tone under the music, one per level */
 export const AMBIENCE = {
     forest: {
-        files: ["sfx/background-ambience/forest-background-animals.ogg"],
+        files: ["background-ambience/forest-background-animals.ogg"],
         volume: 0.5,
     },
     "arena-crowd": {
-        files: ["sfx/background-ambience/crowd-arena-background-noise.mp3"],
+        files: ["background-ambience/crowd-arena-background-noise.mp3"],
         volume: 0.45,
     },
     town: {
-        files: ["sfx/background-ambience/crowd-town-background-noise.mp3"],
+        files: ["background-ambience/crowd-town-background-noise.mp3"],
         volume: 0.4,
     },
 } as const satisfies Record<string, BedDefinition>
