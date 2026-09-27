@@ -3,7 +3,7 @@ import { MeleeAttackConfig } from "../components/attack/MeleeAttack"
 import type { RangedAttackConfig } from "../components/attack/RangedAttack"
 import { CHARACTER_FRAME, ENEMY_FRAME_128, ENEMY_FRAME_64, SCALE_FACTOR } from "../config/display"
 import type { FoeSounds } from "./audio"
-import { ARCHER_ANIMS, BURNING_SKULL_ANIMS, FEMALE_DAMNED_ANIMS, FoeAnims, FOX_ANIMS, LARGE_BOSS_SKULL_ANIMS, MALE_DAMNED_ANIMS, WARRIOR_ANIMS } from "./animations"
+import { ARCHER_ANIMS, BURNING_SKULL_ANIMS, FEMALE_DAMNED_ANIMS, FoeAnims, FOX_ANIMS, INFERNAM_SKULL_ANIMS, MALE_DAMNED_ANIMS, WARRIOR_ANIMS } from "./animations"
 import { PROJECTILES } from "./projectiles"
 
 /** What every foe attack has, whatever shape it takes */
@@ -59,6 +59,15 @@ export interface FoeSummon {
     maxAlive: number,
     /** How far to either side of it they appear, in world pixels */
     spread: number,
+}
+
+/**
+ * What makes a foe a boss - while it lives, its health is shown in a named bar
+ * along the bottom of the screen rather than left for the player to guess at
+ */
+export interface FoeBoss {
+    /** The name printed over its bar */
+    title: string,
 }
 
 /** A foe's melee attack */
@@ -124,6 +133,8 @@ export interface FoeDefinition {
     hoverHeight?: number,
     /** Brings more foes in while it fights - left out, it never calls for help */
     summon?: FoeSummon,
+    /** Marks it as a boss, with a health bar of its own on the HUD - left out, it's an ordinary foe */
+    boss?: FoeBoss,
     contactDamage: number,
     /** How it fights once in range - left out, it just walks into you */
     attack?: FoeAttack,
@@ -374,8 +385,8 @@ export const FOES = {
         chaseSpeed: 280,
         patrolRange: 60,
         pauseMs: 1200,
-        aggroRange: 260,
-        deAggroRange: 380,
+        aggroRange: 500,
+        deAggroRange: 540,
         verticalReach: 0, // unused - a flier measures straight-line distance
         flying: true,
         // nothing - the blast is what hurts
@@ -397,35 +408,36 @@ export const FOES = {
     },
 
 
-    "large-boss-skull": {
-        name: "large-boss-skull",
-        texture: "large-boss-skull",
+    "infernal-skull": {
+        name: "infernal-skull",
+        texture: "infernal-skull",
         frame: ENEMY_FRAME_128,
-        anims: LARGE_BOSS_SKULL_ANIMS,
+        anims: INFERNAM_SKULL_ANIMS,
         facing: 'left',
         scale: SCALE_FACTOR,
         // just the skull - the flames above it aren't something to be hit by
         body: { width: 48, height: 96, offsetX: 40, offsetY: 8 },
         health: {
             // fragile - one or two cuts pops it before it gets close
-            max: 1000,
+            max: 2500,
             invulnerabilityMs: 200,
             regenPerSecond: 0,
             regenDelayMs: 0,
         },
         speed: 0,
-        chaseSpeed: 180,
+        chaseSpeed: 230,
         patrolRange: 60,
-        pauseMs: 1200,
-        aggroRange: 260,
-        deAggroRange: 380,
+        pauseMs: 1000,
+        aggroRange: Infinity,
+        deAggroRange: Infinity,
         verticalReach: 0, // unused - a flier measures straight-line distance
         flying: true,
         // a big sprite - held up over the player's head, so the flames it bursts
         // out along its bottom edge come down on them
         hoverHeight: 64,
         // a skull or two out of the flames every few seconds, never more than a handful
-        summon: { foe: "burning-skull", intervalMs: 10000, count: 2, maxAlive: 4, spread: 300 },
+        summon: { foe: "burning-skull", intervalMs: 9000, count: 2, maxAlive: 4, spread: 300 },
+        boss: { title: "Infernal Skull" },
         // nothing - the blast is what hurts
         contactDamage: 0,
         attack: {
@@ -433,7 +445,8 @@ export const FOES = {
             // straight-line distance it lights the fuse at - a little inside the blast,
             // so standing still for the whole fuse is always a hit
             range: 110,
-            damage: 10,
+            damage: 35,
+            knockback: { chance: 0.5, force: 120, lift: -100 },
             swing: {
                 // the flames are up from the 6th attack frame to the 10th, at 12fps
                 windupMs: 417,
@@ -451,7 +464,7 @@ export const FOES = {
             },
         },
         // TODO: FIND SOUNDS - an explosion for death
-        sounds: { hurt: "foe-hurt", death: "foe-death" },
+        sounds: { attack: "fire-whoosh", hurt: "foe-hurt", death: "foe-death" },
         // the explosion is the death animation - nothing left to fade by the end of it
         deathFadeMs: 80,
     },

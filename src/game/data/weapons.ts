@@ -1,8 +1,8 @@
 import { MeleeAttackConfig } from "../components/attack/MeleeAttack"
 import type { SoundId } from "./audio"
 
-/** A single equippable item */
-export interface ItemDefinition {
+/** A single equippable weapon */
+export interface WeaponDefinition {
     /** Shown in menus and pickup prompts */
     name: string,
     /** Overlay spritesheet, cut to `CHARACTER_FRAME` and aligned with the player's sheet */
@@ -18,8 +18,8 @@ export interface ItemDefinition {
     swingSound?: SoundId,
 }
 
-/** Every item in the game, keyed by {@link ItemId} */
-export const ITEMS = {
+/** Every weapon in the game, keyed by {@link WeaponId} */
+export const WEAPONS = {
     "diamond-sword": {
         name: "Diamond Sword",
         texture: "diamond-sword",
@@ -33,52 +33,15 @@ export const ITEMS = {
             cooldownMs: 240,
             bufferMs: 160,
             width: 58,
-            height: 44,
+            height: 68,
             offsetX: -8,
-            offsetY: 8,
+            offsetY: -20,
         }
     },
-    "diamond-axe": {
-        name: "Diamond Axe",
-        texture: "diamond-axe",
-        damage: 18,
-        knockback: 200,
-        knockbackLift: -140,
-        swingSound: "player-swing-axe",
-        swing: {
-            windupMs: 180,
-            activeMs: 260,
-            cooldownMs: 240,
-            bufferMs: 160,
-            width: 53,
-            height: 64,
-            offsetX: -8,
-            offsetY: 8,
-        }
-    },
-    "diamond-pickaxe": {
-        name: "Diamond Pickaxe",
-        texture: "diamond-pickaxe",
-        damage: 12,
-        knockback: 160,
-        knockbackLift: -100,
-        // no pick of its own - it is swung like the axe it is shaped like
-        swingSound: "player-swing-axe",
-        swing: {
-            windupMs: 180,
-            activeMs: 260,
-            cooldownMs: 240,
-            bufferMs: 160,
-            width: 53,
-            height: 64,
-            offsetX: -8,
-            offsetY: 8,
-        }
-    },
-} as const satisfies Record<string, ItemDefinition>
+} as const satisfies Record<string, WeaponDefinition>
 
-/** Keys of {@link ITEMS} - a typo is a compile error, not a blank sprite */
-export type ItemId = keyof typeof ITEMS
+/** Keys of {@link WEAPONS} - a typo is a compile error, not a blank sprite */
+export type WeaponId = keyof typeof WEAPONS
 
 /** Damage a bare-handed swing deals, when nothing is equipped */
 export const UNARMED_DAMAGE:number = 6

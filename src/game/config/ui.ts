@@ -181,3 +181,142 @@ export const BITMAP_FONTS: readonly string[] = [
     "Jersey25",
     "Roboto",
 ]
+
+/** The standing "Wave 3" readout an arena keeps up for as long as the run lasts - used in `WaveCounter` */
+export interface WaveCounterConfig {
+    /** Bitmap font key, loaded in `BootScene` */
+    font: string,
+    size: number,
+    tint: number,
+    /** Drop shadow colour, so the text reads over a bright backdrop */
+    shadow: number,
+    /** Gap from the top of the screen, before the safe area inset */
+    margin: number,
+    depth: number,
+}
+
+/** Default wave counter configuration */
+export const WAVE_COUNTER: WaveCounterConfig = {
+    font: "Jersey25",
+    size: 32,
+    tint: 0xFBFEF9,
+    shadow: 0xA63446,
+    // top centre - clear of the health bar on the left and the fullscreen button on the right
+    margin: 20,
+    depth: 1000,
+}
+
+/** A boss's named health bar along the bottom of the screen - used in `BossBar` */
+export interface BossBarConfig {
+    /** Bitmap font key for the boss's name, loaded in `BootScene` */
+    font: string,
+    titleSize: number,
+    titleTint: number,
+    /** Drop shadow colour, so the name reads over a bright backdrop */
+    titleShadow: number,
+    /** Space between the name and the top of the bar */
+    titleGap: number,
+    /** Widest the bar gets - on a narrow view it shrinks to fit between the margins */
+    width: number,
+    height: number,
+    /** Dark rim drawn around the bar */
+    border: number,
+    /** Gap from the bottom and sides of the screen, before the safe area inset */
+    margin: number,
+    depth: number,
+    /** Colours of the rim, the empty track, the health itself and the trailing chip */
+    frameColour: number,
+    trackColour: number,
+    fillColour: number,
+    chipColour: number,
+    /** Colour the fill flashes when a hit lands */
+    damageFlash: number,
+    damageFlashMs: number,
+    /** How long the fill takes to slide to its new value */
+    tweenMs: number,
+    /** How long the chip holds after a hit before it drains - each new hit restarts the wait, so a combo reads as one chunk */
+    chipDelayMs: number,
+    /** How long the chip takes to drain down to the fill */
+    chipMs: number,
+    fadeInMs: number,
+    /** How long the bar stays up, empty, after the boss dies */
+    fadeOutDelayMs: number,
+    fadeOutMs: number,
+}
+
+/** Default boss bar configuration */
+export const BOSS_BAR: BossBarConfig = {
+    font: "Jersey25",
+    titleSize: 32,
+    titleTint: 0xFBFEF9,
+    titleShadow: 0xA63446,
+    titleGap: 6,
+    width: 640,
+    height: 14,
+    border: 3,
+    // bottom centre - clear of the health bar, the wave counter and the touch buttons in the corners
+    margin: 40,
+    depth: 1000,
+    frameColour: 0x0B0B0F,
+    trackColour: 0x2A2A33,
+    fillColour: 0xA63446,
+    chipColour: 0xF2C57C,
+    damageFlash: 0xFFFFFF,
+    damageFlashMs: 90,
+    tweenMs: 220,
+    chipDelayMs: 600,
+    chipMs: 500,
+    fadeInMs: 400,
+    fadeOutDelayMs: 1200,
+    fadeOutMs: 600,
+}
+
+/** The victory and death screens a run ends on - used in `EndScreen` */
+export interface EndScreenConfig {
+    /** Bitmap font keys, loaded in `BootScene` */
+    titleFont: string,
+    titleSize: number,
+    subtitleFont: string,
+    subtitleSize: number,
+    optionFont: string,
+    optionSize: number,
+    /** Headline colour on a win, and on a death */
+    victoryTint: number,
+    defeatTint: number,
+    /** Drop shadow colour, so the text reads over whatever is left of the level */
+    shadow: number,
+    subtitleTint: number,
+    optionTint: number,
+    /** Colour of the option under the pointer or picked with the keyboard */
+    optionHoverTint: number,
+    /** The wash drawn over the paused level */
+    backdropColour: number,
+    backdropAlpha: number,
+    /** How long the wash and the text take to come up */
+    fadeInMs: number,
+    /** Space between the subtitle and the first option, and between the options */
+    gap: number,
+    /** Space kept clear on each side, in game pixels */
+    margin: number,
+}
+
+/** Default end screen configuration */
+export const END_SCREEN: EndScreenConfig = {
+    titleFont: "Jacquard24",
+    titleSize: 96,
+    subtitleFont: "Jersey25",
+    subtitleSize: 32,
+    optionFont: "Jersey25",
+    optionSize: 40,
+    victoryTint: 0xF2C57C,
+    defeatTint: 0xA63446,
+    shadow: 0x0B0B0F,
+    subtitleTint: 0xFBFEF9,
+    optionTint: 0xFBFEF9,
+    optionHoverTint: 0xF2C57C,
+    backdropColour: 0x0B0B0F,
+    backdropAlpha: 0.7,
+    fadeInMs: 600,
+    gap: 28,
+    margin: 24,
+}

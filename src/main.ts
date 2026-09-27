@@ -7,6 +7,7 @@ import HealthBar from './game/ui/HealthBar';
 import { fitToParent } from './game/utils/viewport';
 import { MAX_VIEW_HEIGHT, MIN_VIEW_HEIGHT } from './game/config/display';
 import UIScene from './game/scenes/UIScene';
+import EndScene from './game/scenes/EndScene';
 
 //  Game Configuration
 const config: Phaser.Types.Core.GameConfig = {
@@ -35,6 +36,8 @@ const config: Phaser.Types.Core.GameConfig = {
         MainMenuScene,
         GameScene,
         HealthBar,
+        // over the HUD, under the fullscreen button
+        EndScene,
         UIScene
     ]
 };

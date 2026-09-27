@@ -151,6 +151,12 @@ export const SOUNDS = {
         volume: 0.65,
         rateJitter: 0.1,
     },
+    "fire-whoosh": {
+        markers: ["fire-whoosh"],
+        channel: "sfx",
+        volume: 0.9,
+        rateJitter: 0.1,
+    },
     "foe-hurt": {
         markers: ["foe-hurt"],
         channel: "sfx",
@@ -327,7 +333,7 @@ export interface FoeSounds {
     death?: SoundId,
 }
 
-/** What the player's swing sounds like with nothing in hand - an item names its own */
+/** What the player's swing sounds like with nothing in hand - a weapon names its own */
 export const UNARMED_SWING_SOUND: SoundId = "player-swing"
 
 /** The player's own sounds, which follow from their state rather than from their gear */

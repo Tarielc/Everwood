@@ -103,12 +103,12 @@ export const BURNING_SKULL_ANIMS = {
  * Large boss skull, a 10-wide 128x128 grid - one row of idle, two rows of the flame
  * burst it attacks with (the flames are up on frames 15-19), and a row of dissolving
  */
-export const LARGE_BOSS_SKULL_ANIMS = {
-    idle: {key: "large-boss-skull-idle", start: 0, end: 9, frameRate: 8, repeat: -1},
-    run: {key: "large-boss-skull-run", start: 0, end: 9, frameRate: 12, repeat: -1},
+export const INFERNAM_SKULL_ANIMS = {
+    idle: {key: "infernal-skull-idle", start: 0, end: 9, frameRate: 8, repeat: -1},
+    run: {key: "infernal-skull-run", start: 0, end: 9, frameRate: 12, repeat: -1},
     // each needs its own key - a reused one is skipped at registration and plays the run
     // cycle instead. played once and locked, so the Attack state waits out the burst
     // and collapse() gets its onComplete
-    attack: {key: "large-boss-skull-attack", start: 10, end: 29, frameRate: 12, repeat: 0, priority: 5, lockUntilComplete: true},
-    death: {key: "large-boss-skull-death", start: 30, end: 39, frameRate: 12, repeat: 0, priority: 20, lockUntilComplete: true},
+    attack: {key: "infernal-skull-attack", start: 10, end: 29, frameRate: 12, repeat: 0, priority: 5, lockUntilComplete: true},
+    death: {key: "infernal-skull-death", start: 30, end: 39, frameRate: 12, repeat: 0, priority: 20, lockUntilComplete: true},
 } as const satisfies FoeAnims

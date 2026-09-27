@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import { BUTTON_SVG_SCALE, CHARACTER_FRAME } from '../config/display';
 import { FOES } from '../data/foes';
-import { ITEMS } from '../data/items';
+import { WEAPONS } from '../data/weapons';
 import { PROJECTILES } from '../data/projectiles';
 import { loadMapImages } from '../systems/world/WorldMap';
 import { onResize } from '../utils/viewport';
@@ -13,7 +13,7 @@ import { AudioController } from '../systems/audio/AudioController';
  *
  * Runs after {@link BootScene}, which has already loaded the essential stuff.
  * Most loads are driven off data registries ({@link FOES}, {@link PROJECTILES},
- * {@link BUTTONS}, {@link ITEMS}) and the map JSON, so adding an entry there is
+ * {@link BUTTONS}, {@link WEAPONS}) and the map JSON, so adding an entry there is
  * all it takes to get its art loaded.
  *
  * When loading is done starts `MainMenuScene`.
@@ -44,7 +44,7 @@ export default class PreloadScene extends Phaser.Scene {
      *
      * Queued here:
      * - map tileset sheets and backdrops, via {@link loadMapImages}
-     * - player spritesheet, and equippable item overlays on the same {@link CHARACTER_FRAME}
+     * - player spritesheet, and equippable weapon overlays on the same {@link CHARACTER_FRAME}
      * - foe spritesheets, each cut on the frame size its definition declares
      * - projectile images
      * - touch control button SVGs (up and down textures), rasterized at {@link BUTTON_SVG_SCALE}
@@ -95,11 +95,15 @@ export default class PreloadScene extends Phaser.Scene {
 
         this.load.image("fullscreen-enter", "assets/ui/fullscreen-enter-btn.png")
         this.load.image("fullscreen-exit", "assets/ui/fullscreen-exit-btn.png")
+        this.load.image("music-on", "assets/ui/music-on-btn.png")
+        this.load.image("music-off", "assets/ui/music-off-btn.png")
+        this.load.image("volume-on", "assets/ui/volume-on-btn.png")
+        this.load.image("volume-off", "assets/ui/volume-off-btn.png")
 
         // equippable overlays share the player's grid, so they load as spritesheets
-        // on the same frame size - driven off the registry, so adding an item to
-        // ITEMS is all it takes to get it loaded
-        for (const { texture } of Object.values(ITEMS)) {
+        // on the same frame size - driven off the registry, so adding a weapon to
+        // WEAPONS is all it takes to get it loaded
+        for (const { texture } of Object.values(WEAPONS)) {
             this.load.spritesheet(texture, `assets/sprites/${texture}.png`, CHARACTER_FRAME)
         }
     }

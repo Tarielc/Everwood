@@ -25,6 +25,7 @@ export const MAP = {
     objectLayers: {
         player: "player-object-layer",
         enemies: "enemies-object-layer",
+        traps: "traps-object-layer",
     },
     /** Custom property on a layer for render depth */
     depthProperty: "depth",
@@ -35,7 +36,7 @@ export const MAP = {
     exitType: "PlayerExitpoint",
     /** Property on an exit, naming the `LevelId` it leads to - single level can have multiple exits. One without any, is end of the line. */
     exitLevelProperty: "nextLevel",
-    /** Object type/class on the player layer that kills the player on touch - spikes and the like */
+    /** Object type/class on the traps layer that kills the player on touch - spikes and the like */
     hazardType: "Spike",
     /** Object type/class on the enemies layer that spawns a foe */
     foeType: "Foe",

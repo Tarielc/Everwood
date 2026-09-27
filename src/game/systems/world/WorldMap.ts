@@ -378,7 +378,7 @@ export class WorldMap {
      * Objects that kill the player on touch, or `[]` if the level has none
      */
     get hazards(): MapObject[] {
-        return this.objects(MAP.objectLayers.player).filter(o => o.type === MAP.hazardType)
+        return this.objects(MAP.objectLayers.traps).filter(o => o.type === MAP.hazardType)
     }
 
     /**

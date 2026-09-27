@@ -25,14 +25,18 @@ const FLIER_HURT_DAMPING = 0.88
 
 /**
  * Play foe animation. Not every foe has every animation, so fall back to ones they do have.
- * 
+ *
+ * Forced - the state entering owns the animation. Otherwise a swing that was flinched
+ * out of keeps its lock, the next swing's animation is refused, and the old one plays
+ * on while the new swing's timer starts from zero - the hit area opens late
+ *
  * @param foe - Foe we want to animate
  * @param name - name of the animation
  * @param fallback - name of the fallback animation
  */
 function play(foe: Foe, name: keyof FoeAnims, fallback: keyof FoeAnims = "idle"): void {
     const animations = foe.getAnimations
-    animations.play(animations.has(name) ? name : fallback, { restart: true })
+    animations.play(animations.has(name) ? name : fallback, { restart: true, force: true })
 }
 
 /**

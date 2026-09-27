@@ -195,7 +195,7 @@ export function createPlayerStates(): State<Player>[] {
 
                 // whatever is in hand is what the swing sounds like - bare hands have
                 // their own, so there is always something to play
-                AudioController.instance.play(player.gear.item?.swingSound ?? UNARMED_SWING_SOUND)
+                AudioController.instance.play(player.gear.weapon?.swingSound ?? UNARMED_SWING_SOUND)
             },
             update(player) {
                 // the swing animation locks itself, so windup, hit and recovery all

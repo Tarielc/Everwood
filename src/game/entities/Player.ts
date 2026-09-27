@@ -4,7 +4,7 @@ import { MovementController } from "../components/MovementController"
 import { AnimationController, Facing } from "../components/AnimationController"
 import { HealthComponent, HealthChange, HealthEvent, REGEN_SOURCE } from "../components/HealthComponent"
 import { EquipmentComponent, EquipmentEvent } from "../components/EquipmentComponent"
-import { ItemDefinition, ItemId } from '../data/items';
+import { WeaponDefinition, WeaponId } from '../data/weapons';
 import type { FoeKnockback, HitEffects } from '../data/foes';
 import { PLAYER_ANIMS } from '../data/animations';
 import {
@@ -83,9 +83,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     private health: HealthComponent
     // the fading green glow after a heal, stopped early if a hit lands mid-fade
     private healGlow?: Phaser.Tweens.Tween
-    /** item currently held, drawn as an overlay on top of this sprite */
+    /** weapon currently held, drawn as an overlay on top of this sprite */
     private equipment: EquipmentComponent
-    /** Meele swing - its config follows whatever items is equipped */
+    /** Meele swing - its config follows whatever weapon is equipped */
     private attack: MeleeAttack
 
     /**
@@ -133,7 +133,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.stateMachine = new StateMachine<Player>(this)
             .addStates(...createPlayerStates())
 
-        // the equipped item is drawn as an overlay that copies this sprite's frames
+        // the equipped weapon is drawn as an overlay that copies this sprite's frames
         this.equipment = new EquipmentComponent(this);
 
         // the swing's timing and reach - both follow the equipment, and who it
@@ -198,7 +198,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.updateInvulnerabilityBlink(time)
         this.stateMachine.update(delta)
 
-        // last, so the item copies the pose this frame actually settled on
+        // last, so the weapon copies the pose this frame actually settled on
         this.equipment.update()
     }
 
@@ -209,17 +209,17 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     /**
-     * Put an item in the player's hand
+     * Put a weapon in the player's hand
      * 
-     * @param id - Item id we want to equip
-     * @returns item we equipped
+     * @param id - Weapon id we want to equip
+     * @returns weapon we equipped
      */
-    equip(id: ItemId): ItemDefinition {
+    equip(id: WeaponId): WeaponDefinition {
         return this.equipment.equip(id)
     }
 
-    /** Remove an item from the player's hand */
-    unequip(): ItemDefinition | null {
+    /** Remove a weapon from the player's hand */
+    unequip(): WeaponDefinition | null {
         return this.equipment.unequip()
     }
 
@@ -228,17 +228,17 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         return this.equipment
     }
 
-    /** damage of an equiped item */
+    /** damage of an equipped weapon */
     get attackDamage(): number {
         return this.equipment.damage
     }
 
-    /** shove of an equiped item */
+    /** shove of an equipped weapon */
     get attackKnockback(): number {
         return this.equipment.knockback
     }
 
-    /** upward shove of an equiped item */
+    /** upward shove of an equipped weapon */
     get attackKnockbackLift(): number {
         return this.equipment.knockbackLift
     }
@@ -384,11 +384,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     /**
      * bind equipment to the player which decides size of next swing
-     * if no item is equipped, it falls back to {@link PLAYER_UNARMED_ATTACK}.
+     * if no weapon is equipped, it falls back to {@link PLAYER_UNARMED_ATTACK}.
      */
     private bindEquipment(): void {
         const applySwing = () => {
-            this.attack.setConfig(this.equipment.item?.swing ?? PLAYER_UNARMED_ATTACK)
+            this.attack.setConfig(this.equipment.weapon?.swing ?? PLAYER_UNARMED_ATTACK)
         }
 
         // the equipment component owns these listeners, so destroy() unhooks them with it

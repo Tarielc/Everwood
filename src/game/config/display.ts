@@ -20,7 +20,7 @@ export const MAX_VIEW_HEIGHT:number = 1280
 
 /**
  * The grid every character sheet - the player and each equippable overlay - is cut to.
- * Equipment works by copying the player's frame index onto the item sprite, so the
+ * Equipment works by copying the player's frame index onto the weapon sprite, so the
  * sheets must stay frame-for-frame aligned
  */
 export const CHARACTER_FRAME = { frameWidth: 80, frameHeight: 64 } as const

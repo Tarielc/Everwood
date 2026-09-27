@@ -2,7 +2,7 @@
  * How hard a blow lands - the hitstop and the camera shake that sell it.
  *
  * Both are authored per moment rather than per weapon: what a hit is worth is how
- * much of the target it took, not which item swung it, so a profile keeps reading
+ * much of the target it took, not which weapon swung it, so a profile keeps reading
  * right however the damage numbers are balanced later.
  */
 

@@ -1,8 +1,8 @@
 import * as Phaser from 'phaser';
 import { SCALE_FACTOR } from '../config/display';
 import { MAP, MAP_CAMERA } from '../config/world';
-import { FOES, FoeDefinition, FoeId } from '../data/foes';
-import { ItemId } from '../data/items';
+import { FOES, FoeBoss, FoeDefinition, FoeId } from '../data/foes';
+import { WeaponId } from '../data/weapons';
 import { LEVELS, LevelId, STARTING_LEVEL } from '../data/levels';
 import { PLAYER_HEALTH, PLAYER_HEALTH_BUS } from '../data/player';
 import Foe, { FoeEvent } from '../entities/Foe';
@@ -18,8 +18,11 @@ import { ImpactController } from '../systems/feel/ImpactController';
 import { IMPACT, impactScale } from '../config/feel';
 import { WaveDirector, WaveEvent } from '../systems/waves/WaveDirector';
 import { TextBanner } from '../ui/TextBanner';
+import { WaveCounter } from '../ui/WaveCounter';
+import { BossBar } from '../ui/BossBar';
 import { AudioController } from '../systems/audio/AudioController';
 import { PLAYER_SOUNDS } from '../data/audio';
+import type { EndOutcome, EndSceneData } from './EndScene';
 
 // used only if the map turns up without a PlayerStartPoint on it - somewhere to
 // stand is better than the top left corner of the world
@@ -28,26 +31,27 @@ const FALLBACK_SPAWN: FootPoint = { x: 400, y: 300 }
 // how long the player stays down before respawning
 const RESPAWN_DELAY_MS = 2500
 
+// how long the last foe of a winning level gets to fall over before the victory screen
+const VICTORY_DELAY_MS = 1500
+
 // what the player is holding the first time they set out - after that they
 // arrive in a level holding whatever they left the last one with
-const STARTING_ITEM: ItemId = "diamond-sword"
+const STARTING_WEAPON: WeaponId = "diamond-sword"
 
 // what the player carries between levels. the sprite is rebuilt from scratch on
 // the other side of a level change, so what travels is the state, not the entity
 interface Progress {
     health: number,
-    item: ItemId | null,
+    weapon: WeaponId | null,
 }
 
 // kept on the game registry rather than in this scene - a scene restart is
 // exactly what a level change is, and the registry is what outlives one
 const PROGRESS_KEY = "progress"
 
-// number-row shortcuts for swapping gear, until there's an inventory UI
-const ITEM_HOTKEYS: Record<string, ItemId | null> = {
+// number-row shortcuts for swapping weapons, until there's an inventory UI
+const WEAPON_HOTKEYS: Record<string, WeaponId | null> = {
     "keydown-ONE": "diamond-sword",
-    "keydown-TWO": "diamond-axe",
-    "keydown-THREE": "diamond-pickaxe",
     "keydown-ZERO": null, // bare hands
 }
 
@@ -73,6 +77,13 @@ export default class GameScene extends Phaser.Scene {
     // the "Wave 3" headline, up only on the levels that have waves to announce
     private textBanner: TextBanner | null = null
 
+    // the standing "Wave 3" at the top of the screen, kept up between announcements
+    private waveCounter: WaveCounter | null = null
+
+    // the boss's name and health along the bottom of the screen, built the first
+    // time a boss turns up and reused for any that come after it
+    private bossBar: BossBar | null = null
+
     // read off the map once, and kept for every respawn after the first
     private spawn: FootPoint = FALLBACK_SPAWN
 
@@ -82,6 +93,9 @@ export default class GameScene extends Phaser.Scene {
     // a level change is a scene restart, and it takes a beat to come round -
     // this is what stops the exit firing again while it's on its way
     private travelling: boolean = false
+
+    // the run is over one way or the other - the first ending to land is the one that counts
+    private finished: boolean = false
 
     constructor() {
         super("GameScene")
@@ -94,11 +108,14 @@ export default class GameScene extends Phaser.Scene {
         this.foes = []
         this.projectiles = []
         this.travelling = false
+        this.finished = false
 
         // both are torn down by the shutdown the restart ran through - what's left
         // here is the stale handle, not the thing
         this.waves = null
         this.textBanner = null
+        this.waveCounter = null
+        this.bossBar = null
     }
 
     create() {
@@ -135,7 +152,7 @@ export default class GameScene extends Phaser.Scene {
         this.startLevelAudio()
 
         this.restoreProgress()
-        this.bindItemHotkeys()
+        this.bindWeaponHotkeys()
 
         this.spawnMapFoes()
         this.startWaves()
@@ -183,7 +200,7 @@ export default class GameScene extends Phaser.Scene {
         const progress = this.registry.get(PROGRESS_KEY) as Progress | undefined
 
         if (!progress) {
-            this.player.equip(STARTING_ITEM)
+            this.player.equip(STARTING_WEAPON)
             return
         }
 
@@ -191,7 +208,7 @@ export default class GameScene extends Phaser.Scene {
         // which is what puts the arriving player's health on the HUD
         this.player.getHealth.reset(progress.health)
 
-        if (progress.item) this.player.equip(progress.item)
+        if (progress.weapon) this.player.equip(progress.weapon)
         else this.player.unequip()
     }
 
@@ -200,28 +217,78 @@ export default class GameScene extends Phaser.Scene {
     private saveProgress(health: number = this.player.getHealth.current): void {
         this.registry.set(PROGRESS_KEY, {
             health,
-            item: this.player.gear.itemId,
+            weapon: this.player.gear.weaponId,
         } satisfies Progress)
     }
 
-    // the player is down. a level that names somewhere to be sent throws them out to
-    // it, kit and all and patched up on the way - an arena has no other exit. anywhere
-    // else they get back up where they fell, the way they always have
+    // the player is down, and once they've hit the floor the death screen goes up. a win
+    // that already landed stands - falling to the last foe's parting shot doesn't undo it
     private onPlayerDeath(): void {
+        if (this.finished) return
+        this.finished = true
+
         // nothing else arrives while the body is still on the floor
         this.waves?.stop()
 
+        this.time.delayedCall(RESPAWN_DELAY_MS, () => this.showEndScreen("defeat"))
+    }
+
+    // going again after a death. a level that names somewhere to be sent throws them out
+    // to it, kit and all and patched up on the way - an arena has no other exit. anywhere
+    // else they get back up where they fell, the way they always have
+    private retryAfterDeath(): void {
         const returnTo = LEVELS[this.level].deathReturnsTo
 
-        this.time.delayedCall(RESPAWN_DELAY_MS, () => {
-            if (returnTo) {
-                this.travelTo(returnTo, PLAYER_HEALTH.max)
-                return
-            }
+        if (returnTo) {
+            this.travelTo(returnTo, PLAYER_HEALTH.max)
+            return
+        }
 
-            this.player.respawn(this.spawn.x, this.spawn.y)
-            this.world.stand(this.player, this.spawn)
+        this.finished = false
+        this.player.respawn(this.spawn.x, this.spawn.y)
+        this.world.stand(this.player, this.spawn)
+    }
+
+    // a level that's won by clearing it is won the moment the last foe in it dies - those
+    // still fading out are dead already, so they don't hold the screen back
+    private checkCleared(): void {
+        if (this.finished || !LEVELS[this.level].winWhenCleared) return
+        if (this.player.getHealth.isDead) return
+        if (!this.foes.every(foe => foe.getHealth.isDead)) return
+
+        this.finished = true
+        this.waves?.stop()
+
+        this.time.delayedCall(VICTORY_DELAY_MS, () => {
+            AudioController.instance.play("wave-cleared")
+            this.showEndScreen("victory")
         })
+    }
+
+    // freeze the level where it stands and put the ending over it
+    private showEndScreen(outcome: EndOutcome): void {
+        this.scene.pause()
+        this.scene.launch("EndScene", {
+            outcome,
+            onRetry: () => {
+                this.scene.resume()
+                if (outcome === "defeat") this.retryAfterDeath()
+                else this.startOver(STARTING_LEVEL)
+            },
+            onMenu: () => this.startOver(),
+        } satisfies EndSceneData)
+    }
+
+    // a fresh run, or back to the menu when no level is given. nothing is carried over,
+    // and the HUD comes down too - it's relaunched with the new player's health rather
+    // than left showing what the last one finished on
+    private startOver(level?: LevelId): void {
+        this.travelling = true
+        this.registry.remove(PROGRESS_KEY)
+        this.scene.stop("HealthBar")
+
+        if (level) this.scene.restart({ level })
+        else this.scene.start("MainMenuScene")
     }
 
     // spikes and anything else that kills on touch. the overlap fires every frame,
@@ -295,6 +362,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         this.textBanner = new TextBanner(this)
+        this.waveCounter = new WaveCounter(this)
         const audio = AudioController.instance
 
         // the director decides what arrives and when; spawnFoe() is what the scene
@@ -302,6 +370,7 @@ export default class GameScene extends Phaser.Scene {
         this.waves = new WaveDirector(this, config, points, (definition, at) => this.spawnFoe(definition, at))
         this.waves.on(WaveEvent.Started, (wave: number) => {
             this.textBanner?.announce(`Wave ${wave}`, true)
+            this.waveCounter?.set(wave)
             // both of these duck the music while they play, so the arena is heard
             // announcing itself rather than competing with the drums
             audio.play("wave-start")
@@ -353,6 +422,8 @@ export default class GameScene extends Phaser.Scene {
         }
         this.collisions.addFoe(foe)
 
+        if (definition.boss) this.showBossBar(foe, definition.boss)
+
         // a boss calling for help - whatever it asks for arrives beside it, counted as its own
         foe.on(FoeEvent.Summon, (id: string, x: number, y: number) => {
             if (!(id in FOES)) {
@@ -368,7 +439,10 @@ export default class GameScene extends Phaser.Scene {
         foe.getHealth.on(HealthEvent.Damaged, (change: HealthChange) => {
             this.impact.hit(IMPACT.foeHit, impactScale(change.amount, change.max))
         })
-        foe.getHealth.on(HealthEvent.Died, () => this.impact.hit(IMPACT.foeDeath))
+        foe.getHealth.on(HealthEvent.Died, () => {
+            this.impact.hit(IMPACT.foeDeath)
+            this.checkCleared()
+        })
 
         // a bow only announces its shot - what one can hit is decided here, the
         // same as it is for a swing. this listens to the component rather than to
@@ -381,6 +455,13 @@ export default class GameScene extends Phaser.Scene {
         })
 
         return foe
+    }
+
+    // a boss gets its health shown on the HUD for as long as it's alive - the bar
+    // lets go of it on its own once it dies
+    private showBossBar(foe: Foe, boss: FoeBoss): void {
+        this.bossBar ??= new BossBar(this)
+        this.bossBar.track(foe.getHealth, boss.title)
     }
 
     // put a shot in the world and give it something to land on
@@ -398,14 +479,14 @@ export default class GameScene extends Phaser.Scene {
         return projectile
     }
 
-    // temporary stand-in for an inventory - swap gear with the number row
-    private bindItemHotkeys(): void {
+    // temporary stand-in for an inventory - swap weapons with the number row
+    private bindWeaponHotkeys(): void {
         const keyboard = this.input.keyboard
         if (!keyboard) return
 
-        for (const [event, item] of Object.entries(ITEM_HOTKEYS)) {
+        for (const [event, weapon] of Object.entries(WEAPON_HOTKEYS)) {
             keyboard.on(event, () => {
-                if (item) this.player.equip(item)
+                if (weapon) this.player.equip(weapon)
                 else this.player.unequip()
             })
         }

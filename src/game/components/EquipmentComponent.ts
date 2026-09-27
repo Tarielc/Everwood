@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import { ItemDefinition, ItemId, ITEMS, UNARMED_DAMAGE, UNARMED_KNOCKBACK, UNARMED_KNOCKBACK_LIFT } from '../data/items';
+import { WeaponDefinition, WeaponId, WEAPONS, UNARMED_DAMAGE, UNARMED_KNOCKBACK, UNARMED_KNOCKBACK_LIFT } from '../data/weapons';
 
 export const EquipmentEvent = {
     Equipped: "equipment-equipped",
@@ -9,23 +9,23 @@ export const EquipmentEvent = {
 export type EquipmentEventName = typeof EquipmentEvent[keyof typeof EquipmentEvent]
 
 export interface EquipmentOptions {
-    // how far above the owner the item draws - 1 keeps it just in front, no more
+    // how far above the owner the weapon draws - 1 keeps it just in front, no more
     depthOffset?: number
 }
 
 /**
- * Draws an equipped item as a second sprite layered over its owner.
+ * Draws an equipped weapon as a second sprite layered over its owner.
  *
- * Item sheets are cut to the same grid as the character sheet and drawn in the
+ * Weapon sheets are cut to the same grid as the character sheet and drawn in the
  * hand position for every frame, so keeping them in sync is a matter of copying
  * the owner's frame index across. That means no second set of registered
  * animations, no attachment points, and no chance of the two drifting apart -
- * whatever the owner is doing, the item is already doing it.
+ * whatever the owner is doing, the weapon is already doing it.
  */
 export class EquipmentComponent extends Phaser.Events.EventEmitter {
     private overlay: Phaser.GameObjects.Sprite | null = null
-    private current: ItemDefinition | null = null
-    private currentId: ItemId | null = null
+    private current: WeaponDefinition | null = null
+    private currentId: WeaponId | null = null
 
     private readonly depthOffset: number
 
@@ -37,29 +37,29 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
         this.depthOffset = options.depthOffset ?? 1
     }
 
-    // swapping straight from one item to another reuses the same sprite
-    equip(id: ItemId): ItemDefinition {
-        const item = ITEMS[id]
+    // swapping straight from one weapon to another reuses the same sprite
+    equip(id: WeaponId): WeaponDefinition {
+        const weapon = WEAPONS[id]
 
         if (!this.overlay) {
-            this.overlay = this.owner.scene.add.sprite(this.owner.x, this.owner.y, item.texture)
+            this.overlay = this.owner.scene.add.sprite(this.owner.x, this.owner.y, weapon.texture)
             this.overlay.setOrigin(this.owner.originX, this.owner.originY)
         } else {
-            this.overlay.setTexture(item.texture)
+            this.overlay.setTexture(weapon.texture)
         }
 
-        this.current = item
+        this.current = weapon
         this.currentId = id
 
-        // land on the owner's current pose immediately, so the item doesn't spend
+        // land on the owner's current pose immediately, so the weapon doesn't spend
         // a frame at the sheet's origin before the first sync
         this.sync()
 
-        this.emit(EquipmentEvent.Equipped, item, id)
-        return item
+        this.emit(EquipmentEvent.Equipped, weapon, id)
+        return weapon
     }
 
-    unequip(): ItemDefinition | null {
+    unequip(): WeaponDefinition | null {
         const previous = this.current
         if (!previous) return null
 
@@ -77,7 +77,7 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
         this.sync()
     }
 
-    // mirror the owner's damage flash onto the item, so the two read as one figure
+    // mirror the owner's damage flash onto the weapon, so the two read as one figure
     flash(color: number, mode: Phaser.TintModes = Phaser.TintModes.FILL): void {
         this.overlay?.setTint(color).setTintMode(mode)
     }
@@ -86,11 +86,11 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
         this.overlay?.clearTint().setTintMode(Phaser.TintModes.MULTIPLY)
     }
 
-    get item(): ItemDefinition | null {
+    get weapon(): WeaponDefinition | null {
         return this.current
     }
 
-    get itemId(): ItemId | null {
+    get weaponId(): WeaponId | null {
         return this.currentId
     }
 
@@ -136,7 +136,7 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
         const frame = owner.frame.name
         if (overlay.frame.name === frame) return
 
-        // an item sheet shorter than the character sheet would throw here - hold the
+        // a weapon sheet shorter than the character sheet would throw here - hold the
         // last good frame instead, so a half-finished asset doesn't take the game down
         if (overlay.texture.has(frame)) overlay.setFrame(frame)
     }

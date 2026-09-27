@@ -7,7 +7,7 @@ import { ARENA_WAVES, WaveConfig } from "./waves"
  * {@link LEVELS}, because a level names another one in {@link LevelDefinition.deathReturnsTo}
  * and a type can't be built out of the thing it is used to describe
  */
-export type LevelId = "arena" | "everwood" | "nether"
+export type LevelId = "arena" | "everwood" | "nether" | "boss-arena"
 
 /** A level the game can be standing in */
 export interface LevelDefinition {
@@ -44,6 +44,11 @@ export interface LevelDefinition {
      * their own patch instead
      */
     foesAlwaysHunt?: boolean,
+    /**
+     * Killing everything here wins the game - every foe the map placed, and anything
+     * they summoned along the way. The victory screen goes up once the last one falls
+     */
+    winWhenCleared?: boolean,
 }
 
 /** Every level, keyed by {@link LevelId} - a typo is a compile error, not a blank scene */
@@ -64,8 +69,15 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
         url: "assets/map/nether.json",
         music: "nether",
         ambience: "abyss",
-    }
+    },
+    "boss-arena": {
+        url: "assets/map/boss-arena.json",
+        music: "nether",
+        ambience: "abyss",
+        deathReturnsTo: "boss-arena",
+        winWhenCleared: true,
+    },
 }
 
 /** Where a fresh game begins */
-export const STARTING_LEVEL:LevelId = "nether"
+export const STARTING_LEVEL:LevelId = "boss-arena"
