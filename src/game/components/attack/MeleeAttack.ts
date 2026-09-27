@@ -22,6 +22,8 @@ export interface MeleeAttackConfig {
     offsetX: number,
     /** Negative reaches above the attacker's middle */
     offsetY: number,
+    /** Centre the area on the attacker instead of in front of it - a blast, not a swing. `offsetX` is ignored */
+    centered?: boolean,
 }
 
 /**
@@ -183,6 +185,11 @@ export class MeleeAttack extends AttackComponent {
         const centerX = body ? body.center.x : this.owner.x
         const centerY = body ? body.center.y : this.owner.y
         const halfWidth = body ? body.halfWidth : 0
+
+        if (this.config.centered) {
+            this.area.setTo(centerX - width / 2, centerY + offsetY - height / 2, width, height)
+            return
+        }
 
         // the near edge of the swing, then grow away from the owner
         const near = centerX + this.facing * (halfWidth + offsetX)

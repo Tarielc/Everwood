@@ -73,3 +73,42 @@ export const ARCHER_ANIMS = {
     hurt: { key: "archer-hurt", start: 33, end: 37, frameRate: 12, repeat: 0, priority: 10, lockUntilComplete: true },
     death: { key: "archer-death", start: 44, end: 49, frameRate: 10, repeat: 0, priority: 20, lockUntilComplete: true },
 } as const satisfies FoeAnims
+
+export const FEMALE_DAMNED_ANIMS = {
+    idle: {key: "female-damned-idle", start: 0, end: 4, frameRate: 6, repeat: -1},
+    run:  {key: "female-damned-run", start: 8, end: 15, frameRate: 10, repeat: -1 },
+    attack: {key: "femele-damned-attack", start: 16, end: 21, frameRate: 14, repeat: 0, priority: 5, lockUntilComplete: true},
+    death: {key: "femele-damned-death", start: 24, end: 29, frameRate: 10, repeat: 0, priority: 20, lockUntilComplete: true},
+} as const satisfies FoeAnims
+
+export const MALE_DAMNED_ANIMS = {
+    idle: {key: "male-damned-idle", start: 0, end: 4, frameRate: 6, repeat: -1},
+    run:  {key: "male-damned-run", start: 8, end: 15, frameRate: 10, repeat: -1 },
+    attack: {key: "male-damned-attack", start: 16, end: 21, frameRate: 14, repeat: 0, priority: 5, lockUntilComplete: true},
+    death: {key: "male-damned-death", start: 24, end: 29, frameRate: 10, repeat: 0, priority: 20, lockUntilComplete: true},
+} as const satisfies FoeAnims
+
+/**
+ * Burning skull, a 7-wide 64x64 grid - the top row is the one flicker it has for
+ * everything, the bottom row is the explosion it dies in
+ */
+export const BURNING_SKULL_ANIMS = {
+    idle: {key: "burning-skull-idle", start: 0, end: 4, frameRate: 8, repeat: -1},
+    run: {key: "burning-skull-run", start: 0, end: 4, frameRate: 12, repeat: -1},
+    // plays once, so collapse() gets its onComplete and starts the fade
+    death: {key: "burning-skull-death", start: 7, end: 13, frameRate: 14, repeat: 0, priority: 20, lockUntilComplete: true},
+} as const satisfies FoeAnims
+
+/**
+ * Large boss skull, a 10-wide 128x128 grid - one row of idle, two rows of the flame
+ * burst it attacks with (the flames are up on frames 15-19), and a row of dissolving
+ */
+export const LARGE_BOSS_SKULL_ANIMS = {
+    idle: {key: "large-boss-skull-idle", start: 0, end: 9, frameRate: 8, repeat: -1},
+    run: {key: "large-boss-skull-run", start: 0, end: 9, frameRate: 12, repeat: -1},
+    // each needs its own key - a reused one is skipped at registration and plays the run
+    // cycle instead. played once and locked, so the Attack state waits out the burst
+    // and collapse() gets its onComplete
+    attack: {key: "large-boss-skull-attack", start: 10, end: 29, frameRate: 12, repeat: 0, priority: 5, lockUntilComplete: true},
+    death: {key: "large-boss-skull-death", start: 30, end: 39, frameRate: 12, repeat: 0, priority: 20, lockUntilComplete: true},
+} as const satisfies FoeAnims

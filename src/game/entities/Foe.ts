@@ -5,7 +5,7 @@ import { AttackComponent } from "../components/attack/AttackComponent"
 import { RangedAttack } from "../components/attack/RangedAttack"
 import { HealthChange, HealthComponent, HealthEvent } from "../components/HealthComponent"
 import { FoeAnims } from '../data/animations';
-import { FoeDefinition } from '../data/foes';
+import { FoeDefinition, HitEffects } from '../data/foes';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createFoeStates, FoeState } from '../systems/state/FoeStates';
 import { MeleeAttack } from '../components/attack/MeleeAttack';
@@ -25,10 +25,21 @@ interface KnockbackSource {
     attackKnockbackLift: number
 }
 
+/** What a foe asks of the scene - it can't bring anything into the world itself */
+export const FoeEvent = {
+    /** `(foeId: string, x: number, y: number)` - spawn one of these, there, as this foe's minion */
+    Summon: "foe-summon",
+} as const
+
 /** flash color when foe takes damage */
 const DAMAGE_FLASH_COLOR = 0xffffff
 /** ms of each flash */
 const DAMAGE_FLASH_MS = 60
+
+/** How long a blast hurts for once the fuse runs out - a few frames, so it can't be missed */
+const BLAST_ACTIVE_MS = 60
+/** ms of each blink while a fuse burns */
+const FUSE_BLINK_MS = 70
 
 /**
  * Config-driven enemy.
@@ -67,6 +78,14 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
     /** target of foe - usually player */
     private chaseTarget: FoeTarget | null = null
 
+    /** the blink while a fuse burns, `null` when there's no fuse lit */
+    private fuseBlink: Phaser.Tweens.Tween | null = null
+
+    /** time spent fighting since the last call for help - only counts for a foe that summons */
+    private summonElapsed = 0
+    /** what it has summoned that is still up - checked against `summon.maxAlive` */
+    private minions: Set<Foe> = new Set()
+
     /**
      * Adds foe sprite to the scene and physics body to the world,
      * sets worldcollider bounds, initializes all the class variables
@@ -93,6 +112,9 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.setScale(definition.scale)
         this.setCollideWorldBounds(true)
         this.setSize(definition.body.width, definition.body.height)
+
+        // a flier holds its height by itself - nothing pulls it down between states
+        if (definition.flying) (this.body as Phaser.Physics.Arcade.Body).setAllowGravity(false)
 
         this.animations = new AnimationController<FoeAnims>(this, definition.anims, {
             texture: definition.texture,
@@ -138,6 +160,24 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.attack?.update(delta)
 
         this.stateMachine.update(delta)
+
+        this.tickSummon(delta)
+    }
+
+    /**
+     * Count a summoned foe against this one's cap, until it goes down.
+     *
+     * The scene calls this once it has spawned what a {@link FoeEvent.Summon} asked for
+     *
+     * @param minion - foe brought in on this one's call
+     */
+    addMinion(minion: Foe): void {
+        this.minions.add(minion)
+
+        const release = () => this.minions.delete(minion)
+        // on death rather than when the corpse finishes fading, so the next call has room sooner
+        minion.getHealth.once(HealthEvent.Died, release)
+        minion.once(Phaser.GameObjects.Events.DESTROY, release)
     }
 
     /**
@@ -175,6 +215,31 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         this.setVelocityX(direction * speed)
     }
 
+    /**
+     * Fly straight at the target's middle - a flier's chase, in place of `walk()`.
+     *
+     * @param speed - speed along the line to the target
+     */
+    flyTowardTarget(speed: number): void {
+        const target = this.chaseTarget
+        if (!target) return
+
+        const center = targetCenter(target)
+        const x = center.x
+        // aim over the target rather than into it, by however high this one hovers
+        const y = center.y - (this.definition.hoverHeight ?? 0)
+        const angle = Phaser.Math.Angle.Between(this.x, this.y, x, y)
+
+        this.setFacing(x < this.x ? -1 : 1)
+        this.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
+    }
+
+    /** Stop moving - both axes for a flier, which nothing else would stop */
+    halt(): void {
+        this.setVelocityX(0)
+        if (this.definition.flying) this.setVelocityY(0)
+    }
+
     /** turn the foe around - flip facing direction */
     turnAround(): void {
         this.setFacing(this.direction === 1 ? -1 : 1)
@@ -198,11 +263,39 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
 
         this.faceTarget()
         this.attack.start(this.animations.facing)
+
+        // a lit fuse blinks, so there's something to see and get away from
+        if (this.selfDestructs) {
+            this.fuseBlink = this.scene.tweens.add({
+                targets: this,
+                alpha: 0.35,
+                duration: FUSE_BLINK_MS,
+                yoyo: true,
+                repeat: -1,
+            })
+        }
     }
 
     /** However the attack ended this shuts it down and starts the cooldown. */
     endAttack(): void {
         this.attack?.end()
+
+        this.fuseBlink?.remove()
+        this.fuseBlink = null
+        this.setAlpha(1)
+    }
+
+    /** `true` for a foe whose attack is blowing itself up */
+    get selfDestructs(): boolean {
+        return this.definition.attack?.kind === "explode"
+    }
+
+    /**
+     * Die in the blast it just set off - the death animation is the explosion.
+     * Called once the blast's hit window has run, so the damage has already landed.
+     */
+    detonate(): void {
+        this.health.kill(this)
     }
 
     /** `true` if foe can start its attack right now - whether the target is in range, is the state machine'sbusiness */
@@ -229,6 +322,22 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
     /** whjat one of its attacks damage is - 0 for a foe that doesn't got one */
     get attackDamage(): number {
         return this.definition.attack?.damage ?? 0
+    }
+
+    /**
+     * Roll this foe's attack effects - knockback and stun each get their own roll.
+     *
+     * @returns the effects to apply - each `null` when the attack has none or the roll missed
+     */
+    rollHitEffects(): HitEffects {
+        const attack = this.definition.attack
+        const knockback = attack?.knockback
+        const stun = attack?.stun
+
+        return {
+            knockback: knockback && Math.random() < knockback.chance ? knockback : null,
+            stunMs: stun && Math.random() < stun.chance ? stun.durationMs : null,
+        }
     }
 
     /** how much room it wants between itself and its target - `0` for anything that's happy to close all the way in */
@@ -308,6 +417,35 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
     /** ranged attack component if foe has one, `null` otherwise */
     get rangedAttack(): RangedAttack | null {
         return this.attack instanceof RangedAttack ? this.attack : null
+    }
+
+    /**
+     * Run down the summon timer, and call for help when it's up and there's room.
+     *
+     * Only while it's fighting - a boss nobody has found yet doesn't fill the room.
+     * The foe doesn't know how to spawn anything, so it asks the scene
+     *
+     * @param delta - Time elapsed since the previous frame
+     * @fires FoeEvent.Summon with the foe id and the world x, y to bring each one in at
+     */
+    private tickSummon(delta: number): void {
+        const summon = this.definition.summon
+        if (!summon || this.isDead) return
+
+        const fighting = this.stateMachine.isCurrentState(FoeState.Chase)
+            || this.stateMachine.isCurrentState(FoeState.Attack)
+            || this.stateMachine.isCurrentState(FoeState.Hurt)
+        if (!fighting) return
+
+        this.summonElapsed += delta
+        if (this.summonElapsed < summon.intervalMs) return
+        this.summonElapsed = 0
+
+        const room = Math.min(summon.count, summon.maxAlive - this.minions.size)
+        for (let i = 0; i < room; i++) {
+            const x = this.x + Phaser.Math.Between(-summon.spread, summon.spread)
+            this.emit(FoeEvent.Summon, summon.foe, x, this.y)
+        }
     }
 
     /**
@@ -424,6 +562,7 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
 
     /** destructor and cleanup */
     destroy(fromScene?: boolean): void {
+        this.fuseBlink?.remove()
         this.stateMachine?.destroy()
         this.animations?.destroy()
         this.health?.destroy()
@@ -445,7 +584,36 @@ function createAttack(owner: Foe, definition: FoeDefinition): AttackComponent | 
     const attack = definition.attack
     if (!attack) return null
 
-    return attack.kind === "melee"
-        ? new MeleeAttack(owner, attack.swing)
-        : new RangedAttack(owner, attack)
+    switch (attack.kind) {
+        case "melee":
+            return new MeleeAttack(owner, attack.swing)
+        case "ranged":
+            return new RangedAttack(owner, attack)
+        case "explode":
+            // a swing that doesn't reach out - it sits on the foe, and its windup is the
+            // fuse. being a MeleeAttack is what gets it resolved against the player
+            return new MeleeAttack(owner, {
+                windupMs: attack.fuseMs,
+                activeMs: BLAST_ACTIVE_MS,
+                cooldownMs: 0,
+                bufferMs: 0,
+                width: attack.radius * 2,
+                height: attack.radius * 2,
+                offsetX: 0,
+                offsetY: 0,
+                centered: true,
+            })
+    }
+}
+
+/**
+ * The middle of a target's body, or its position if it has none - a flier aims
+ * here, rather than at a sprite origin that may sit off the body
+ *
+ * @param target - what's being chased
+ * @returns world point to fly at
+ */
+export function targetCenter(target: FoeTarget): { x: number, y: number } {
+    const body = target.body as Phaser.Physics.Arcade.Body | null
+    return body ? body.center : target
 }

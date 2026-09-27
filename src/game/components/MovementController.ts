@@ -67,10 +67,11 @@ export class MovementController {
      *
      * @param input - This frame's input
      * @param dt - Time since last frame
+     * @param capSpeed - clamp to walk/sprint speed - off while stunned, so a knockback isn't cut short
      */
-    update(input: InputState, dt:number): void {
+    update(input: InputState, dt:number, capSpeed = true): void {
         this.updateTimers(input, dt)
-        this.applyHorizontal(input)
+        this.applyHorizontal(input, capSpeed)
         this.applyGravity()
         this.tryConsumeJump(input)
         this.applyJumpCut(input)
@@ -148,7 +149,7 @@ export class MovementController {
      * Accelerates toward the held direction (weaker in the air), damps veocity
      * when nothing is held, and clamps maximum walking or sprinting speed.
      */
-    private applyHorizontal(input: InputState): void {
+    private applyHorizontal(input: InputState, capSpeed: boolean): void {
         const body = this.sprite.body as Phaser.Physics.Arcade.Body
         const grounded = body.blocked.down || body.touching.down
         const acceleration = this.config.acceleration * (grounded ? 1 : 0.7) // weak air control
@@ -163,6 +164,8 @@ export class MovementController {
             body.setAccelerationX(0)
             body.velocity.x *= grounded? 0.85 : 0.95
         }
+
+        if (!capSpeed) return
 
         // lock max horizontal speed (based on whether sprint is held or not)
         const maxSpeed = input.sprintHeld

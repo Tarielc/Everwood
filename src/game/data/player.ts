@@ -4,7 +4,7 @@ import type { MovementConfig } from "../components/MovementController"
 
 /** Player movement tuning */
 export const PLAYER_MOVEMENT:MovementConfig = {
-    speed: 110,
+    speed: 225,
     sprintSpeed: 225,
     acceleration: 900,
     drag: 700,
@@ -19,9 +19,9 @@ export const PLAYER_MOVEMENT:MovementConfig = {
 
 /** Player physics body */
 export const PLAYER_BODY = {
-    width: 14,
+    width: 14, //14
     height: 46,
-    offsetX: 33,
+    offsetX: 33, //33
     offsetY: 18,
 }
 
@@ -33,7 +33,7 @@ export const PLAYER_HEALTH_BUS:string = "player"
 
 /** Player health configuration */
 export const PLAYER_HEALTH:HealthConfig = {
-    max: 100,
+    max: 130,
     invulnerabilityMs: 700, // roughly the length of the hurt animation
     regenPerSecond: 4,
     regenDelayMs: 12000,

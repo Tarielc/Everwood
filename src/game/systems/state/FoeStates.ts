@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import type Foe from '../../entities/Foe';
+import { targetCenter } from '../../entities/Foe';
 import { FoeAnims } from '../../data/animations';
 import { State } from './StateMachine';
 
@@ -18,6 +19,9 @@ export type FoeStateName = typeof FoeState[keyof typeof FoeState]
 
 /** how long a flinch holds on a sheet that hasn't got a hurt animation to time it */
 const HURT_STUN_MS = 520
+
+/** What a flier keeps of its knockback each frame - nothing else would slow it with no ground to land on */
+const FLIER_HURT_DAMPING = 0.88
 
 /**
  * Play foe animation. Not every foe has every animation, so fall back to ones they do have.
@@ -62,6 +66,13 @@ function canSee(foe: Foe, range: number): boolean {
 function inReach(foe: Foe, range: number): boolean {
     const target = foe.target
     if (!target || !target.active) return false
+
+    // a flier can come at you from any angle, so it's a straight line - there's
+    // no "level with it" for something that isn't on the ground
+    if (foe.definition.flying) {
+        const { x, y } = targetCenter(target)
+        return Phaser.Math.Distance.Between(foe.x, foe.y, x, y) <= range
+    }
 
     return Math.abs(target.x - foe.x) <= range
         && Math.abs(target.y - foe.y) <= foe.definition.verticalReach
@@ -145,7 +156,7 @@ export function createFoeStates(): State<Foe>[] {
         {
             name: FoeState.Idle,
             enter(foe) {
-                foe.setVelocityX(0)
+                foe.halt()
                 foe.getAnimations.play("idle")
             },
             update(foe) {
@@ -187,6 +198,8 @@ export function createFoeStates(): State<Foe>[] {
 
                 if (canAttack(foe)) return foe.states.transition(FoeState.Attack)
 
+                if (foe.definition.flying) return foe.flyTowardTarget(foe.definition.chaseSpeed)
+
                 // an archer walked down to arm's length gives ground instead of
                 // standing there being hit - it needs the room to draw again
                 const gap = foe.target ? Math.abs(foe.target.x - foe.x) : Infinity
@@ -201,12 +214,12 @@ export function createFoeStates(): State<Foe>[] {
             // the animation's own lock is what decides how long that is
             name: FoeState.Attack,
             enter(foe) {
-                foe.setVelocityX(0)
+                foe.halt()
                 foe.beginAttack()
                 play(foe, "attack")
             },
             update(foe) {
-                foe.setVelocityX(0)
+                foe.halt()
 
                 // a sheet without an attack animation has nothing to lock, so the
                 // attack's own timing is what ends the state instead - isAttacking
@@ -215,7 +228,13 @@ export function createFoeStates(): State<Foe>[] {
                     ? foe.getAnimations.isLocked
                     : foe.states.stateTime < foe.attackDurationMs
 
-                if (!busy) foe.states.transition(recoverState(foe))
+                if (busy) return
+
+                // the blast's window has run by now, so the damage has landed - what's
+                // left is to go up with it
+                if (foe.selfDestructs) return foe.detonate()
+
+                foe.states.transition(recoverState(foe))
             },
             exit(foe) {
                 // closes the hit area or drops the nocked arrow, however this ended -
@@ -237,9 +256,16 @@ export function createFoeStates(): State<Foe>[] {
                     ? foe.getAnimations.isLocked
                     : foe.states.stateTime < HURT_STUN_MS
 
-                // a knockback can outlast the flinch - hold until it lands, so the
-                // foe doesn't start walking (or zero its shove) in mid-air
-                if (stunned || !foe.isGrounded) return
+                if (foe.definition.flying) {
+                    // no landing to end a shove, so it bleeds off instead
+                    const { x, y } = (foe.body as Phaser.Physics.Arcade.Body).velocity
+                    foe.setVelocity(x * FLIER_HURT_DAMPING, y * FLIER_HURT_DAMPING)
+                    if (stunned) return
+                } else if (stunned || !foe.isGrounded) {
+                    // a knockback can outlast the flinch - hold until it lands, so the
+                    // foe doesn't start walking (or zero its shove) in mid-air
+                    return
+                }
 
                 // come out of it angry, if whatever hit it is still in reach
                 foe.states.transition(recoverState(foe))

@@ -195,7 +195,8 @@ export class CollisionManager {
         for (const foe of this.foes) {
             // pass player as an array of length === 1, because resolveSwing takes array as a parameter
             this.resolveSwing(foe.meleeAttack, [player], () => {
-                player.takeDamage(foe.attackDamage, foe)
+                // rolled per landed swing - i-frames stop the rest of the active window
+                player.takeDamage(foe.attackDamage, foe, foe.rollHitEffects())
             })
         }
     }

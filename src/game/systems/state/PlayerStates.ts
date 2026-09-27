@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import type Player from '../../entities/Player';
 import { State } from './StateMachine';
-import { PLAYER_HURT_STUN_MS, PLAYER_MOVEMENT } from '../../data/player';
+import { PLAYER_MOVEMENT } from '../../data/player';
 import { PLAYER_SOUNDS, UNARMED_SWING_SOUND } from '../../data/audio';
 import { AudioController } from '../audio/AudioController';
 
@@ -218,9 +218,10 @@ export function createPlayerStates(): State<Player>[] {
                 player.getAnimations.play("hurt", { restart: true })
             },
             update(player) {
-                // held for the stun, and never cut shorter than the flinch is drawn for
+                // held for the stun, and never cut shorter than the flinch is drawn for -
+                // a plain hit stuns for PLAYER_HURT_STUN_MS, a foe's stun for longer
                 const stunned = player.getAnimations.isLocked
-                    || player.states.stateTime < PLAYER_HURT_STUN_MS
+                    || player.stunRemainingMs > 0
 
                 if (!stunned) player.states.transition(recoverState(player))
             },

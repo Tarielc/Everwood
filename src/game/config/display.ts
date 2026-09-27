@@ -25,4 +25,7 @@ export const MAX_VIEW_HEIGHT:number = 1280
  */
 export const CHARACTER_FRAME = { frameWidth: 80, frameHeight: 64 } as const
 
+export const ENEMY_FRAME_64 = { frameWidth: 64, frameHeight: 64 } as const
+export const ENEMY_FRAME_128 = { frameWidth: 128, frameHeight: 128 } as const
+
 

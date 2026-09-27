@@ -5,7 +5,7 @@ import { FOES, FoeDefinition, FoeId } from '../data/foes';
 import { ItemId } from '../data/items';
 import { LEVELS, LevelId, STARTING_LEVEL } from '../data/levels';
 import { PLAYER_HEALTH, PLAYER_HEALTH_BUS } from '../data/player';
-import Foe from '../entities/Foe';
+import Foe, { FoeEvent } from '../entities/Foe';
 import Player from '../entities/Player';
 import Projectile from '../entities/Projectile';
 import InputController from '../systems/inputs/InputController';
@@ -325,15 +325,33 @@ export default class GameScene extends Phaser.Scene {
         return { ...definition, aggroRange: Infinity, deAggroRange: Infinity }
     }
 
-    // bring a foe into the world and hook it up to the player
-    private spawnFoe(definition: FoeDefinition, at: FootPoint): Foe {
+    // bring a foe into the world and hook it up to the player. `grounded` puts it
+    // on the floor at `at` - a summon passes false, and appears in the air right there
+    private spawnFoe(definition: FoeDefinition, at: FootPoint, grounded = true): Foe {
         const foe = new Foe(this, at.x, at.y, this.asHuntedIn(definition)).setTarget(this.player)
         this.foes.push(foe)
 
         // Foe scales itself in its constructor, so its body is the right size by
         // the time it's put on the floor
-        this.world.stand(foe, at)
+        if (grounded) {
+            this.world.stand(foe, at)
+
+            // after stand(), which would otherwise pull a hovering flier back down onto the floor
+            if (definition.flying && definition.hoverHeight) {
+                foe.y -= definition.hoverHeight
+                ;(foe.body as Phaser.Physics.Arcade.Body).updateFromGameObject()
+            }
+        }
         this.collisions.addFoe(foe)
+
+        // a boss calling for help - whatever it asks for arrives beside it, counted as its own
+        foe.on(FoeEvent.Summon, (id: string, x: number, y: number) => {
+            if (!(id in FOES)) {
+                console.warn(`GameScene: "${definition.name}" summons "${id}", which isn't a foe`)
+                return
+            }
+            foe.addMinion(this.spawnFoe(FOES[id as FoeId], { x, y }, false))
+        })
 
         // the same listeners the player has, from the other side of the swing. both
         // fire on a killing blow, and the impacts fold into one rather than stacking -

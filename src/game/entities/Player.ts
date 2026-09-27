@@ -5,12 +5,14 @@ import { AnimationController, Facing } from "../components/AnimationController"
 import { HealthComponent, HealthChange, HealthEvent, REGEN_SOURCE } from "../components/HealthComponent"
 import { EquipmentComponent, EquipmentEvent } from "../components/EquipmentComponent"
 import { ItemDefinition, ItemId } from '../data/items';
+import type { FoeKnockback, HitEffects } from '../data/foes';
 import { PLAYER_ANIMS } from '../data/animations';
 import {
     PLAYER_UNARMED_ATTACK,
     PLAYER_BODY,
     PLAYER_HEALTH,
     PLAYER_HEALTH_BUS,
+    PLAYER_HURT_STUN_MS,
     PLAYER_MOVEMENT,
     PLAYER_RESPAWN_INVULNERABILITY_MS,
 } from '../data/player';
@@ -70,6 +72,9 @@ const NO_INPUT: InputState = {
 export default class Player extends Phaser.Physics.Arcade.Sprite {
     /** Controls movement*/
     private movement: MovementController
+
+    /** Scene time the current hit's stun runs out - read by the hurt state */
+    private stunnedUntil = 0
     /** player animations and mirrors sprite to match facing */
     private animations: AnimationController<typeof PLAYER_ANIMS>
     /** behaviour states and transitions between them */
@@ -104,7 +109,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     ) {
         super(scene, x, y, texture);
         // add player sprite and physics to the scene
-        scene.add.existing(this);
+        scene.add.existing(this).setDepth(500)
         scene.physics.add.existing(this);
 
         this.setCollideWorldBounds(true)
@@ -165,7 +170,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         } else if (this.isStunned) {
             // gravity and drag still run, so a stun mid-jump falls and a stun
             // mid-run slides to a stop - the player just can't steer or swing
-            this.movement.update(NO_INPUT, delta)
+            // no speed cap either, or a knockback would be clamped down to walking pace
+            this.movement.update(NO_INPUT, delta, false)
         } else {
             // remembered even if this frame can't act on it, so a press during the
             // tail of one swing flows into the next
@@ -243,10 +249,42 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
      * 
      * @param amount - amount of damage to take.
      * @param source - source of hit/damage.
+     * @param effects - knockback away from `source` and a longer stun, applied only if the hit landed and wasn't fatal
      * @returns `false` if i-frames or death swallowed damage, `true` otherwise.
      */
-    takeDamage(amount: number, source?: unknown): boolean {
-        return this.health.damage(amount, source)
+    takeDamage(amount: number, source?: unknown, effects?: HitEffects): boolean {
+        const landed = this.health.damage(amount, source)
+        if (!landed || this.health.isDead) return landed
+
+        // extended, never shortened - a plain hit landing mid-stun can't cut it short
+        const stunMs = effects?.stunMs ?? PLAYER_HURT_STUN_MS
+        this.stunnedUntil = Math.max(this.stunnedUntil, this.scene.time.now + stunMs)
+
+        // after the damage, so the hurt state is already entered and the dead
+        // state's own velocity reset isn't overwritten
+        if (effects?.knockback) this.knockbackFrom(source, effects.knockback)
+
+        return landed
+    }
+
+    /** ms left before a hit lets go of the player - `0` once it has */
+    get stunRemainingMs(): number {
+        return Math.max(0, this.stunnedUntil - this.scene.time.now)
+    }
+
+    /**
+     * Shove the player away from the source.
+     *
+     * @param source - whatever hit the player - needs an `x` to push away from
+     * @param knockback - how hard, and how high
+     */
+    private knockbackFrom(source: unknown, knockback: FoeKnockback): void {
+        const from = source as { x?: number } | undefined
+        if (typeof from?.x !== 'number') return
+
+        const away = from.x < this.x ? 1 : -1
+        this.setVelocityX(away * knockback.force)
+        this.setVelocityY(knockback.lift)
     }
 
     /**
