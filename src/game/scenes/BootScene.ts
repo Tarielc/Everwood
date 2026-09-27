@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { AudioController } from '../systems/audio/AudioController';
 import { loadMapDefinitions } from '../systems/world/WorldMap';
+import { BITMAP_FONTS } from '../config/ui';
 
 /**
  * Scene where most basic assets load
@@ -22,7 +23,9 @@ export default class BootScene extends Phaser.Scene{
         // it plays out of is loaded later, in PreloadScene
         AudioController.init(this.game)
 
-        this.load.bitmapFont("Jacquard24", "assets/fonts/Jacquard24.png", "assets/fonts/Jacquard24.xml");
+        for (const font of BITMAP_FONTS) {
+            this.load.bitmapFont(font, `assets/fonts/${font}.png`, `assets/fonts/${font}.xml`);
+        }
         this.load.image("load-bg", "assets/ui/load-bg.png");
 
         this.load.image("progBar-frame", "assets/ui/progBar-frame.png")
@@ -37,6 +40,11 @@ export default class BootScene extends Phaser.Scene{
      * Scene's create function to start {@link preloadScene}
      */
     create() {
+        // pixelArt makes every texture NEAREST - the fonts are drawn far below the
+        // size their glyphs were baked at, so they need smooth filtering or they go jagged
+        for (const font of BITMAP_FONTS) {
+            this.textures.get(font).setFilter(Phaser.Textures.FilterMode.LINEAR)
+        }
         this.scene.start("PreloadScene")
     }
 }

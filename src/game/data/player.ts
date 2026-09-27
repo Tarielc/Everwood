@@ -4,11 +4,11 @@ import type { MovementConfig } from "../components/MovementController"
 
 /** Player movement tuning */
 export const PLAYER_MOVEMENT:MovementConfig = {
-    speed: 225,
+    speed: 100,
     sprintSpeed: 225,
     acceleration: 900,
     drag: 700,
-    jumpVelocity: -235,
+    jumpVelocity: -290, // -235
     jumpCutMultiplier: 0.75,
     gravity: 100,
     fallGravityMultiplier: 1.5,
@@ -19,9 +19,9 @@ export const PLAYER_MOVEMENT:MovementConfig = {
 
 /** Player physics body */
 export const PLAYER_BODY = {
-    width: 14, //14
+    width: 14,
     height: 46,
-    offsetX: 33, //33
+    offsetX: 33,
     offsetY: 18,
 }
 

@@ -140,6 +140,7 @@ export default class GameScene extends Phaser.Scene {
         this.spawnMapFoes()
         this.startWaves()
         this.watchForExit()
+        this.watchForHazards()
 
         // listening on the component rather than the bus - it's torn down with the
         // player, so a scene restart can't leave a stale respawn timer behind
@@ -221,6 +222,14 @@ export default class GameScene extends Phaser.Scene {
             this.player.respawn(this.spawn.x, this.spawn.y)
             this.world.stand(this.player, this.spawn)
         })
+    }
+
+    // spikes and anything else that kills on touch. the overlap fires every frame,
+    // but a dead player can't be killed twice
+    private watchForHazards(): void {
+        for (const hazard of this.world.hazards) {
+            this.collisions.watchZone(hazard, () => this.player.kill(hazard))
+        }
     }
 
     // the exit is a marker like any other until the map says where it goes. a

@@ -41,6 +41,11 @@ const BLAST_ACTIVE_MS = 60
 /** ms of each blink while a fuse burns */
 const FUSE_BLINK_MS = 70
 
+/** How long a flier keeps going round something once it's clear of it - long enough to carry its body past the edge */
+const DETOUR_CLEAR_MS = 250
+/** How hard a flier keeps leaning into what it's going round, as a share of its speed - it's what tells it the thing is still there */
+const DETOUR_LEAN = 0.3
+
 /**
  * Config-driven enemy.
  * 
@@ -77,6 +82,12 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
     private direction: -1 | 1 = 1
     /** target of foe - usually player */
     private chaseTarget: FoeTarget | null = null
+
+    /**
+     * A flier going round something in its way rather than into it - the axis it
+     * slides along, which way, and until when. `null` while it flies straight
+     */
+    private detour: { axis: 'x' | 'y', direction: -1 | 1, until: number } | null = null
 
     /** the blink while a fuse burns, `null` when there's no fuse lit */
     private fuseBlink: Phaser.Tweens.Tween | null = null
@@ -228,10 +239,58 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         const x = center.x
         // aim over the target rather than into it, by however high this one hovers
         const y = center.y - (this.definition.hoverHeight ?? 0)
+
+        if (this.steerAround(x - this.x, y - this.y, speed)) return
+
         const angle = Phaser.Math.Angle.Between(this.x, this.y, x, y)
 
         this.setFacing(x < this.x ? -1 : 1)
         this.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed)
+    }
+
+    /**
+     * Go round whatever is between a flier and its target. Straight at the target
+     * leaves it pressed flat under a platform the target stands on, going nowhere -
+     * so once it's blocked on the way, it slides along the surface instead, still
+     * leaning into it, until it's past the edge.
+     *
+     * The way round is picked once and kept until it's clear. Re-picking toward the
+     * target every frame would turn it back the moment it passed under them.
+     *
+     * @param dx - horizontal distance to where it's flying
+     * @param dy - vertical distance to where it's flying
+     * @param speed - speed to go round at
+     * @returns `true` if it's going round something this frame
+     */
+    private steerAround(dx: number, dy: number, speed: number): boolean {
+        const body = this.body as Phaser.Physics.Arcade.Body
+        const now = this.scene.time.now
+
+        // a ceiling or floor in the way - along it, toward the target's side to start with
+        if ((dy < 0 && body.blocked.up) || (dy > 0 && body.blocked.down)) {
+            const direction = this.detour?.axis === 'x' ? this.detour.direction : (dx < 0 ? -1 : 1)
+            this.detour = { axis: 'x', direction, until: now + DETOUR_CLEAR_MS }
+        }
+        // a wall in the way - up and over it unless the target is below
+        else if ((dx < 0 && body.blocked.left) || (dx > 0 && body.blocked.right)) {
+            const direction = this.detour?.axis === 'y' ? this.detour.direction : (dy > 0 ? 1 : -1)
+            this.detour = { axis: 'y', direction, until: now + DETOUR_CLEAR_MS }
+        }
+
+        if (this.detour && now >= this.detour.until) this.detour = null
+        if (!this.detour) return false
+
+        const { axis, direction } = this.detour
+        const lean = speed * DETOUR_LEAN
+
+        if (axis === 'x') {
+            this.setFacing(direction)
+            this.setVelocity(direction * speed, Math.sign(dy) * lean)
+        } else {
+            this.setFacing(dx < 0 ? -1 : 1)
+            this.setVelocity(Math.sign(dx) * lean, direction * speed)
+        }
+        return true
     }
 
     /** Stop moving - both axes for a flier, which nothing else would stop */

@@ -168,3 +168,16 @@ export const TEXT_WAVE_BANNER: TextBannerConfig = {
     fadeMs: 350,
     holdMs: 1000,
 }
+
+/**
+ * Bitmap fonts loaded in `BootScene`, keyed by the name they're loaded under.
+ * Each is read from `assets/fonts/<key>.png` and `assets/fonts/<key>.xml`.
+ *
+ * A Tiled text object whose font family matches one of these keys is drawn
+ * with it - see `WorldMap.buildTexts`
+ */
+export const BITMAP_FONTS: readonly string[] = [
+    "Jacquard24",
+    "Jersey25",
+    "Roboto",
+]

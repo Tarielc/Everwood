@@ -7,7 +7,7 @@ import { ARENA_WAVES, WaveConfig } from "./waves"
  * {@link LEVELS}, because a level names another one in {@link LevelDefinition.deathReturnsTo}
  * and a type can't be built out of the thing it is used to describe
  */
-export type LevelId = "arena" | "everwood"
+export type LevelId = "arena" | "everwood" | "nether"
 
 /** A level the game can be standing in */
 export interface LevelDefinition {
@@ -59,8 +59,13 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
     },
     everwood: {
         url: "assets/map/everwood.json"
+    },
+    nether: {
+        url: "assets/map/nether.json",
+        music: "nether",
+        ambience: "abyss",
     }
 }
 
 /** Where a fresh game begins */
-export const STARTING_LEVEL:LevelId = "arena"
+export const STARTING_LEVEL:LevelId = "nether"

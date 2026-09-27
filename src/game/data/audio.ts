@@ -242,6 +242,11 @@ export const MUSIC = {
         volume: 0.5,
         shuffle: true,
     },
+    nether: {
+        files: ["music/Horror 1.mp3", "music/Horror 2.mp3", "music/Horror 3.mp3"],
+        volume: 0.1,
+        shuffle: true,
+    }
 } as const satisfies Record<string, BedDefinition>
 
 /** Keys of {@link MUSIC} */
@@ -261,6 +266,11 @@ export const AMBIENCE = {
         files: ["background-ambience/crowd-town-background-noise.mp3"],
         volume: 0.4,
     },
+    abyss: {
+        files: ["background-ambience/abyssal-pulse.mp3", "background-ambience/abyssal-chill.mp3", "background-ambience/abyssal-echo.mp3"],
+        volume: 0.3,
+        shuffle: true,
+    }
 } as const satisfies Record<string, BedDefinition>
 
 /** Keys of {@link AMBIENCE} */

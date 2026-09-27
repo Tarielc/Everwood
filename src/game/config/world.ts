@@ -25,7 +25,6 @@ export const MAP = {
     objectLayers: {
         player: "player-object-layer",
         enemies: "enemies-object-layer",
-        npcs: "npc-object-layer",
     },
     /** Custom property on a layer for render depth */
     depthProperty: "depth",
@@ -36,6 +35,8 @@ export const MAP = {
     exitType: "PlayerExitpoint",
     /** Property on an exit, naming the `LevelId` it leads to - single level can have multiple exits. One without any, is end of the line. */
     exitLevelProperty: "nextLevel",
+    /** Object type/class on the player layer that kills the player on touch - spikes and the like */
+    hazardType: "Spike",
     /** Object type/class on the enemies layer that spawns a foe */
     foeType: "Foe",
     /** Property naming which `FoeId` to spawn - the object's name is the fallback */
@@ -47,10 +48,6 @@ export const MAP = {
      * every wave and a map can hold as many of them as it likes
      */
     waveSpawnPoint: "FoeSpawnPoint",
-    /** Object type/class on the npcs layer that spawns an npc*/
-    npcType: "Npc",
-    /** Property naming which `NpcId` to spawn - the object's name is the fallback */
-    npcTypeProperty: "npcType",
 } as const
 
 /** Default depth for a backdrop(background) image layer that doesn't set {@link MAP.depthProperty} */

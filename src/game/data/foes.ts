@@ -294,7 +294,7 @@ export const FOES = {
                 // on top of the 600ms the animation itself takes, so there's a beat between swings
                 cooldownMs: 100,
                 bufferMs: 0, // unused - a foe's swing is started by its state, never queued
-                width: 24,
+                width: 28,
                 height: 70,
                 offsetX: -2,
                 offsetY: 6,
@@ -350,7 +350,7 @@ export const FOES = {
             },
         },
         // TODO: FIND SOUNDS
-        sounds: { attack: "warrior-swing", hurt:"foe-hurt", death: "foe-death" },
+        sounds: { attack: "player-swing", hurt:"foe-hurt", death: "foe-death" },
         deathFadeMs: 700,
     },
 

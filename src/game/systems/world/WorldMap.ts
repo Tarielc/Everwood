@@ -375,6 +375,13 @@ export class WorldMap {
     }
 
     /**
+     * Objects that kill the player on touch, or `[]` if the level has none
+     */
+    get hazards(): MapObject[] {
+        return this.objects(MAP.objectLayers.player).filter(o => o.type === MAP.hazardType)
+    }
+
+    /**
      * Add a physics zone covering a map object's footprint
      * 
      * Tiled measures a rectangle from its top-left corner, while a zone is placed

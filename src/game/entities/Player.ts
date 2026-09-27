@@ -299,6 +299,15 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     /**
+     * Straight to dead, ignoring i-frames - spikes, pits, scripted deaths.
+     * 
+     * @param source - what killed the player.
+     */
+    kill(source?: unknown): void {
+        this.health.kill(source)
+    }
+
+    /**
      * Respawn player to the world
      * 
      * Reset position, velocity, acceleration, etc. Clears death animation
