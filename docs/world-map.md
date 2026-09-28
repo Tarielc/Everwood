@@ -44,6 +44,9 @@ A `travelling` guard matters here: the overlap is fired every frame, overlap is 
 - **`exitLevelPropert`** - Property on an exit which stores `LevelId` it leads to.
 - **`foeType`** - Class//type which marks an object as a Foe.
 - **`foeTypeProperty`** - Property on foe which specifies foe type e.g. `"Archer"` or `"Fox"`.
+- **`hintType`** - Class/type which marks an object as a controls hint.
+- **`hintKeyboardProperty`**, **`hintTouchProperty`**, **`hintTextProperty`** - What a hint says to a keyboard player, to a touch player, and to anyone (the fallback).
+- **`hintDismissProperty`** - Property naming the action that retires a hint for the rest of the level.
 
 Depth deserves a note. Neither Phaser, nor Tiled tracks a depth property, and while draw order coul;d be infered from layer order, an explicit property is a safe-lock against layers overlapping in ways the level design didn't intend. Layer without depth property fall back to `MAP_DEFAULT_BACKDROP_DEPTH` (`-90`) or `MAP_DEFAULT_LAYER_DEPTH` (`-40`). **The player is drawn at depth `0`**.
 
@@ -62,6 +65,18 @@ Depth deserves a note. Neither Phaser, nor Tiled tracks a depth property, and wh
 **Collision** — Give tile a custom property of `MAP.collisionProperty` with any value from `MAP.collisionValues`. If a tile layer contains at least one solid tile, whole layer is considered solid and `CollisionManager` adds colliders against it. see [Collision Manager](/docs/collision-manager.md)
 
 **Foes** — Place an object on the enemies object layer with class/type `Foe`, and give it a `foeType` property naming the foe. `GameScene.spawnMapFoes()` spawns one per object; an object whose type doesn't match to a known foe is skipped with a warning.
+
+**Hints** — Draw a rectangle on the player object layer with class/type `Hint`. While the player's body centre is inside it, its text fades in, centred just above the rectangle; walking out fades it away again. Give it string properties:
+
+| Property | Meaning |
+|---|---|
+| `keyboard` | Line shown when only the keyboard is in use, e.g. `Space to jump` |
+| `touch` | Line shown when on-screen buttons are up, e.g. `Tap the jump button` |
+| `text` | Fallback for whichever of the two is missing |
+| `dismissOn` | Optional - `move`, `jump`, `attack` or `sprint`. Doing it while the hint is up retires the hint for the rest of the level |
+
+A hint with no line for the current device is skipped with a warning. Use `
+` (Shift+Enter in Tiled's multi-line string editor) for a second line. Stick to ASCII - the bitmap fonts have no arrow glyphs. Look and timing live in `MAP_HINT` in `config/ui.ts`; `MapHints` does the rest.
 
 **Animated layer** — you need to set animated tiles layer Y offset to one tile (in this case 32px).
 

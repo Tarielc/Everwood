@@ -1461,22 +1461,27 @@
                  "y":408.5
                 }, 
                 {
-                 "height":0,
-                 "id":4,
-                 "name":"",
+                 "height":96,
+                 "id":22,
+                 "name":"MoveHint",
                  "opacity":1,
                  "properties":[
                         {
-                         "name":"textValue",
+                         "name":"keyboard",
                          "type":"string",
-                         "value":"Travel the underwold and save the princess! king will award you generously!"
+                         "value":"A \/ D or Arrow keys to move\nHold Shift to sprint"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"Hold the arrow buttons to move\nDouble-tap one to sprint"
                         }],
                  "rotation":0,
-                 "type":"talkingText",
+                 "type":"Hint",
                  "visible":true,
-                 "width":0,
-                 "x":1439.67,
-                 "y":388.333
+                 "width":96,
+                 "x":544,
+                 "y":352
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1485,7 +1490,7 @@
          "y":0
         }],
  "nextlayerid":56,
- "nextobjectid":21,
+ "nextobjectid":23,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

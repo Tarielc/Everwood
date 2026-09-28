@@ -51,7 +51,27 @@ export const MAP = {
      * every wave and a map can hold as many of them as it likes
      */
     waveSpawnPoint: "FoeSpawnPoint",
+    /**
+     * Object type/class on the player layer that shows a line of text over its area while
+     * the player stands inside it - how the game teaches its controls
+     */
+    hintType: "Hint",
+    /** Property with what a hint says to a keyboard player */
+    hintKeyboardProperty: "keyboard",
+    /** Property with what a hint says to a touch player */
+    hintTouchProperty: "touch",
+    /** Property with what a hint says to anyone - the fallback when the device's own line is missing */
+    hintTextProperty: "text",
+    /**
+     * Property naming the {@link HintAction} that retires a hint for the rest of the level -
+     * a "Space to jump" is done with once the player has jumped. Without one, a hint shows
+     * every time the player walks in
+     */
+    hintDismissProperty: "dismissOn",
 } as const
+
+/** What a hint's {@link MAP.hintDismissProperty} can name */
+export type HintAction = "move" | "jump" | "attack" | "sprint"
 
 /** Default depth for a backdrop(background) image layer that doesn't set {@link MAP.depthProperty} */
 export const MAP_DEFAULT_BACKDROP_DEPTH:number = -90

@@ -23,6 +23,7 @@ import { ImpactController } from '../systems/feel/ImpactController';
 import { IMPACT, impactScale } from '../config/feel';
 import { WaveDirector, WaveEvent } from '../systems/waves/WaveDirector';
 import { TextBanner } from '../ui/TextBanner';
+import { MapHints } from '../ui/MapHints';
 import { WaveCounter } from '../ui/WaveCounter';
 import { BossBar } from '../ui/BossBar';
 import { AudioController } from '../systems/audio/AudioController';
@@ -95,6 +96,9 @@ export default class GameScene extends Phaser.Scene {
     // the boss's name and health along the bottom of the screen, built the first
     // time a boss turns up and reused for any that come after it
     private bossBar: BossBar | null = null
+
+    // the "Space to jump" lines the map places, shown while the player stands by them
+    private hints!: MapHints
 
     // read off the map once, and kept for every respawn after the first
     private spawn: FootPoint = FALLBACK_SPAWN
@@ -179,6 +183,9 @@ export default class GameScene extends Phaser.Scene {
         this.watchForExit()
         this.watchForHazards()
         this.watchForCheckpoints()
+
+        // after the controls, which decide whether a hint names a key or a button
+        this.hints = new MapHints(this, this.world, this.controls.touch)
 
         // listening on the component rather than the bus - it's torn down with the
         // player, so a scene restart can't leave a stale respawn timer behind
@@ -595,6 +602,7 @@ export default class GameScene extends Phaser.Scene {
 
         // update player
         this.player.update(time, delta)
+        this.hints.update(this.player, this.controls)
 
         // backwards, so a foe removing itself mid-loop can't skip the next one
         for (let i = this.foes.length - 1; i >= 0; i--) {

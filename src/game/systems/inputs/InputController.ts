@@ -84,6 +84,12 @@ export default class InputController implements InputState {
     attackHeld: boolean = false
     attackJustPressed: boolean = false
 
+    /**
+     * On-screen touch buttons are up. Anything that names a control to the player -
+     * a hint, say - should name the button rather than the key
+     */
+    readonly touch: boolean
+
     /** Created input sources, which are traversed every frame */
     private sources: InputSource[] = []
     //** Raw input merged from all sources for the current frame. */
@@ -124,6 +130,7 @@ export default class InputController implements InputState {
         if (wantsTouch) {
             this.sources.push(new TouchSource(scene))
         }
+        this.touch = Boolean(wantsTouch)
 
         // one time listener for events shutdown and destroy - destroys input sources
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)

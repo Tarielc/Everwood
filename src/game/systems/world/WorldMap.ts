@@ -389,24 +389,39 @@ export class WorldMap {
     }
 
     /**
+     * Objects that show a controls hint while the player stands inside them, or `[]` if the level has none
+     */
+    get hints(): MapObject[] {
+        return this.objects(MAP.objectLayers.player).filter(o => o.type === MAP.hintType)
+    }
+
+    /**
+     * A map object's footprint, in world pixels
+     *
+     * @param object - Object whose area to measure
+     * @returns Its rectangle, top-left corner and size scaled to world pixels
+     */
+    bounds(object: MapObject): Phaser.Geom.Rectangle {
+        return new Phaser.Geom.Rectangle(
+            (object.x ?? 0) * this.scale,
+            (object.y ?? 0) * this.scale,
+            (object.width ?? 0) * this.scale,
+            (object.height ?? 0) * this.scale,
+        )
+    }
+
+    /**
      * Add a physics zone covering a map object's footprint
-     * 
+     *
      * Tiled measures a rectangle from its top-left corner, while a zone is placed
      * by it's center, hence the half-size shift
-     * 
+     *
      * @param object - Object whose area becomes the zone
      * @returns The zone, with a static body already attached
      */
     zone(object: MapObject): Phaser.GameObjects.Zone {
-        const width = (object.width ?? 0) * this.scale
-        const height = (object.height ?? 0) * this.scale
-
-        const zone = this.scene.add.zone(
-            (object.x ?? 0) * this.scale + width / 2,
-            (object.y ?? 0) * this.scale + height / 2,
-            width,
-            height,
-        )
+        const area = this.bounds(object)
+        const zone = this.scene.add.zone(area.centerX, area.centerY, area.width, area.height)
 
         // static: zone doesn't move and nothing get's to push it around
         this.scene.physics.add.existing(zone, true)

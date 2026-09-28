@@ -367,3 +367,33 @@ export const POWER_UP_CALLOUT = {
     durationMs: 900,
     depth: 900,
 } as const
+
+/** A controls hint placed in Tiled, drawn over its area while the player stands in it - used in `MapHints` */
+export interface MapHintConfig {
+    /** Bitmap font key, loaded in `BootScene` */
+    font: string,
+    size: number,
+    tint: number,
+    /** Drop shadow colour, so the text reads over a bright backdrop */
+    shadow: number,
+    /** Width the text wraps at, in world pixels */
+    maxWidth: number,
+    /** Gap between the top of the hint's area and the bottom of its text, in world pixels */
+    gap: number,
+    /** How long it takes to fade in or out */
+    fadeMs: number,
+    /** Over the level and the foes, under the screen-edge vignettes and the HUD */
+    depth: number,
+}
+
+/** Default map hint configuration */
+export const MAP_HINT: MapHintConfig = {
+    font: "Jersey25",
+    size: 26,
+    tint: 0xFBFEF9,
+    shadow: 0x000000,
+    maxWidth: 420,
+    gap: 12,
+    fadeMs: 250,
+    depth: 800,
+}

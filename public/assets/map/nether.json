@@ -510,8 +510,8 @@
                  "type":"Checkpoint",
                  "visible":true,
                  "width":64,
-                 "x":1246.666666667,
-                 "y":191.333333333
+                 "x":1246.67,
+                 "y":191.333
                 }, 
                 {
                  "height":160,
@@ -535,6 +535,118 @@
                  "visible":true,
                  "width":64,
                  "x":3808,
+                 "y":256
+                }, 
+                {
+                 "height":96,
+                 "id":24,
+                 "name":"MoveHint",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":""
+                        }, 
+                        {
+                         "name":"keyboard",
+                         "type":"string",
+                         "value":"A \/ D or Arrow keys to move"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"Hold the arrow buttons to move"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":96,
+                 "x":32,
+                 "y":320
+                }, 
+                {
+                 "height":96,
+                 "id":25,
+                 "name":"SprintHint",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":""
+                        }, 
+                        {
+                         "name":"keyboard",
+                         "type":"string",
+                         "value":"Hold Shift to sprint"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"Double-tap to sprint"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":96,
+                 "x":160,
+                 "y":320
+                }, 
+                {
+                 "height":96,
+                 "id":26,
+                 "name":"JumpHint ",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":""
+                        }, 
+                        {
+                         "name":"keyboard",
+                         "type":"string",
+                         "value":"SPACE, W, arrows to jump"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"Hold to jump higher"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":96,
+                 "x":416,
+                 "y":320
+                }, 
+                {
+                 "height":96,
+                 "id":27,
+                 "name":"AttackHint",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":""
+                        }, 
+                        {
+                         "name":"keyboard",
+                         "type":"string",
+                         "value":"F \/ J to attack"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"attack to kill foes"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":96,
+                 "x":896.666666666667,
                  "y":256
                 }],
          "opacity":1,
@@ -872,7 +984,7 @@
          "y":0
         }],
  "nextlayerid":35,
- "nextobjectid":24,
+ "nextobjectid":28,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",
