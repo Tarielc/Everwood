@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { UI_REFERENCE_SIZE, UI_SCALE_RANGE } from '../config/display';
 
 /** Space kept clear of notches, rounded corners and the home bar, in game pixels */
 export interface SafeArea {
@@ -133,4 +134,25 @@ export function onResize(
 
     handler()
     return off
+}
+
+/**
+ * Scale a HUD element should be drawn at on a view of this size
+ *
+ * Follows the shorter side of the view, so a portrait phone gets a smaller HUD and
+ * a big desktop window a larger one. Snapped to whole numbers so the pixel art keeps
+ * even pixels, and never below 1
+ *
+ * @param base - Scale the element is drawn at on a `UI_REFERENCE_SIZE` view
+ * @param width - Live view width
+ * @param height - Live view height
+ * @returns Whole-number scale to draw the element at
+ */
+export function hudScale(base: number, width: number, height: number): number {
+    const factor = Phaser.Math.Clamp(
+        Math.min(width, height) / UI_REFERENCE_SIZE,
+        UI_SCALE_RANGE.min,
+        UI_SCALE_RANGE.max,
+    )
+    return Math.max(1, Math.round(base * factor))
 }

@@ -46,6 +46,17 @@ Creates event listener on resize which runs `layout(width, height)` every time e
 | `MainMenyScene` | Logo and start button centered and resized |
 | `TouchSource` | Movement and action buttons distributed and scaled |
 | `WorldMap` | Stretched backdrops to cover the screen |
+| `HealthBar` | Health bar scaled with the view, kept in the top-left safe corner |
+| `UIScene` | Fullscreen, music and sound buttons scaled and spaced with the view, top-right - a row in landscape, a column down the right edge in portrait |
+| `PowerUpTray` | Icons and timer bars scaled with the view, kept under the health bar |
+
+## `hudScale(base, width, height)`
+
+Returns the scale a HUD element should be drawn at on the current view. `base` is the element's scale on a view whose shorter side is `UI_REFERENCE_SIZE` (720) game pixels; it grows and shrinks with the shorter side from there, within `UI_SCALE_RANGE`.
+
+- The shorter side is used so a portrait phone gets a smaller HUD, and the health bar and buttons don't run into each other on a narrow screen.
+- The result is rounded to a whole number (never below 1) so pixel art keeps even pixels.
+- Spacing that belongs to a scaled element (button gap, tray gap and timer bar) is multiplied by `hudScale(base) / base`, so it stays in proportion.
 
 ## Orientation
 

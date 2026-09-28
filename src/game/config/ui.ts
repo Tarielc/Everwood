@@ -323,12 +323,13 @@ export const END_SCREEN: EndScreenConfig = {
 
 /** The row of running power ups under the health bar - used in `PowerUpTray` */
 export interface PowerUpTrayConfig {
-    /** Top-left of the first icon - just under the health bar's frame */
+    /** Left edge of the first icon, before the safe area inset */
     x: number,
-    y: number,
-    /** Scale the 16px icons are drawn at */
+    /** Space between the bottom of the health bar's frame and the icons - follows the HUD's scale */
+    offsetY: number,
+    /** Scale the 16px icons are drawn at on a reference-sized view - see `hudScale` */
     iconScale: number,
-    /** Space between two icons */
+    /** Space between two icons - this and the bar sizes follow the icons' scale */
     gap: number,
     /** The draining timer bar under each icon */
     barHeight: number,
@@ -345,8 +346,7 @@ export interface PowerUpTrayConfig {
 /** Default power up tray configuration */
 export const POWER_UP_TRAY: PowerUpTrayConfig = {
     x: 20,
-    // the health bar is 64px tall drawn at 2x from y 20
-    y: 164,
+    offsetY: 16,
     iconScale: 3,
     gap: 12,
     barHeight: 5,

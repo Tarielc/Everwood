@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { UI_SCALE_FACTOR } from '../config/display';
-import { onResize, safeArea } from '../utils/viewport';
+import { hudScale, onResize, safeArea } from '../utils/viewport';
 import { UI_BUTTONS, UiButtonConfig } from '../config/ui';
 import { AudioController, AudioEvent } from '../systems/audio/AudioController';
 import type { AudioBus } from '../config/audio';
@@ -12,8 +12,9 @@ const SOUND_BUSES: readonly AudioBus[] = ["sfx", "ui", "ambience"]
 /**
  * Scene where UI buttons and elements are displayed across different scenes
  *
- * Launches from MainMenuScene. Holds the row of buttons in the top right corner:
- * fullscreen toggle, mute music and mute sound, laid out right to left.
+ * Launches from MainMenuScene. Holds the buttons in the top right corner:
+ * fullscreen toggle, mute music and mute sound, laid out right to left - or top
+ * to bottom down the right edge when the view is portrait.
  */
 export default class UIScene extends Phaser.Scene {
 
@@ -107,7 +108,8 @@ export default class UIScene extends Phaser.Scene {
      * @returns The button
      */
     private addButton(icon: UiFrame, onClick: () => void): Phaser.GameObjects.Image {
-        const button = this.add.image(0, 0, ATLAS, UI_FRAMES[icon]).setScale(UI_SCALE_FACTOR)
+        // scaled by layout(), since how big it's drawn depends on the screen size
+        const button = this.add.image(0, 0, ATLAS, UI_FRAMES[icon])
 
         const {width, height} = button
         const {hitRadiusScale} = this.config
@@ -154,16 +156,32 @@ export default class UIScene extends Phaser.Scene {
     /**
      * Function to run onResize
      * @param width - New width
-     * @param _height - New height (unused)
+     * @param height - New height
      */
-    private layout(width: number, _height: number){
-        const {radius, margin, gap} = this.config
+    private layout(width: number, height: number){
+        const {margin} = this.config
         const inset = safeArea(this.scale)
+
+        // the buttons grow and shrink with the view - their size and spacing follow
+        const scale = hudScale(UI_SCALE_FACTOR, width, height)
+        const ratio = scale / UI_SCALE_FACTOR
+        const radius = this.config.radius * ratio
+        const gap = this.config.gap * ratio
 
         const right = width - margin - inset.right - radius / 2
         const top = margin + inset.top + radius / 2
+        const step = radius + gap
 
-        this.buttons.forEach((button, i) => button.setPosition(right - i * (radius + gap), top))
+        // a portrait view has little width to spare - stack the buttons down the
+        // right edge instead of along the top
+        const portrait = height > width
+
+        this.buttons.forEach((button, i) => button
+            .setScale(scale)
+            .setPosition(
+                portrait ? right : right - i * step,
+                portrait ? top + i * step : top,
+            ))
     }
 
     /**

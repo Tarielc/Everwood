@@ -4,6 +4,15 @@ export const SCALE_FACTOR:number = 2
 /** Scale the HUD is drawn at, independent of the world */
 export const UI_SCALE_FACTOR:number = 3
 
+/**
+ * Shorter side of the view, in game pixels, the HUD is authored for - at this size every
+ * HUD element draws at its configured scale, and grows or shrinks with the view from there
+ */
+export const UI_REFERENCE_SIZE:number = 720
+
+/** How far the HUD follows the view - a portrait phone stops at `min`, a big desktop at `max` */
+export const UI_SCALE_RANGE = { min: 0.5, max: 1.5 } as const
+
 /** Touch button SVGs are rasterised this many times larger, then drawn back down so they stay sharp */
 export const BUTTON_SVG_SCALE:number = 2
 

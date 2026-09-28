@@ -1,10 +1,10 @@
 import * as Phaser from 'phaser';
 
-import { POWER_UP_TRAY, PowerUpTrayConfig } from '../config/ui';
+import { HEALTH_BAR, POWER_UP_TRAY, PowerUpTrayConfig } from '../config/ui';
 import { POWER_UPS, PowerUpId } from '../data/powerUps';
-import { ATLAS } from '../config/atlas';
+import { ATLAS, UI_FRAMES } from '../config/atlas';
 import { StatusEffect, StatusEffectComponent, StatusEffectEvent } from '../components/StatusEffectComponent';
-import { onResize, safeArea } from '../utils/viewport';
+import { hudScale, onResize, safeArea } from '../utils/viewport';
 
 /** One running power up as the tray draws it */
 interface Slot {
@@ -31,8 +31,8 @@ export class PowerUpTray {
     /** the running ones, left to right in the order they were picked up */
     private readonly slots: Slot[] = []
 
-    /** the icon's drawn size - the 16px sheet at `iconScale` */
-    private readonly iconSize: number
+    /** the icons' scale for the current view, see `hudScale` */
+    private iconScale: number
 
     /**
      * @param scene - Scene to draw the tray over
@@ -44,16 +44,29 @@ export class PowerUpTray {
         private readonly effects: StatusEffectComponent,
         private readonly config: PowerUpTrayConfig = POWER_UP_TRAY,
     ) {
-        this.iconSize = 16 * config.iconScale
+        this.iconScale = config.iconScale
 
-        this.root = scene.add.container(config.x, config.y)
+        this.root = scene.add.container(0, 0)
             .setScrollFactor(0)
             .setDepth(config.depth)
 
-        // kept clear of whatever a phone's notch is covering, the same as the health bar
-        onResize(scene, () => {
+        // the health bar's frame, in unscaled texture pixels - the tray sits under it
+        const frameHeight = scene.textures.getFrame(ATLAS, UI_FRAMES.hpBar).height
+
+        // sized with the view and kept just under the health bar, which is scaled the
+        // same way - and clear of whatever a phone's notch is covering
+        onResize(scene, (width, height) => {
             const inset = safeArea(scene.scale)
-            this.root.setPosition(config.x + inset.left, config.y + inset.top)
+            const barScale = hudScale(HEALTH_BAR.scale, width, height)
+            const ratio = barScale / HEALTH_BAR.scale
+
+            this.root.setPosition(
+                config.x + inset.left,
+                HEALTH_BAR.y + inset.top + frameHeight * barScale + Math.round(config.offsetY * ratio),
+            )
+
+            this.iconScale = hudScale(config.iconScale, width, height)
+            this.layout()
         })
 
         // the component owns these listeners, and is torn down with the player
@@ -83,15 +96,11 @@ export class PowerUpTray {
     private add(effect: StatusEffect): void {
         if (!(effect.id in POWER_UPS)) return
         const definition = POWER_UPS[effect.id as PowerUpId]
-        const { iconScale, barGap, barHeight, barBackground } = this.config
 
-        const icon = this.scene.add.image(0, 0, ATLAS, definition.frame)
-            .setOrigin(0)
-            .setScale(iconScale)
-
-        const barY = this.iconSize + barGap
-        const track = this.scene.add.rectangle(0, barY, this.iconSize, barHeight, barBackground).setOrigin(0)
-        const fill = this.scene.add.rectangle(0, barY, this.iconSize, barHeight, definition.tint).setOrigin(0)
+        // sized and placed by layout()
+        const icon = this.scene.add.image(0, 0, ATLAS, definition.frame).setOrigin(0)
+        const track = this.scene.add.rectangle(0, 0, 1, 1, this.config.barBackground).setOrigin(0)
+        const fill = this.scene.add.rectangle(0, 0, 1, 1, definition.tint).setOrigin(0)
 
         this.root.add([icon, track, fill])
         this.slots.push({ effect, icon, track, fill })
@@ -110,13 +119,21 @@ export class PowerUpTray {
         this.layout()
     }
 
-    /** Line the slots up left to right */
+    /** Size the slots for the current scale and line them up left to right */
     private layout(): void {
+        // the gap and timer bar grow and shrink with the icons
+        const ratio = this.iconScale / this.config.iconScale
+        const iconSize = 16 * this.iconScale
+        const gap = Math.round(this.config.gap * ratio)
+        const barHeight = Math.max(1, Math.round(this.config.barHeight * ratio))
+        const barY = iconSize + Math.max(1, Math.round(this.config.barGap * ratio))
+
         this.slots.forEach((slot, i) => {
-            const x = i * (this.iconSize + this.config.gap)
-            slot.icon.x = x
-            slot.track.x = x
-            slot.fill.x = x
+            const x = i * (iconSize + gap)
+            slot.icon.setScale(this.iconScale).setPosition(x, 0)
+            slot.track.setSize(iconSize, barHeight).setPosition(x, barY)
+            // the drain is its scaleX, set every frame in update() - only the size changes here
+            slot.fill.setSize(iconSize, barHeight).setPosition(x, barY)
         })
     }
 

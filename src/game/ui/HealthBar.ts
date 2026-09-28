@@ -4,7 +4,7 @@ import { HealthChange, HealthEvent, healthEventKey, HealthEventName, REGEN_SOURC
 import { DAMAGE_VIGNETTE, HEAL_VIGNETTE, HEALTH_BAR, LOW_HEALTH_VIGNETTE } from '../config/ui';
 import { LOW_HEALTH_RATIO } from '../config/audio';
 import { PLAYER_HEALTH_BUS } from '../data/player';
-import { onResize, safeArea } from '../utils/viewport';
+import { hudScale, onResize, safeArea } from '../utils/viewport';
 import { Vignette } from './Vignette';
 import { ATLAS, UI_FRAMES } from '../config/atlas';
 
@@ -79,14 +79,14 @@ export default class HealthBar extends Phaser.Scene {
             frame, // Added last so it covers the fills
         ])
 
-        hud.setScale(HEALTH_BAR.scale)
         hud.setScrollFactor(0, 0, true)
         hud.setDepth(HEALTH_BAR.depth)
 
-        // the top-left corner doesn't move under Scale.EXPAND, but a notch can
-        // sit over it in landscape - keep the HUD inside the safe area
-        onResize(this, () => {
+        // sized to the view, so it doesn't crowd a portrait phone - and kept inside
+        // the safe area, since a notch can sit over the top-left corner in landscape
+        onResize(this, (width, height) => {
             const inset = safeArea(this.scale)
+            hud.setScale(hudScale(HEALTH_BAR.scale, width, height))
             hud.setPosition(HEALTH_BAR.x + inset.left, HEALTH_BAR.y + inset.top)
         })
 
