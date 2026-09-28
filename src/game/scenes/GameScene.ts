@@ -132,6 +132,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
+        // before any body exists, so nothing spends a frame under the wrong pull
+        this.applyWorldConfig()
+
         // the level first - it sets the world and camera bounds everything else
         // is then spawned inside of
         this.world = new WorldMap(this, this.level)
@@ -198,6 +201,16 @@ export default class GameScene extends Phaser.Scene {
                 busPrefix: PLAYER_HEALTH_BUS,
             })
         }
+    }
+
+    // the level's physics overrides. arcade builds a fresh world from the game config on
+    // every scene start, so a level change can't carry the last level's settings over -
+    // only what this level sets needs putting on
+    private applyWorldConfig(): void {
+        const config = LEVELS[this.level].world
+        if (!config) return
+
+        if (config.gravity !== undefined) this.physics.world.gravity.y = config.gravity
     }
 
     // what the level sounds like. both beds are crossfaded rather than cut, and asking

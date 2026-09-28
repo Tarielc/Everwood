@@ -48,7 +48,7 @@ export default class PreloadScene extends Phaser.Scene {
      * - player spritesheet, and equippable weapon overlays on the same {@link CHARACTER_FRAME}
      * - foe spritesheets, each cut on the frame size its definition declares
      * - projectile images
- * - power up pickups
+     * - power up pickups
      * - touch control button SVGs (up and down textures), rasterized at {@link BUTTON_SVG_SCALE}
      * - HUD bars, start and fullscreen buttons
      * - every music track, ambience bed and sound effect in the audio bank

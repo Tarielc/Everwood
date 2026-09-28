@@ -1,3 +1,4 @@
+import { NETHER_GRAVITY } from "../config/world"
 import type { AmbienceId, MusicId } from "./audio"
 import { ARENA_WAVES, WaveConfig } from "./waves"
 
@@ -8,6 +9,15 @@ import { ARENA_WAVES, WaveConfig } from "./waves"
  * and a type can't be built out of the thing it is used to describe
  */
 export type LevelId = "arena" | "everwood" | "nether" | "boss-arena"
+
+/**
+ * How a level's physics world differs from the game's default one. Anything left out
+ * keeps the value from the game config
+ */
+export interface LevelWorldConfig {
+    /** Downward pull on every body that allows gravity, in px/s² */
+    gravity?: number,
+}
 
 /** A level the game can be standing in */
 export interface LevelDefinition {
@@ -49,6 +59,8 @@ export interface LevelDefinition {
      * they summoned along the way. The victory screen goes up once the last one falls
      */
     winWhenCleared?: boolean,
+    /** Physics overrides for this level - the game config's world is used for anything unset */
+    world?: LevelWorldConfig,
 }
 
 /** Every level, keyed by {@link LevelId} - a typo is a compile error, not a blank scene */
@@ -69,6 +81,9 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
         url: "assets/map/nether.json",
         music: "nether",
         ambience: "abyss",
+        world: {
+            gravity: NETHER_GRAVITY,
+        },
     },
     "boss-arena": {
         url: "assets/map/boss-arena.json",
@@ -76,6 +91,9 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
         ambience: "abyss",
         deathReturnsTo: "boss-arena",
         winWhenCleared: true,
+        world: {
+            gravity: NETHER_GRAVITY,
+        },
     },
 }
 

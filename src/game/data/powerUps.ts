@@ -25,7 +25,7 @@ export const POWER_UPS = {
         texture: "powerUp-damage-increase",
         durationMs: 10000,
         modifiers: [{ stat: "damage", op: "multiply", value: 1.5 }],
-        dropWeight: 1,
+        dropWeight: 2,
         tint: 0xFF6A3D,
     },
     "speed-increase": {
@@ -33,7 +33,7 @@ export const POWER_UPS = {
         texture: "powerUp-speed-increase",
         durationMs: 10000,
         modifiers: [{ stat: "speed", op: "multiply", value: 1.35 }],
-        dropWeight: 1,
+        dropWeight: 2,
         tint: 0x5BC0EB,
     },
     // 6 hp a second for 8 seconds is 48 - just over a third of the player's bar
@@ -42,7 +42,7 @@ export const POWER_UPS = {
         texture: "powerUp-regeneration",
         durationMs: 8000,
         modifiers: [{ stat: "regen", op: "add", value: 6 }],
-        dropWeight: 1,
+        dropWeight: 2,
         tint: 0x3CFF5A,
     },
 } as const satisfies Record<string, PowerUpDefinition>
