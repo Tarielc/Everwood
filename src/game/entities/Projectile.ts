@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { ProjectileDefinition } from '../data/projectiles';
+import { ATLAS } from '../config/atlas';
 import { AudioController } from '../systems/audio/AudioController';
 
 /**
@@ -33,7 +34,7 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
         readonly damage: number,
         readonly shooter?: unknown,
     ) {
-        super(scene, x, y, definition.texture)
+        super(scene, x, y, ATLAS, definition.frame)
 
         scene.add.existing(this)
         scene.physics.add.existing(this)

@@ -4,6 +4,7 @@ import { onResize, safeArea } from '../utils/viewport';
 import { UI_BUTTONS, UiButtonConfig } from '../config/ui';
 import { AudioController, AudioEvent } from '../systems/audio/AudioController';
 import type { AudioBus } from '../config/audio';
+import { ATLAS, UI_FRAMES, UiFrame } from '../config/atlas';
 
 /** Buses the sound button mutes together - everything that isn't music */
 const SOUND_BUSES: readonly AudioBus[] = ["sfx", "ui", "ambience"]
@@ -30,12 +31,12 @@ export default class UIScene extends Phaser.Scene {
 
     /** set appropriate enter fullscreen button icon */
     private readonly onEnterFullscreen = () => {
-        this.fullScreenButton?.setTexture("fullscreen-exit")
+        this.fullScreenButton?.setFrame(UI_FRAMES["fullscreen-exit"])
     }
 
     /** set appropriate exit fullscreen button icon */
     private readonly onLeaveFullscreen = () => {
-        this.fullScreenButton?.setTexture("fullscreen-enter")
+        this.fullScreenButton?.setFrame(UI_FRAMES["fullscreen-enter"])
     }
 
     /** keep the audio icons in step with the mixer, whoever changed it */
@@ -101,12 +102,12 @@ export default class UIScene extends Phaser.Scene {
 
     /**
      * Create an interactive button and add it to the row
-     * @param texture - Starting icon
+     * @param icon - Starting icon
      * @param onClick - What pressing it does
      * @returns The button
      */
-    private addButton(texture: string, onClick: () => void): Phaser.GameObjects.Image {
-        const button = this.add.image(0, 0, texture).setScale(UI_SCALE_FACTOR)
+    private addButton(icon: UiFrame, onClick: () => void): Phaser.GameObjects.Image {
+        const button = this.add.image(0, 0, ATLAS, UI_FRAMES[icon]).setScale(UI_SCALE_FACTOR)
 
         const {width, height} = button
         const {hitRadiusScale} = this.config
@@ -131,8 +132,8 @@ export default class UIScene extends Phaser.Scene {
     /** Show the on or off icon for music and sound, from the mixer's mutes */
     private refreshAudioIcons() {
         const audio = AudioController.instance
-        this.musicButton.setTexture(audio.isMuted("music") ? "music-off" : "music-on")
-        this.soundButton.setTexture(SOUND_BUSES.every(bus => audio.isMuted(bus)) ? "volume-off" : "volume-on")
+        this.musicButton.setFrame(UI_FRAMES[audio.isMuted("music") ? "music-off" : "music-on"])
+        this.soundButton.setFrame(UI_FRAMES[SOUND_BUSES.every(bus => audio.isMuted(bus)) ? "volume-off" : "volume-on"])
     }
 
     /**

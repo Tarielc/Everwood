@@ -1,5 +1,7 @@
 import * as Phaser from 'phaser';
 import { WeaponDefinition, WeaponId, WEAPONS, UNARMED_DAMAGE, UNARMED_KNOCKBACK, UNARMED_KNOCKBACK_LIFT } from '../data/weapons';
+import { ATLAS } from '../config/atlas';
+import { PLAYER_FRAME_PREFIX } from '../data/animations';
 
 export const EquipmentEvent = {
     Equipped: "equipment-equipped",
@@ -11,14 +13,16 @@ export type EquipmentEventName = typeof EquipmentEvent[keyof typeof EquipmentEve
 export interface EquipmentOptions {
     // how far above the owner the weapon draws - 1 keeps it just in front, no more
     depthOffset?: number
+    // start of the owner's atlas frame names, before the pose - what gets swapped for the weapon's
+    ownerFramePrefix?: string
 }
 
 /**
  * Draws an equipped weapon as a second sprite layered over its owner.
  *
- * Weapon sheets are cut to the same grid as the character sheet and drawn in the
- * hand position for every frame, so keeping them in sync is a matter of copying
- * the owner's frame index across. That means no second set of registered
+ * Weapon frames are drawn in the hand position for every frame of the character's,
+ * and named the same way in the atlas (`<prefix><pose>-<n>.png`), so keeping them
+ * in sync is a matter of translating the owner's frame name across. That means no second set of registered
  * animations, no attachment points, and no chance of the two drifting apart -
  * whatever the owner is doing, the weapon is already doing it.
  */
@@ -28,6 +32,7 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
     private currentId: WeaponId | null = null
 
     private readonly depthOffset: number
+    private readonly ownerFramePrefix: string
 
     constructor(
         private owner: Phaser.Physics.Arcade.Sprite,
@@ -35,6 +40,7 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
     ) {
         super()
         this.depthOffset = options.depthOffset ?? 1
+        this.ownerFramePrefix = options.ownerFramePrefix ?? PLAYER_FRAME_PREFIX
     }
 
     // swapping straight from one weapon to another reuses the same sprite
@@ -42,10 +48,8 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
         const weapon = WEAPONS[id]
 
         if (!this.overlay) {
-            this.overlay = this.owner.scene.add.sprite(this.owner.x, this.owner.y, weapon.texture)
+            this.overlay = this.owner.scene.add.sprite(this.owner.x, this.owner.y, ATLAS)
             this.overlay.setOrigin(this.owner.originX, this.owner.originY)
-        } else {
-            this.overlay.setTexture(weapon.texture)
         }
 
         this.current = weapon
@@ -122,7 +126,8 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
 
     private sync(): void {
         const overlay = this.overlay
-        if (!overlay) return
+        const weapon = this.current
+        if (!overlay || !weapon) return
 
         const owner = this.owner
         overlay.setPosition(owner.x, owner.y)
@@ -132,12 +137,30 @@ export class EquipmentComponent extends Phaser.Events.EventEmitter {
         overlay.setVisible(owner.visible)
         overlay.setDepth(owner.depth + this.depthOffset)
 
-        // the frame index is the whole synchronisation mechanism
-        const frame = owner.frame.name
-        if (overlay.frame.name === frame) return
+        // the frame name is the whole synchronisation mechanism
+        const frame = this.weaponFrame(owner.frame.name, weapon)
+        if (!frame || overlay.frame.name === frame) return
 
-        // a weapon sheet shorter than the character sheet would throw here - hold the
+        // a weapon with fewer frames than the character would throw here - hold the
         // last good frame instead, so a half-finished asset doesn't take the game down
         if (overlay.texture.has(frame)) overlay.setFrame(frame)
+    }
+
+    /**
+     * The weapon's frame for one of the owner's, e.g. `player/player-swing-3.png`
+     * to `diamond-sword/diamond-sword-attack-3.png`
+     *
+     * @returns the weapon frame name, or `null` if the owner's frame isn't one of its poses
+     */
+    private weaponFrame(ownerFrame: string, weapon: WeaponDefinition): string | null {
+        if (!ownerFrame.startsWith(this.ownerFramePrefix)) return null
+
+        // "swing-3.png" - the pose is everything before the last dash
+        const rest = ownerFrame.slice(this.ownerFramePrefix.length)
+        const dash = rest.lastIndexOf("-")
+        if (dash < 0) return null
+
+        const pose = rest.slice(0, dash)
+        return weapon.framePrefix + (weapon.poseAliases?.[pose] ?? pose) + rest.slice(dash)
     }
 }

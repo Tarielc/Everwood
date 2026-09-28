@@ -6,8 +6,8 @@ import type { SoundId } from "./audio"
 export interface PowerUpDefinition {
     /** Shown in the pickup callout and on the HUD */
     name: string,
-    /** Image under `assets/sprites/`, one frame */
-    texture: string,
+    /** Atlas frame the pickup and its HUD icon are drawn with */
+    frame: string,
     /** How long the effect lasts once picked up - picking up another of the same kind starts it over */
     durationMs: number,
     /** What it does to the stats while it lasts, applied through `StatusEffectComponent` */
@@ -22,7 +22,7 @@ export interface PowerUpDefinition {
 export const POWER_UPS = {
     "damage-increase": {
         name: "Damage Up",
-        texture: "powerUp-damage-increase",
+        frame: "powerUps/damage-increase.png",
         durationMs: 10000,
         modifiers: [{ stat: "damage", op: "multiply", value: 1.5 }],
         dropWeight: 2,
@@ -30,7 +30,7 @@ export const POWER_UPS = {
     },
     "speed-increase": {
         name: "Speed Up",
-        texture: "powerUp-speed-increase",
+        frame: "powerUps/speed-increase.png",
         durationMs: 10000,
         modifiers: [{ stat: "speed", op: "multiply", value: 1.35 }],
         dropWeight: 2,
@@ -39,7 +39,7 @@ export const POWER_UPS = {
     // 6 hp a second for 8 seconds is 48 - just over a third of the player's bar
     "regeneration": {
         name: "Regeneration",
-        texture: "powerUp-regeneration",
+        frame: "powerUps/regeneration.png",
         durationMs: 8000,
         modifiers: [{ stat: "regen", op: "add", value: 6 }],
         dropWeight: 2,

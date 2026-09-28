@@ -2,7 +2,7 @@ import * as Phaser from 'phaser';
 import { AnimConfig } from '../data/animations';
 
 /**
- * set of animations - entries are optional so a sheet canleave out the ones it doesn't have
+ * set of animations - entries are optional so a sprite can leave out the ones it doesn't have
  * callers ask with `has()` before playing them
  */
 export type AnimSet = Record<string, AnimConfig | undefined>
@@ -12,6 +12,7 @@ export type Facing = -1 | 0 | 1
 
 /** texture and facing direction */
 export interface AnimationControllerOptions {
+    /** atlas the animation frames are named in - defaults to the sprite's own texture */
     texture?: string
     facing?: 'left' | 'right'
 }
@@ -204,7 +205,7 @@ export class AnimationController<TAnims extends AnimSet = AnimSet> {
     /**
      * Register animations in global AnimationController
      * 
-     * @param texture - texture animations are created from
+     * @param texture - atlas the animations' frames are named in
      */
     private register(texture: string): void {
         const manager = this.sprite.scene.anims
@@ -214,7 +215,12 @@ export class AnimationController<TAnims extends AnimSet = AnimSet> {
 
             manager.create({
                 key: config.key,
-                frames: manager.generateFrameNumbers(texture, { start: config.start, end: config.end }),
+                frames: manager.generateFrameNames(texture, {
+                    prefix: config.prefix,
+                    start: config.start,
+                    end: config.end,
+                    suffix: ".png",
+                }),
                 frameRate: config.frameRate,
                 repeat: config.repeat,
                 yoyo: config.yoyo ?? false,

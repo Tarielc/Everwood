@@ -6,6 +6,7 @@ import { LOW_HEALTH_RATIO } from '../config/audio';
 import { PLAYER_HEALTH_BUS } from '../data/player';
 import { onResize, safeArea } from '../utils/viewport';
 import { Vignette } from './Vignette';
+import { ATLAS, UI_FRAMES } from '../config/atlas';
 
 export interface HealthBarData {
     // the bar the HUD draws on its first frame, before any event arrives
@@ -56,14 +57,14 @@ export default class HealthBar extends Phaser.Scene {
         this.damageVignette = new Vignette(this, "damageVignette", DAMAGE_VIGNETTE)
         this.healVignette = new Vignette(this, "healVignette", HEAL_VIGNETTE)
 
-        this.healthFill = this.add.image(HEALTH_BAR.health.x, HEALTH_BAR.health.y, "healthBar").setOrigin(0)
-        this.staminaFill = this.add.image(HEALTH_BAR.stamina.x, HEALTH_BAR.stamina.y, "staminaBar").setOrigin(0)
-        this.manaFill = this.add.image(HEALTH_BAR.mana.x, HEALTH_BAR.mana.y, "manaBar").setOrigin(0)
-        const frame = this.add.image(0, 0, "hpBar").setOrigin(0)
+        this.healthFill = this.add.image(HEALTH_BAR.health.x, HEALTH_BAR.health.y, ATLAS, UI_FRAMES.healthBar).setOrigin(0)
+        this.staminaFill = this.add.image(HEALTH_BAR.stamina.x, HEALTH_BAR.stamina.y, ATLAS, UI_FRAMES.staminaBar).setOrigin(0)
+        this.manaFill = this.add.image(HEALTH_BAR.mana.x, HEALTH_BAR.mana.y, ATLAS, UI_FRAMES.manaBar).setOrigin(0)
+        const frame = this.add.image(0, 0, ATLAS, UI_FRAMES.hpBar).setOrigin(0)
 
         const w = HEALTH_BAR.healOutlineWidth
         this.healOutline = [[-w, 0], [w, 0], [0, -w], [0, w]].map(([dx, dy]) =>
-            this.add.image(dx, dy, "hpBar")
+            this.add.image(dx, dy, ATLAS, UI_FRAMES.hpBar)
                 .setOrigin(0)
                 .setTint(HEALTH_BAR.healOutline)
                 .setTintMode(Phaser.TintModes.FILL)

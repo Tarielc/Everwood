@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { POWER_UP_DROP, PowerUpDefinition, PowerUpDropConfig, PowerUpId } from '../data/powerUps';
+import { ATLAS } from '../config/atlas';
 
 /** Depth pickups draw at - under the player (500), over the level */
 const PICKUP_DEPTH = 400
@@ -47,7 +48,7 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
         readonly definition: PowerUpDefinition,
         private readonly config: PowerUpDropConfig = POWER_UP_DROP,
     ) {
-        super(scene, x, y, definition.texture)
+        super(scene, x, y, ATLAS, definition.frame)
 
         scene.add.existing(this)
         scene.physics.add.existing(this)

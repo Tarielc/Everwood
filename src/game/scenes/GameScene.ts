@@ -152,7 +152,7 @@ export default class GameScene extends Phaser.Scene {
         this.spawn = this.world.spawn ?? FALLBACK_SPAWN
         
         // spawn player in game scene and give it input controls
-        this.player = new Player(this, this.spawn.x, this.spawn.y, "player", this.controls)
+        this.player = new Player(this, this.spawn.x, this.spawn.y, this.controls)
             .setScale(SCALE_FACTOR)
 
         // scaled first, then stood on the floor - the drop is measured off the

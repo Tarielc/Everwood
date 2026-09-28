@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 
 import { POWER_UP_TRAY, PowerUpTrayConfig } from '../config/ui';
 import { POWER_UPS, PowerUpId } from '../data/powerUps';
+import { ATLAS } from '../config/atlas';
 import { StatusEffect, StatusEffectComponent, StatusEffectEvent } from '../components/StatusEffectComponent';
 import { onResize, safeArea } from '../utils/viewport';
 
@@ -84,7 +85,7 @@ export class PowerUpTray {
         const definition = POWER_UPS[effect.id as PowerUpId]
         const { iconScale, barGap, barHeight, barBackground } = this.config
 
-        const icon = this.scene.add.image(0, 0, definition.texture)
+        const icon = this.scene.add.image(0, 0, ATLAS, definition.frame)
             .setOrigin(0)
             .setScale(iconScale)
 

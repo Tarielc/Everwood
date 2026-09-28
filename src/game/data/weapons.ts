@@ -5,8 +5,13 @@ import type { SoundId } from "./audio"
 export interface WeaponDefinition {
     /** Shown in menus and pickup prompts */
     name: string,
-    /** Overlay spritesheet, cut to `CHARACTER_FRAME` and aligned with the player's sheet */
-    texture: string,
+    /**
+     * Atlas frame name of the overlay up to the pose, e.g. `diamond-sword/diamond-sword-`.
+     * Its frames are drawn over the player's, pose for pose and frame for frame
+     */
+    framePrefix: string,
+    /** Player poses the overlay names differently, player pose to overlay pose */
+    poseAliases?: Readonly<Record<string, string>>,
     /** Damage a swing deals */
     damage: number,
     /** Shove a hit gives the foe, away from whoever swung */
@@ -22,7 +27,8 @@ export interface WeaponDefinition {
 export const WEAPONS = {
     "diamond-sword": {
         name: "Diamond Sword",
-        texture: "diamond-sword",
+        framePrefix: "diamond-sword/diamond-sword-",
+        poseAliases: { swing: "attack" },
         damage: 150,
         knockback: 180,
         knockbackLift: -120,

@@ -67,7 +67,7 @@ export interface InputControllerOptions {
  * ```ts
  * // Scene.create()
  * this.controls = new InputController(this, {touch: `auto`})
- * this.player = new Player(this, x, y, "player", this.controls)
+ * this.player = new Player(this, x, y, this.controls)
  * 
  * // Scene.update()
  * this.controls.update()

@@ -3,8 +3,8 @@ import type { SoundId } from "./audio"
 
 /** A single projectile type */
 export interface ProjectileDefinition {
-    /** A texture for a projectile */
-    texture: string,
+    /** Atlas frame the projectile is drawn with */
+    frame: string,
     /** Flight speed in px/s, always along the direction it was fired */
     speed: number,
     /** Arcade gravity applied to it - 0 flies flat */
@@ -19,9 +19,9 @@ export interface ProjectileDefinition {
 
 /** Every projectile in the game, keyed by {@link ProjectileId} */
 export const PROJECTILES = {
-    // arrow.png is drawn pointing right, so a shot travelling left is mirrored
+    // the arrow is drawn pointing right, so a shot travelling left is mirrored
     arrow: {
-        texture: "arrow",
+        frame: "projectiles/arrow.png",
         speed: 360,
         gravity: 0,
         scale: SCALE_FACTOR,

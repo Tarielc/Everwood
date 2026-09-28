@@ -1,9 +1,6 @@
 import * as Phaser from 'phaser';
-import { BUTTON_SVG_SCALE, CHARACTER_FRAME } from '../config/display';
-import { FOES } from '../data/foes';
-import { WEAPONS } from '../data/weapons';
-import { PROJECTILES } from '../data/projectiles';
-import { POWER_UPS } from '../data/powerUps';
+import { BUTTON_SVG_SCALE } from '../config/display';
+import { ATLAS, UI_FRAMES } from '../config/atlas';
 import { loadMapImages } from '../systems/world/WorldMap';
 import { onResize } from '../utils/viewport';
 import { BUTTONS } from '../config/input';
@@ -12,10 +9,10 @@ import { AudioController } from '../systems/audio/AudioController';
 /**
  * Scene where the bulk of the game's assets load, behind a progress bar.
  *
- * Runs after {@link BootScene}, which has already loaded the essential stuff.
- * Most loads are driven off data registries ({@link FOES}, {@link PROJECTILES},
- * {@link BUTTONS}, {@link WEAPONS}) and the map JSON, so adding an entry there is
- * all it takes to get its art loaded.
+ * Runs after {@link BootScene}, which has already loaded the essential stuff -
+ * including the sprite atlas every character, foe, weapon, projectile, pickup and
+ * HUD image is drawn from. What's left is driven off {@link BUTTONS}, the audio
+ * bank and the map JSON, so adding an entry there is all it takes to get it loaded.
  *
  * When loading is done starts `MainMenuScene`.
  */
@@ -45,12 +42,7 @@ export default class PreloadScene extends Phaser.Scene {
      *
      * Queued here:
      * - map tileset sheets and backdrops, via {@link loadMapImages}
-     * - player spritesheet, and equippable weapon overlays on the same {@link CHARACTER_FRAME}
-     * - foe spritesheets, each cut on the frame size its definition declares
-     * - projectile images
-     * - power up pickups
      * - touch control button SVGs (up and down textures), rasterized at {@link BUTTON_SVG_SCALE}
-     * - HUD bars, start and fullscreen buttons
      * - every music track, ambience bed and sound effect in the audio bank
      */
     preload() {
@@ -62,9 +54,6 @@ export default class PreloadScene extends Phaser.Scene {
             loadingGraph.setPosition(width / 2, height / 2)
         })
 
-        // load stuff...
-        this.load.image("startBtn", "assets/ui/start-btn.png")
-
         // the whole audio bank, driven off the registries in data/audio.ts
         AudioController.load(this.load)
 
@@ -72,46 +61,10 @@ export default class PreloadScene extends Phaser.Scene {
         // BootScene already fetched
         loadMapImages(this)
 
-        this.load.spritesheet("player", "assets/sprites/player.png", CHARACTER_FRAME)
-
-        // foes bring their own grid, so each loads on the frame size it declares
-        for (const { texture, frame } of Object.values(FOES)) {
-            this.load.spritesheet(texture, `assets/sprites/${texture}.png`, frame)
-        }
-
-        // whatever those foes throw - one frame each, so no sheet to cut
-        for (const { texture } of Object.values(PROJECTILES)) {
-            this.load.image(texture, `assets/sprites/${texture}.png`)
-        }
-
-        // pickups are a single 16px frame each, same as the projectiles
-        for (const { texture } of Object.values(POWER_UPS)) {
-            this.load.image(texture, `assets/sprites/${texture}.png`)
-        }
-
         // load button textures
         for (const {texture, downTexture} of Object.values(BUTTONS)){
             this.load.svg(texture, `assets/ui/controls/${texture}.svg`, { scale: BUTTON_SVG_SCALE })
             this.load.svg(downTexture, `assets/ui/controls/${downTexture}.svg`, { scale: BUTTON_SVG_SCALE })
-        }
-
-        this.load.image("hpBar", "assets/ui/HP-bar.png")
-        this.load.image("manaBar", "assets/ui/blue-bar.png")
-        this.load.image("healthBar", "assets/ui/red-bar.png")
-        this.load.image("staminaBar", "assets/ui/yellow-bar.png")
-
-        this.load.image("fullscreen-enter", "assets/ui/fullscreen-enter-btn.png")
-        this.load.image("fullscreen-exit", "assets/ui/fullscreen-exit-btn.png")
-        this.load.image("music-on", "assets/ui/music-on-btn.png")
-        this.load.image("music-off", "assets/ui/music-off-btn.png")
-        this.load.image("volume-on", "assets/ui/volume-on-btn.png")
-        this.load.image("volume-off", "assets/ui/volume-off-btn.png")
-
-        // equippable overlays share the player's grid, so they load as spritesheets
-        // on the same frame size - driven off the registry, so adding a weapon to
-        // WEAPONS is all it takes to get it loaded
-        for (const { texture } of Object.values(WEAPONS)) {
-            this.load.spritesheet(texture, `assets/sprites/${texture}.png`, CHARACTER_FRAME)
         }
     }
 
@@ -139,9 +92,9 @@ export default class PreloadScene extends Phaser.Scene {
         const barWidth = 320
         const barHeight = 24
 
-        this.progressBox = this.add.image(0, 0, "progBar-frame")
+        this.progressBox = this.add.image(0, 0, ATLAS, UI_FRAMES["progBar-frame"])
 
-        this.progressBar = this.add.image(0, 0, "progBar-line")
+        this.progressBar = this.add.image(0, 0, ATLAS, UI_FRAMES["progBar-line"])
 
         const percentText = this.add.text(0, barHeight / 2 + 20, "0%", {
             fontSize: "18px",

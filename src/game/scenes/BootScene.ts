@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { AudioController } from '../systems/audio/AudioController';
 import { loadMapDefinitions } from '../systems/world/WorldMap';
 import { BITMAP_FONTS } from '../config/ui';
+import { ATLAS, ATLAS_PATH } from '../config/atlas';
 
 /**
  * Scene where most basic assets load
@@ -28,8 +29,9 @@ export default class BootScene extends Phaser.Scene{
         }
         this.load.image("load-bg", "assets/ui/load-bg.png");
 
-        this.load.image("progBar-frame", "assets/ui/progBar-frame.png")
-        this.load.image("progBar-line", "assets/ui/progBar-line.png")
+        // every sprite and HUD image is one atlas - it comes in here because the
+        // progress bar PreloadScene draws is part of it
+        this.load.atlas(ATLAS, ATLAS_PATH.image, ATLAS_PATH.data)
 
         // the maps come in first, so PreloadScene can read the tileset and
         // backdrop images off them instead of listing them a second time

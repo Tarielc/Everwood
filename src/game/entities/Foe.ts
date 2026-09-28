@@ -6,6 +6,7 @@ import { RangedAttack } from "../components/attack/RangedAttack"
 import { HealthChange, HealthComponent, HealthEvent } from "../components/HealthComponent"
 import { FoeAnims } from '../data/animations';
 import { FoeDefinition, HitEffects } from '../data/foes';
+import { ATLAS, atlasFrame } from '../config/atlas';
 import { StateMachine } from '../systems/state/StateMachine';
 import { createFoeStates, FoeState } from '../systems/state/FoeStates';
 import { MeleeAttack } from '../components/attack/MeleeAttack';
@@ -113,7 +114,7 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         y: number,
         readonly definition: FoeDefinition,
     ) {
-        super(scene, x, y, definition.texture)
+        super(scene, x, y, ATLAS, atlasFrame(definition.anims.idle.prefix, definition.anims.idle.start))
 
         scene.add.existing(this)
         scene.physics.add.existing(this)
@@ -128,7 +129,6 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         if (definition.flying) (this.body as Phaser.Physics.Arcade.Body).setAllowGravity(false)
 
         this.animations = new AnimationController<FoeAnims>(this, definition.anims, {
-            texture: definition.texture,
             facing: definition.facing,
         })
 

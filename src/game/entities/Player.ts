@@ -7,6 +7,7 @@ import { EquipmentComponent, EquipmentEvent } from "../components/EquipmentCompo
 import { WeaponDefinition, WeaponId } from '../data/weapons';
 import type { FoeKnockback, HitEffects } from '../data/foes';
 import { PLAYER_ANIMS } from '../data/animations';
+import { ATLAS, atlasFrame } from '../config/atlas';
 import {
     PLAYER_UNARMED_ATTACK,
     PLAYER_BODY,
@@ -102,17 +103,15 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
      * @param scene - Scene where to spawn a player in
      * @param x - spawn X cooridnate (world)
      * @param y - spaw Y coordinate (world)
-     * @param texture - Texture sprite key of the player
      * @param controls - Input controls of the player, read every frame
      */
     constructor(
         scene: Phaser.Scene,
         x: number,
         y: number,
-        texture: string,
         private controls: InputState
     ) {
-        super(scene, x, y, texture);
+        super(scene, x, y, ATLAS, atlasFrame(PLAYER_ANIMS.idle.prefix, PLAYER_ANIMS.idle.start));
         // add player sprite and physics to the scene
         scene.add.existing(this).setDepth(500)
         scene.physics.add.existing(this);
@@ -126,9 +125,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // add movement controller for the player
         this.movement = new MovementController(this, PLAYER_MOVEMENT);
 
-        // registers animations once per texture, then plays them for the state machine.
-        // player.png is drawn facing left, so moving right mirrors the frames
-        this.animations = new AnimationController(this, PLAYER_ANIMS, { texture, facing: 'left' });
+        // registers animations once, then plays them for the state machine.
+        // the player is drawn facing left, so moving right mirrors the frames
+        this.animations = new AnimationController(this, PLAYER_ANIMS, { facing: 'left' });
 
         // hit points and i-frames - mirrored onto the global EventBus so the HUD
         // can follow the player without holding a reference to it

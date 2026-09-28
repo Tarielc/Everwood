@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { onResize, safeArea } from '../utils/viewport';
+import { ATLAS, UI_FRAMES } from '../config/atlas';
 import { AudioController } from '../systems/audio/AudioController';
 
 /** Title font size on screens wide enough to fit it */
@@ -37,7 +38,7 @@ export default class MainMenuScene extends Phaser.Scene {
             .setDropShadow(2, 2, 0xA63446, 1)
 
         // add temporary start button
-        const startButton = this.add.image(0, 0, "startBtn")
+        const startButton = this.add.image(0, 0, ATLAS, UI_FRAMES.startBtn)
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true })
 

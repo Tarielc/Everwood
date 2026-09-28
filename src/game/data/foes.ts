@@ -3,7 +3,7 @@ import { MeleeAttackConfig } from "../components/attack/MeleeAttack"
 import type { RangedAttackConfig } from "../components/attack/RangedAttack"
 import { CHARACTER_FRAME, ENEMY_FRAME_128, ENEMY_FRAME_64, SCALE_FACTOR } from "../config/display"
 import type { FoeSounds } from "./audio"
-import { ARCHER_ANIMS, BURNING_SKULL_ANIMS, FEMALE_DAMNED_ANIMS, FoeAnims, FOX_ANIMS, INFERNAM_SKULL_ANIMS, MALE_DAMNED_ANIMS, WARRIOR_ANIMS } from "./animations"
+import { ARCHER_ANIMS, BURNING_SKULL_ANIMS, FEMALE_DAMNED_ANIMS, FoeAnims, INFERNAM_SKULL_ANIMS, MALE_DAMNED_ANIMS, WARRIOR_ANIMS } from "./animations"
 import { PROJECTILES } from "./projectiles"
 
 /** What every foe attack has, whatever shape it takes */
@@ -102,8 +102,7 @@ export type FoeAttack = FoeMeleeAttack | FoeRangedAttack | FoeExplodeAttack
 /** A single foe type */
 export interface FoeDefinition {
     name: string,
-    texture: string,
-    /** The foe's own sheet grid - foes aren't necessarily cut to `CHARACTER_FRAME` */
+    /** Size of one frame of the foe's art - foes aren't necessarily drawn at `CHARACTER_FRAME` */
     frame: { frameWidth: number, frameHeight: number },
     anims: FoeAnims,
     /** Which way the art is drawn, so `AnimationController` knows when to mirror */
@@ -145,43 +144,10 @@ export interface FoeDefinition {
 
 /** Every foe in the game, keyed by {@link FoeId} */
 export const FOES = {
-    /**
-     * This foe is no longer in use. It's broken. Not enough
-     * animations to feel natural.
-     * 
-     * @deprecated
-     */
-    fox: {
-        name: "Fox",
-        texture: "fox",
-        frame: { frameWidth: 32, frameHeight: 32 },
-        anims: FOX_ANIMS,
-        facing: 'right', // fox.png is drawn facing right, unlike the player sheet
-        scale: SCALE_FACTOR,
-        body: { width: 28, height: 18, offsetX: 2, offsetY: 13 },
-        health: {
-            max: 100,
-            invulnerabilityMs: 250, // short, so a fast weapon still combos
-            regenPerSecond: 0,
-            regenDelayMs: 0,
-        },
-        speed: 45,
-        chaseSpeed: 100,
-        patrolRange: 140,
-        pauseMs: 1400,
-        aggroRange: 260,
-        deAggroRange: 380,
-        verticalReach: 80,
-        contactDamage: 22,
-        // no `sounds` - a fox fights by running into you, and the hit the player
-        // takes is what announces that
-        deathFadeMs: 450,
-    },
     // a swordsman built on the player's own sheet - slower than the player, but
     // it hits nearly as hard
     warrior: {
         name: "Warrior",
-        texture: "warrior",
         frame: CHARACTER_FRAME,
         anims: WARRIOR_ANIMS,
         facing: 'left', // drawn facing left, the same way the player sheet is
@@ -228,7 +194,6 @@ export const FOES = {
     // its standoff distance rather than let you close, and shoots from out there
     archer: {
         name: "Archer",
-        texture: "archer",
         frame: { frameWidth: 64, frameHeight: 64 },
         anims: ARCHER_ANIMS,
         facing: 'right', // the bow is on its right and the arrow leaves that way
@@ -271,7 +236,6 @@ export const FOES = {
 
     "female-damned": {
         name: "female-damned",
-        texture: "female-damned",
         frame: ENEMY_FRAME_64,
         anims: FEMALE_DAMNED_ANIMS,
         facing: 'left', // drawn facing left, the same way the player sheet is
@@ -318,7 +282,6 @@ export const FOES = {
 
     "male-damned": {
         name: "male-damned",
-        texture: "male-damned",
         frame: ENEMY_FRAME_64,
         anims: MALE_DAMNED_ANIMS,
         facing: 'left', // drawn facing left, the same way the player sheet is
@@ -367,7 +330,6 @@ export const FOES = {
 
     "burning-skull": {
         name: "burning-skull",
-        texture: "burning-skull",
         frame: ENEMY_FRAME_64,
         anims: BURNING_SKULL_ANIMS,
         facing: 'left',
@@ -410,7 +372,6 @@ export const FOES = {
 
     "infernal-skull": {
         name: "infernal-skull",
-        texture: "infernal-skull",
         frame: ENEMY_FRAME_128,
         anims: INFERNAM_SKULL_ANIMS,
         facing: 'left',
