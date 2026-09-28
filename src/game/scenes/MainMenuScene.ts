@@ -11,6 +11,8 @@ const MENU_MARGIN = 24
 const BREATH_SCALE = 1.06
 /** Time in ms for one half of the breath (inhale or exhale) */
 const BREATH_DURATION = 1200
+/** Font size of the landscape hint at the bottom of the menu */
+const HINT_SIZE = 24
 
 /**
  * Main menu scene before starting the game.
@@ -41,6 +43,13 @@ export default class MainMenuScene extends Phaser.Scene {
         const startButton = this.add.image(0, 0, ATLAS, UI_FRAMES.startBtn)
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true })
+
+        // nudge portrait players to turn their device - the game is laid out for 16:9
+        const landscapeHint = this.add.bitmapText(0, 0, "Jersey25", "For the best experience, play in landscape mode", HINT_SIZE)
+            .setOrigin(0.5, 1)
+            .setCenterAlign()
+            .setTint(0xFBFEF9)
+            .setDropShadow(1, 1, 0x000000, 1)
 
         // scale set by the resize handler; the breathing tween multiplies on top of it
         let baseScale = 1
@@ -90,6 +99,13 @@ export default class MainMenuScene extends Phaser.Scene {
 
             logo.setPosition(centerX, centerY - gap)
             startButton.setPosition(centerX, centerY + gap)
+
+            // only worth saying while the screen is taller than it is wide; wrap it
+            // so it fits a narrow phone
+            landscapeHint
+                .setVisible(height > width)
+                .setMaxWidth(maxWidth)
+                .setPosition(centerX, height - inset.bottom - MENU_MARGIN)
 
             // background size and scale
             const scale = Math.max(
