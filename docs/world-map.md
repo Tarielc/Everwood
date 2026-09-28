@@ -47,6 +47,9 @@ A `travelling` guard matters here: the overlap is fired every frame, overlap is 
 - **`hintType`** - Class/type which marks an object as a controls hint.
 - **`hintKeyboardProperty`**, **`hintTouchProperty`**, **`hintTextProperty`** - What a hint says to a keyboard player, to a touch player, and to anyone (the fallback).
 - **`hintDismissProperty`** - Property naming the action that retires a hint for the rest of the level.
+- **`dialogueType`** - Class/type which marks an object as a speaker (`talkingText`).
+- **`dialogueTextProperty`** - Property holding what a speaker says (`textValue`).
+- **`dialogueRadiusProperty`** - Property overriding how close the player has to be to a point speaker, in map pixels.
 
 Depth deserves a note. Neither Phaser, nor Tiled tracks a depth property, and while draw order coul;d be infered from layer order, an explicit property is a safe-lock against layers overlapping in ways the level design didn't intend. Layer without depth property fall back to `MAP_DEFAULT_BACKDROP_DEPTH` (`-90`) or `MAP_DEFAULT_LAYER_DEPTH` (`-40`). **The player is drawn at depth `0`**.
 
@@ -77,6 +80,12 @@ Depth deserves a note. Neither Phaser, nor Tiled tracks a depth property, and wh
 
 A hint with no line for the current device is skipped with a warning. Use `
 ` (Shift+Enter in Tiled's multi-line string editor) for a second line. Stick to ASCII - the bitmap fonts have no arrow glyphs. Look and timing live in `MAP_HINT` in `config/ui.ts`; `MapHints` does the rest.
+
+**Dialogue** — Place an object on the player object layer with class/type `talkingText` and a `textValue` string property. When the player comes close, a speech bubble fades in and types the line out; walking away fades it out, and coming back types it again from the start.
+- A **point** object marks the tip of the bubble's tail - put it on the speaker's head. The player has to be within `radius` map pixels of it (default `MAP_DIALOGUE.radius`, 96).
+- A **rectangle** speaks while the player stands inside it, from its top-centre.
+
+The bubble is sized off the whole line before typing starts, so it never grows or re-wraps mid-sentence. Hints and bubbles both wrap at `maxWidth` or `maxWidthFraction` of the screen's width, whichever is narrower, and re-wrap when the screen is resized or rotated. Look, reach and typing speed live in `MAP_DIALOGUE` in `config/ui.ts`; `MapDialogue` does the rest.
 
 **Animated layer** — you need to set animated tiles layer Y offset to one tile (in this case 32px).
 

@@ -1482,6 +1482,24 @@
                  "width":96,
                  "x":544,
                  "y":352
+                }, 
+                {
+                 "height":96,
+                 "id":23,
+                 "name":"",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"textValue",
+                         "type":"string",
+                         "value":"Travel the underworld to save the princess!"
+                        }],
+                 "rotation":0,
+                 "type":"talkingText",
+                 "visible":true,
+                 "width":176,
+                 "x":1360,
+                 "y":352
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1490,7 +1508,7 @@
          "y":0
         }],
  "nextlayerid":56,
- "nextobjectid":23,
+ "nextobjectid":24,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

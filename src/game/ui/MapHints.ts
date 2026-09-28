@@ -4,6 +4,7 @@ import { MAP_HINT, MapHintConfig } from '../config/ui';
 import { HintAction, MAP } from '../config/world';
 import { InputState } from '../systems/inputs/InputController';
 import { MapObject, WorldMap } from '../systems/world/WorldMap';
+import { onResize } from '../utils/viewport';
 
 /** Whether this frame's input counts as having done each {@link HintAction} */
 const PERFORMED: Record<HintAction, (input: InputState) => boolean> = {
@@ -65,7 +66,6 @@ export class MapHints {
             const text = scene.add.bitmapText(area.centerX, area.top - config.gap, config.font, message, config.size)
                 .setOrigin(0.5, 1)
                 .setCenterAlign()
-                .setMaxWidth(config.maxWidth)
                 .setTint(config.tint)
                 .setDropShadow(1, 1, config.shadow, 1)
                 .setDepth(config.depth)
@@ -73,6 +73,13 @@ export class MapHints {
 
             this.hints.push({ area, text, dismissOn: dismissActionFor(object), shown: false, dismissed: false })
         }
+
+        // a portrait phone is far narrower than the widest a hint is allowed to wrap at,
+        // so the wrap follows the live view
+        onResize(scene, width => {
+            const maxWidth = Math.min(config.maxWidth, width * config.maxWidthFraction)
+            for (const hint of this.hints) hint.text.setMaxWidth(maxWidth)
+        })
 
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }

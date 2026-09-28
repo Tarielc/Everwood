@@ -24,6 +24,7 @@ import { IMPACT, impactScale } from '../config/feel';
 import { WaveDirector, WaveEvent } from '../systems/waves/WaveDirector';
 import { TextBanner } from '../ui/TextBanner';
 import { MapHints } from '../ui/MapHints';
+import { MapDialogue } from '../ui/MapDialogue';
 import { WaveCounter } from '../ui/WaveCounter';
 import { BossBar } from '../ui/BossBar';
 import { AudioController } from '../systems/audio/AudioController';
@@ -99,6 +100,9 @@ export default class GameScene extends Phaser.Scene {
 
     // the "Space to jump" lines the map places, shown while the player stands by them
     private hints!: MapHints
+
+    // speech bubbles the map's characters type their lines out in when the player comes close
+    private dialogue!: MapDialogue
 
     // read off the map once, and kept for every respawn after the first
     private spawn: FootPoint = FALLBACK_SPAWN
@@ -186,6 +190,7 @@ export default class GameScene extends Phaser.Scene {
 
         // after the controls, which decide whether a hint names a key or a button
         this.hints = new MapHints(this, this.world, this.controls.touch)
+        this.dialogue = new MapDialogue(this, this.world)
 
         // listening on the component rather than the bus - it's torn down with the
         // player, so a scene restart can't leave a stale respawn timer behind
@@ -603,6 +608,7 @@ export default class GameScene extends Phaser.Scene {
         // update player
         this.player.update(time, delta)
         this.hints.update(this.player, this.controls)
+        this.dialogue.update(this.player)
 
         // backwards, so a foe removing itself mid-loop can't skip the next one
         for (let i = this.foes.length - 1; i >= 0; i--) {

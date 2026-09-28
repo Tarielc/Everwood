@@ -376,8 +376,10 @@ export interface MapHintConfig {
     tint: number,
     /** Drop shadow colour, so the text reads over a bright backdrop */
     shadow: number,
-    /** Width the text wraps at, in world pixels */
+    /** Widest the text ever wraps at, in world pixels */
     maxWidth: number,
+    /** Fraction of the screen's width the text wraps at when that is narrower than `maxWidth` */
+    maxWidthFraction: number,
     /** Gap between the top of the hint's area and the bottom of its text, in world pixels */
     gap: number,
     /** How long it takes to fade in or out */
@@ -393,7 +395,60 @@ export const MAP_HINT: MapHintConfig = {
     tint: 0xFBFEF9,
     shadow: 0x000000,
     maxWidth: 420,
+    maxWidthFraction: 0.8,
     gap: 12,
     fadeMs: 250,
     depth: 800,
+}
+
+/** A speech bubble placed in Tiled, typed out while the player is close - used in `MapDialogue` */
+export interface MapDialogueConfig {
+    /** Bitmap font key, loaded in `BootScene` */
+    font: string,
+    size: number,
+    tint: number,
+    /** Widest the text ever wraps at, in world pixels */
+    maxWidth: number,
+    /**
+     * Fraction of the screen's width the whole bubble, padding included, is kept to when
+     * that is narrower than `maxWidth` allows
+     */
+    maxWidthFraction: number,
+    /** Space between the text and the bubble's edge */
+    padding: number,
+    background: number,
+    backgroundAlpha: number,
+    border: number,
+    borderWidth: number,
+    cornerRadius: number,
+    /** Height of the tail pointing down at the speaker - its base is twice as wide */
+    tail: number,
+    /** How fast the line is typed out */
+    charsPerSecond: number,
+    /** How long the bubble takes to fade in or out */
+    fadeMs: number,
+    /** Default reach of a point dialogue, in map pixels - a `radius` property on the object overrides it */
+    radius: number,
+    /** Over the level, the foes and the hints */
+    depth: number,
+}
+
+/** Default map dialogue configuration */
+export const MAP_DIALOGUE: MapDialogueConfig = {
+    font: "Jersey25",
+    size: 24,
+    tint: 0xFBFEF9,
+    maxWidth: 360,
+    maxWidthFraction: 0.7,
+    padding: 12,
+    background: 0x1A1A1A,
+    backgroundAlpha: 0.85,
+    border: 0xFBFEF9,
+    borderWidth: 2,
+    cornerRadius: 8,
+    tail: 10,
+    charsPerSecond: 40,
+    fadeMs: 200,
+    radius: 96,
+    depth: 810,
 }

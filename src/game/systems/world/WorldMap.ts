@@ -396,6 +396,13 @@ export class WorldMap {
     }
 
     /**
+     * Objects that speak to the player when they come close, or `[]` if the level has none
+     */
+    get dialogues(): MapObject[] {
+        return this.objects(MAP.objectLayers.player).filter(o => o.type === MAP.dialogueType)
+    }
+
+    /**
      * A map object's footprint, in world pixels
      *
      * @param object - Object whose area to measure

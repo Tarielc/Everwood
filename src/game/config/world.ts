@@ -68,6 +68,19 @@ export const MAP = {
      * every time the player walks in
      */
     hintDismissProperty: "dismissOn",
+    /**
+     * Object type/class on the player layer that speaks - a speech bubble types its line
+     * out while the player is close. A point marks the tip of the bubble's tail, so put it
+     * at the speaker's head; a rectangle is spoken from its top-centre instead
+     */
+    dialogueType: "talkingText",
+    /** Property with what a dialogue object says */
+    dialogueTextProperty: "textValue",
+    /**
+     * Property overriding how close the player has to be to a point dialogue, in map
+     * pixels. A rectangle ignores it - standing inside the rectangle is what counts
+     */
+    dialogueRadiusProperty: "radius",
 } as const
 
 /** What a hint's {@link MAP.hintDismissProperty} can name */
