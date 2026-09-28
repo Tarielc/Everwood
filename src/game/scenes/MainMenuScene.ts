@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { onResize, safeArea } from '../utils/viewport';
 import { ATLAS, UI_FRAMES } from '../config/atlas';
 import { AudioController } from '../systems/audio/AudioController';
+import { STARTING_LEVEL } from '../data/levels';
 
 /** Title font size on screens wide enough to fit it */
 const TITLE_SIZE = 100
@@ -126,7 +127,9 @@ export default class MainMenuScene extends Phaser.Scene {
         // the release half of a gesture
         startButton.on("pointerup", () => {
             AudioController.instance.play("ui-confirm")
-            this.scene.start("GameScene")
+            // the level is spelled out - started without data, a scene keeps the data it
+            // was last (re)started with, and would pick up wherever the last run ended
+            this.scene.start("GameScene", { level: STARTING_LEVEL })
         })
     }
 }
