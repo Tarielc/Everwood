@@ -375,6 +375,13 @@ export class WorldMap {
     }
 
     /**
+     * Objects that become the respawn point once the player touches them, or `[]` if the level has none
+     */
+    get checkpoints(): MapObject[] {
+        return this.objects(MAP.objectLayers.player).filter(o => o.type === MAP.checkpointType)
+    }
+
+    /**
      * Objects that kill the player on touch, or `[]` if the level has none
      */
     get hazards(): MapObject[] {

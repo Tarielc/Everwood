@@ -178,6 +178,7 @@ export default class GameScene extends Phaser.Scene {
         this.startWaves()
         this.watchForExit()
         this.watchForHazards()
+        this.watchForCheckpoints()
 
         // listening on the component rather than the bus - it's torn down with the
         // player, so a scene restart can't leave a stale respawn timer behind
@@ -319,6 +320,19 @@ export default class GameScene extends Phaser.Scene {
 
         if (level) this.scene.restart({ level })
         else this.scene.start("MainMenuScene")
+    }
+
+    // touching a checkpoint makes it where the player gets back up after a death. the
+    // last one touched wins, so walking back over an earlier one moves the spawn back
+    private watchForCheckpoints(): void {
+        for (const checkpoint of this.world.checkpoints) {
+            const point = this.world.foot(checkpoint)
+
+            this.collisions.watchZone(checkpoint, () => {
+                if (this.player.getHealth.isDead) return
+                this.spawn = point
+            })
+        }
     }
 
     // spikes and anything else that kills on touch. the overlap fires every frame,
