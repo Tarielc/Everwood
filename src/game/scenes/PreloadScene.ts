@@ -3,6 +3,7 @@ import { BUTTON_SVG_SCALE, CHARACTER_FRAME } from '../config/display';
 import { FOES } from '../data/foes';
 import { WEAPONS } from '../data/weapons';
 import { PROJECTILES } from '../data/projectiles';
+import { POWER_UPS } from '../data/powerUps';
 import { loadMapImages } from '../systems/world/WorldMap';
 import { onResize } from '../utils/viewport';
 import { BUTTONS } from '../config/input';
@@ -47,6 +48,7 @@ export default class PreloadScene extends Phaser.Scene {
      * - player spritesheet, and equippable weapon overlays on the same {@link CHARACTER_FRAME}
      * - foe spritesheets, each cut on the frame size its definition declares
      * - projectile images
+ * - power up pickups
      * - touch control button SVGs (up and down textures), rasterized at {@link BUTTON_SVG_SCALE}
      * - HUD bars, start and fullscreen buttons
      * - every music track, ambience bed and sound effect in the audio bank
@@ -79,6 +81,11 @@ export default class PreloadScene extends Phaser.Scene {
 
         // whatever those foes throw - one frame each, so no sheet to cut
         for (const { texture } of Object.values(PROJECTILES)) {
+            this.load.image(texture, `assets/sprites/${texture}.png`)
+        }
+
+        // pickups are a single 16px frame each, same as the projectiles
+        for (const { texture } of Object.values(POWER_UPS)) {
             this.load.image(texture, `assets/sprites/${texture}.png`)
         }
 

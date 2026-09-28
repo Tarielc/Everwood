@@ -1,0 +1,129 @@
+import * as Phaser from 'phaser';
+
+import { POWER_UP_TRAY, PowerUpTrayConfig } from '../config/ui';
+import { POWER_UPS, PowerUpId } from '../data/powerUps';
+import { StatusEffect, StatusEffectComponent, StatusEffectEvent } from '../components/StatusEffectComponent';
+import { onResize, safeArea } from '../utils/viewport';
+
+/** One running power up as the tray draws it */
+interface Slot {
+    effect: StatusEffect
+    icon: Phaser.GameObjects.Image
+    /** the empty track, and the tinted fill that drains along it */
+    track: Phaser.GameObjects.Rectangle
+    fill: Phaser.GameObjects.Rectangle
+}
+
+/**
+ * The row of running power ups under the health bar - an icon each, with a bar
+ * underneath draining as its time runs out, and a blink over the last couple of
+ * seconds.
+ *
+ * Like {@link WaveCounter} it's a plain game object rather than a scene. It follows
+ * the player's {@link StatusEffectComponent} directly: effects are cleared on death
+ * and the player is rebuilt on a level change, so there's nothing for it to carry
+ * between levels the way the health bar has to.
+ */
+export class PowerUpTray {
+    /** everything the tray draws, pinned to the camera and moved as one */
+    private readonly root: Phaser.GameObjects.Container
+    /** the running ones, left to right in the order they were picked up */
+    private readonly slots: Slot[] = []
+
+    /** the icon's drawn size - the 16px sheet at `iconScale` */
+    private readonly iconSize: number
+
+    /**
+     * @param scene - Scene to draw the tray over
+     * @param effects - Whose power ups to show - the player's
+     * @param config - Size and placement
+     */
+    constructor(
+        private readonly scene: Phaser.Scene,
+        private readonly effects: StatusEffectComponent,
+        private readonly config: PowerUpTrayConfig = POWER_UP_TRAY,
+    ) {
+        this.iconSize = 16 * config.iconScale
+
+        this.root = scene.add.container(config.x, config.y)
+            .setScrollFactor(0)
+            .setDepth(config.depth)
+
+        // kept clear of whatever a phone's notch is covering, the same as the health bar
+        onResize(scene, () => {
+            const inset = safeArea(scene.scale)
+            this.root.setPosition(config.x + inset.left, config.y + inset.top)
+        })
+
+        // the component owns these listeners, and is torn down with the player
+        effects.on(StatusEffectEvent.Applied, this.add, this)
+        effects.on(StatusEffectEvent.Expired, this.remove, this)
+
+        scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
+    }
+
+    /** Runs every frame, from `GameScene.update()` - drains the bars and blinks the ones about to run out */
+    update(time: number): void {
+        const { warnMs, blinkMs } = this.config
+
+        for (const slot of this.slots) {
+            const { remainingMs, durationMs } = slot.effect
+            const ratio = durationMs > 0 ? Phaser.Math.Clamp(remainingMs / durationMs, 0, 1) : 0
+            // origin is its left edge, so scaling it drains it towards the left
+            slot.fill.scaleX = ratio
+
+            const warning = remainingMs <= warnMs
+            const visible = !warning || Math.floor(time / blinkMs) % 2 === 0
+            slot.icon.setAlpha(visible ? 1 : 0.35)
+        }
+    }
+
+    /** A new effect - a slot at the end of the row. Anything not a power up isn't the tray's to draw */
+    private add(effect: StatusEffect): void {
+        if (!(effect.id in POWER_UPS)) return
+        const definition = POWER_UPS[effect.id as PowerUpId]
+        const { iconScale, barGap, barHeight, barBackground } = this.config
+
+        const icon = this.scene.add.image(0, 0, definition.texture)
+            .setOrigin(0)
+            .setScale(iconScale)
+
+        const barY = this.iconSize + barGap
+        const track = this.scene.add.rectangle(0, barY, this.iconSize, barHeight, barBackground).setOrigin(0)
+        const fill = this.scene.add.rectangle(0, barY, this.iconSize, barHeight, definition.tint).setOrigin(0)
+
+        this.root.add([icon, track, fill])
+        this.slots.push({ effect, icon, track, fill })
+        this.layout()
+    }
+
+    /** An effect ran out - its slot goes, and the rest close the gap */
+    private remove(effect: StatusEffect): void {
+        const index = this.slots.findIndex(slot => slot.effect === effect)
+        if (index < 0) return
+
+        const [slot] = this.slots.splice(index, 1)
+        slot.icon.destroy()
+        slot.track.destroy()
+        slot.fill.destroy()
+        this.layout()
+    }
+
+    /** Line the slots up left to right */
+    private layout(): void {
+        this.slots.forEach((slot, i) => {
+            const x = i * (this.iconSize + this.config.gap)
+            slot.icon.x = x
+            slot.track.x = x
+            slot.fill.x = x
+        })
+    }
+
+    /** Destructor and cleanup */
+    destroy(): void {
+        this.effects.off(StatusEffectEvent.Applied, this.add, this)
+        this.effects.off(StatusEffectEvent.Expired, this.remove, this)
+        this.slots.length = 0
+        this.root.destroy()
+    }
+}

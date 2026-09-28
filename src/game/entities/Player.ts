@@ -23,6 +23,8 @@ import { PLAYER_SOUNDS } from '../data/audio';
 import { LOW_HEALTH_RATIO } from '../config/audio';
 import { createPlayerStates, PlayerState } from '../systems/state/PlayerStates';
 import { MeleeAttack } from '../components/attack/MeleeAttack';
+import { StatusEffectComponent, StatusEffectEvent } from '../components/StatusEffectComponent';
+import type { PowerUpDefinition } from '../data/powerUps';
 
 /** How fast the sprite blinks while it is in i-frames */
 const INVULNERABILITY_BLINK_MS = 70
@@ -66,6 +68,7 @@ const NO_INPUT: InputState = {
  * - {@link HealthComponent}
  * - {@link EquipmentController}
  * - {@link MeeleAttack}
+ * - {@link StatusEffectComponent}
  * 
  * Deciding who a swing actually hits is left to the scene
  */
@@ -87,6 +90,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     private equipment: EquipmentComponent
     /** Meele swing - its config follows whatever weapon is equipped */
     private attack: MeleeAttack
+    /** timed buffs - power ups - and what they do to damage, speed and regen */
+    private effects: StatusEffectComponent
 
     /**
      * Adds players to the scene and physics world, while also settings it's
@@ -140,6 +145,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // lands on is the scene's business
         this.attack = new MeleeAttack(this, PLAYER_UNARMED_ATTACK);
 
+        // power ups and anything else timed - read back through the stat getters below
+        this.effects = new StatusEffectComponent();
+
         // started last, and deliberately not chained onto the line that built it: the
         // first state's enter() runs inside this call, and it reads the player back
         // through the getters - all of which have to be standing up by then
@@ -148,6 +156,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // health drives the states, the states never poll it back
         this.bindHealth()
         this.bindEquipment()
+        this.bindEffects()
 
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
@@ -163,6 +172,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     update(time: number, delta: number) {
         // ticks i-frames and regen, and can emit on its own (regen heals, i-frames ending)
         this.health.update(delta)
+        // counted down whatever state the player is in - a stun doesn't pause a buff
+        this.effects.update(delta)
 
         if (this.health.isDead) {
             // a corpse still falls, it just stops steering
@@ -228,9 +239,24 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         return this.equipment
     }
 
-    /** damage of an equipped weapon */
+    /** damage of an equipped weapon, with any damage buff applied */
     get attackDamage(): number {
-        return this.equipment.damage
+        return Math.round(this.effects.apply("damage", this.equipment.damage))
+    }
+
+    /**
+     * Take a power up's effect - a second of the same kind starts its timer over.
+     *
+     * @param id - which one it is, so the same kind refreshes instead of stacking
+     * @param powerUp - what was picked up
+     */
+    applyPowerUp(id: string, powerUp: PowerUpDefinition): void {
+        this.effects.add(id, powerUp.modifiers, powerUp.durationMs)
+    }
+
+    /** timed effects the player is under - what the HUD draws */
+    get statusEffects(): StatusEffectComponent {
+        return this.effects
     }
 
     /** shove of an equipped weapon */
@@ -397,6 +423,20 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     /**
+     * Push the running effects into the components that use them. Damage needs no
+     * push - it's read through {@link attackDamage} at the moment a swing lands.
+     * A death clears everything, so a respawn starts clean
+     */
+    private bindEffects(): void {
+        this.effects.on(StatusEffectEvent.Changed, () => {
+            this.movement.speedMultiplier = this.effects.apply("speed", 1)
+            this.health.setBonusRegen(this.effects.apply("regen", 0))
+        })
+
+        this.health.on(HealthEvent.Died, () => this.effects.clear())
+    }
+
+    /**
      * brief white flash on hit - FILL replaces the texture colout outright
      * so the siljouetter reads even against a busy background
      */
@@ -528,6 +568,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.health?.destroy()
         this.equipment?.destroy()
         this.attack?.destroy()
+        this.effects?.destroy()
         super.destroy(fromScene)
     }
 

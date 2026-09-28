@@ -8,6 +8,11 @@ import { PLAYER_HEALTH, PLAYER_HEALTH_BUS } from '../data/player';
 import Foe, { FoeEvent } from '../entities/Foe';
 import Player from '../entities/Player';
 import Projectile from '../entities/Projectile';
+import PowerUp from '../entities/PowerUp';
+import { POWER_UP_DROP, PowerUpDefinition, PowerUpId } from '../data/powerUps';
+import { PowerUpDropper } from '../systems/loot/PowerUpDropper';
+import { PowerUpTray } from '../ui/PowerUpTray';
+import { POWER_UP_CALLOUT } from '../config/ui';
 import InputController from '../systems/inputs/InputController';
 import { AttackEvent } from '../components/attack/AttackComponent';
 import { Shot } from '../components/attack/RangedAttack';
@@ -69,6 +74,13 @@ export default class GameScene extends Phaser.Scene {
 
     private foes: Foe[] = []
     private projectiles: Projectile[] = []
+    private powerUps: PowerUp[] = []
+
+    // rolls every landed hit for a power up, and keeps the floor from filling up with them
+    private dropper!: PowerUpDropper
+
+    // the running power ups under the health bar
+    private powerUpTray!: PowerUpTray
 
     // what sends in the waves, on the levels that fight them - null anywhere the
     // map places its foes by hand
@@ -107,6 +119,7 @@ export default class GameScene extends Phaser.Scene {
         this.level = data?.level ?? STARTING_LEVEL
         this.foes = []
         this.projectiles = []
+        this.powerUps = []
         this.travelling = false
         this.finished = false
 
@@ -150,6 +163,10 @@ export default class GameScene extends Phaser.Scene {
         // everything spatial is heard from where the player is standing
         AudioController.instance.setListener(this.player)
         this.startLevelAudio()
+
+        // decides whether a hit drops something - spawnPowerUp() is how it gets into the world
+        this.dropper = new PowerUpDropper((id, definition, x, y) => this.spawnPowerUp(id, definition, x, y))
+        this.powerUpTray = new PowerUpTray(this, this.player.statusEffects)
 
         this.restoreProgress()
         this.bindWeaponHotkeys()
@@ -438,6 +455,12 @@ export default class GameScene extends Phaser.Scene {
         // which is what makes a kill land heavier than a hit without stuttering
         foe.getHealth.on(HealthEvent.Damaged, (change: HealthChange) => {
             this.impact.hit(IMPACT.foeHit, impactScale(change.amount, change.max))
+
+            // only the player's blows roll for loot - a bomber going off doesn't count
+            if (change.source === this.player) {
+                const center = (foe.body as Phaser.Physics.Arcade.Body).center
+                this.dropper.roll(center.x, center.y)
+            }
         })
         foe.getHealth.on(HealthEvent.Died, () => {
             this.impact.hit(IMPACT.foeDeath)
@@ -479,6 +502,48 @@ export default class GameScene extends Phaser.Scene {
         return projectile
     }
 
+    // put a power up on the floor and let the player pick it up
+    private spawnPowerUp(id: PowerUpId, definition: PowerUpDefinition, x: number, y: number): PowerUp {
+        const powerUp = new PowerUp(this, x, y, id, definition)
+        this.powerUps.push(powerUp)
+
+        this.collisions.addPickup(powerUp, () => this.collectPowerUp(powerUp))
+
+        powerUp.once(Phaser.GameObjects.Events.DESTROY, () => {
+            this.powerUps.splice(this.powerUps.indexOf(powerUp), 1)
+        })
+
+        return powerUp
+    }
+
+    // the player walked over one - the effect goes on, and the name floats up off it
+    private collectPowerUp(powerUp: PowerUp): void {
+        const { definition } = powerUp
+        this.player.applyPowerUp(powerUp.id, definition)
+
+        AudioController.instance.play(POWER_UP_DROP.pickupSound)
+        this.showCallout(definition.name, definition.tint, powerUp.x, powerUp.y)
+    }
+
+    // a word rising off the spot and fading out
+    private showCallout(label: string, tint: number, x: number, y: number): void {
+        const { font, size, shadow, rise, durationMs, depth } = POWER_UP_CALLOUT
+        const text = this.add.bitmapText(x, y, font, label, size)
+            .setOrigin(0.5, 1)
+            .setDepth(depth)
+            .setTint(tint)
+            .setDropShadow(1, 1, shadow, 1)
+
+        this.tweens.add({
+            targets: text,
+            y: y - rise,
+            alpha: 0,
+            duration: durationMs,
+            ease: "Quad.easeOut",
+            onComplete: () => text.destroy(),
+        })
+    }
+
     // temporary stand-in for an inventory - swap weapons with the number row
     private bindWeaponHotkeys(): void {
         const keyboard = this.input.keyboard
@@ -513,6 +578,11 @@ export default class GameScene extends Phaser.Scene {
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             this.projectiles[i].update(time, delta)
         }
+
+        for (let i = this.powerUps.length - 1; i >= 0; i--) {
+            this.powerUps[i].update(delta)
+        }
+        this.powerUpTray.update(time)
 
         // last, so every swing lands against where everything actually ended up
         this.collisions.update()

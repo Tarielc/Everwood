@@ -320,3 +320,50 @@ export const END_SCREEN: EndScreenConfig = {
     gap: 28,
     margin: 24,
 }
+
+/** The row of running power ups under the health bar - used in `PowerUpTray` */
+export interface PowerUpTrayConfig {
+    /** Top-left of the first icon - just under the health bar's frame */
+    x: number,
+    y: number,
+    /** Scale the 16px icons are drawn at */
+    iconScale: number,
+    /** Space between two icons */
+    gap: number,
+    /** The draining timer bar under each icon */
+    barHeight: number,
+    barGap: number,
+    /** Colour of the empty part of the timer bar */
+    barBackground: number,
+    /** The last stretch of an effect its icon spends blinking */
+    warnMs: number,
+    /** ms of each blink while it warns */
+    blinkMs: number,
+    depth: number,
+}
+
+/** Default power up tray configuration */
+export const POWER_UP_TRAY: PowerUpTrayConfig = {
+    x: 20,
+    // the health bar is 64px tall drawn at 2x from y 20
+    y: 164,
+    iconScale: 3,
+    gap: 12,
+    barHeight: 5,
+    barGap: 4,
+    barBackground: 0x1A1A1A,
+    warnMs: 2000,
+    blinkMs: 150,
+    depth: 1000,
+}
+
+/** The name that floats up off a power up as it's picked up - used in `GameScene` */
+export const POWER_UP_CALLOUT = {
+    font: "Jersey25",
+    size: 22,
+    shadow: 0x000000,
+    /** How far it rises before it's gone */
+    rise: 36,
+    durationMs: 900,
+    depth: 900,
+} as const

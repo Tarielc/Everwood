@@ -134,6 +134,13 @@ export const SOUNDS = {
         channel: "sfx",
         volume: 0.55,
     },
+    // borrows the heal's chime until a pickup sound of its own is added to the spritemap
+    "power-up-pickup": {
+        markers: ["player-heal"],
+        channel: "sfx",
+        volume: 0.5,
+        rateJitter: 0.05,
+    },
     // the warning that goes with a nearly empty bar - long throttle, it is a warning
     // rather than a readout
     "player-low-health": {

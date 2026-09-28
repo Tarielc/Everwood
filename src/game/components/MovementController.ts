@@ -53,6 +53,12 @@ export class MovementController {
     private isJumping:boolean = false
 
     /**
+     * Scales walk speed, sprint speed and acceleration together - a speed boost or a
+     * slow. Jumping and falling are left alone, so a boost can't change what's reachable
+     */
+    speedMultiplier:number = 1
+
+    /**
      * @param sprite - Sprite to move, it must have an arcade body.
      * @param config - Movement configuration, see {@link MovementConfig}. e.g `PLAYER_MOVEMENT`
      */
@@ -152,7 +158,7 @@ export class MovementController {
     private applyHorizontal(input: InputState, capSpeed: boolean): void {
         const body = this.sprite.body as Phaser.Physics.Arcade.Body
         const grounded = body.blocked.down || body.touching.down
-        const acceleration = this.config.acceleration * (grounded ? 1 : 0.7) // weak air control
+        const acceleration = this.config.acceleration * this.speedMultiplier * (grounded ? 1 : 0.7) // weak air control
 
         // accelerate sprite - mirroring it belongs to AnimationController.setFacing()
         if(input.moveLeft) {
@@ -168,9 +174,9 @@ export class MovementController {
         if (!capSpeed) return
 
         // lock max horizontal speed (based on whether sprint is held or not)
-        const maxSpeed = input.sprintHeld
+        const maxSpeed = this.speedMultiplier * (input.sprintHeld
             ? this.config.sprintSpeed
-            : this.config.speed
+            : this.config.speed)
         body.velocity.x = Phaser.Math.Clamp(body.velocity.x, -maxSpeed, maxSpeed)
     }
 }

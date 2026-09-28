@@ -3,6 +3,7 @@ import * as Phaser from 'phaser';
 import Foe from '../../entities/Foe';
 import Player from '../../entities/Player';
 import Projectile from '../../entities/Projectile';
+import PowerUp from '../../entities/PowerUp';
 import { MapObject, WorldMap } from '../world/WorldMap';
 import { Attackable, MeleeAttack } from '../../components/attack/MeleeAttack';
 
@@ -126,6 +127,33 @@ export class CollisionManager {
         }
 
         return projectile
+    }
+
+    /**
+     * Register a power up for world collisions and player pickup.
+     *
+     * The pickup lands on the level's solid layers, and `onCollect` runs the one time
+     * a living player walks over it - what it does to them is the caller's business.
+     *
+     * @param pickup - Power up lying in the world
+     * @param onCollect - Invoked once, when the player picks it up
+     * @returns The same pickup instance
+     */
+    addPickup(pickup: PowerUp, onCollect: (pickup: PowerUp) => void): PowerUp {
+        this.track(this.world.collide(pickup))
+
+        const player = this.player
+        if (player) {
+            this.track([
+                this.scene.physics.add.overlap(player, pickup, () => {
+                    // a corpse doesn't pick things up, and collect() refuses a second go
+                    if (player.getHealth.isDead || !pickup.collect()) return
+                    onCollect(pickup)
+                }),
+            ])
+        }
+
+        return pickup
     }
 
     /**

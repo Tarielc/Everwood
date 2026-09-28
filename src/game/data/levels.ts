@@ -80,4 +80,4 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
 }
 
 /** Where a fresh game begins */
-export const STARTING_LEVEL:LevelId = "boss-arena"
+export const STARTING_LEVEL:LevelId = "everwood"

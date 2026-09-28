@@ -290,7 +290,7 @@ export const FOES = {
         pauseMs: 1200,
         aggroRange: 200,
         deAggroRange: 320,
-        verticalReach: 20,
+        verticalReach: 100,
         // nothing - the sword is what hurts, and body contact would only spend the
         // player's i-frames on a hit the swing was about to land
         contactDamage: 0,
@@ -337,7 +337,7 @@ export const FOES = {
         pauseMs: 1200,
         aggroRange: 200,
         deAggroRange: 320,
-        verticalReach: 20,
+        verticalReach: 100,
         // nothing - the sword is what hurts, and body contact would only spend the
         // player's i-frames on a hit the swing was about to land
         contactDamage: 0,

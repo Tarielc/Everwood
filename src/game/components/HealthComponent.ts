@@ -57,6 +57,11 @@ export class HealthComponent extends Phaser.Events.EventEmitter {
     // leftover fractional regen, so a slow trickle isn't lost to rounding every frame
     private regenCarry: number = 0
 
+    // regen on top of the config's, from a potion or a power up - unlike the config's
+    // own it doesn't wait out the delay after a hit, it's what the player paid for
+    private bonusRegenPerSecond: number = 0
+    private bonusRegenCarry: number = 0
+
     private dead: boolean = false
 
     private readonly busPrefix?: string
@@ -84,6 +89,7 @@ export class HealthComponent extends Phaser.Events.EventEmitter {
         }
 
         this.updateRegen(dt)
+        this.updateBonusRegen(dt)
     }
 
     // returns true when the hit landed - false means it was absorbed by i-frames,
@@ -162,6 +168,12 @@ export class HealthComponent extends Phaser.Events.EventEmitter {
         if (this.hp <= 0 && !this.dead) this.die()
     }
 
+    // extra regen per second that ignores the post-hit delay - 0 turns it off
+    setBonusRegen(perSecond: number): void {
+        this.bonusRegenPerSecond = Math.max(0, perSecond)
+        if (this.bonusRegenPerSecond === 0) this.bonusRegenCarry = 0
+    }
+
     // i-frames from something other than a hit - a dodge roll, a respawn cutscene
     makeInvulnerable(durationMs: number): void {
         this.invulnerabilityTimer = Math.max(this.invulnerabilityTimer, durationMs)
@@ -233,6 +245,18 @@ export class HealthComponent extends Phaser.Events.EventEmitter {
         // heal in whole points, keeping the remainder for the next frame
         const whole = Math.floor(this.regenCarry)
         this.regenCarry -= whole
+        this.heal(whole, REGEN_SOURCE)
+    }
+
+    // the bonus trickle - same whole-point bookkeeping as updateRegen(), without the wait
+    private updateBonusRegen(dt: number): void {
+        if (this.dead || this.bonusRegenPerSecond <= 0 || this.isFull) return
+
+        this.bonusRegenCarry += this.bonusRegenPerSecond * (dt / 1000)
+        if (this.bonusRegenCarry < 1) return
+
+        const whole = Math.floor(this.bonusRegenCarry)
+        this.bonusRegenCarry -= whole
         this.heal(whole, REGEN_SOURCE)
     }
 
