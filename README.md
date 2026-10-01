@@ -16,3 +16,4 @@
 - [Text Banner](/docs/text-banner.md)
 - [Wave Director](/docs/wave-director.md)
 - [Audio Controller](/docs/audio-controller.md)
+- [Arena Leaderboard](/docs/leaderboard.md)

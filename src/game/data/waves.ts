@@ -64,3 +64,29 @@ export const ARENA_WAVES:WaveConfig = {
     damageGrowth: 0.05,
     statCeiling: 2.5,
 }
+
+/**
+ * How many of one foe a wave asks for
+ *
+ * @param rule - Roster entry being counted
+ * @param wave - Which wave, counting from 1
+ * @returns The count - `0` before the foe's first wave
+ */
+export function countFor(rule: WaveFoeRule, wave: number): number {
+    if (wave < rule.firstWave) return 0
+
+    const count = rule.baseCount + rule.countPerWave * (wave - rule.firstWave)
+    return Math.min(Math.max(Math.floor(count), 0), rule.maxCount)
+}
+
+/**
+ * How many foes one wave brings in, all told. Plain arithmetic with no Phaser in it,
+ * so the leaderboard API can check a claimed run against the same numbers the game plays
+ *
+ * @param config - The level's wave config
+ * @param wave - Which wave, counting from 1
+ * @returns Every foe of every roster entry that wave asks for
+ */
+export function foesInWave(config: WaveConfig, wave: number): number {
+    return config.roster.reduce((total, rule) => total + countFor(rule, wave), 0)
+}

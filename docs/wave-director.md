@@ -42,6 +42,8 @@ The director makes no foes itself. The scene hands it a `SpawnFoe` callback, whi
 - `WaveEvent.Started` - handed the wave number (counting from 1) and how many foes are in it
 - `WaveEvent.Cleared` - handed the number of the wave just cleared
 
+It also keeps `wave` and `kills` - wave foes that died while the run was on - which is what the [arena leaderboard](/docs/leaderboard.md) ranks. How many foes a wave brings is `foesInWave()` in `waves.ts`, plain arithmetic shared with the leaderboard API so its sanity check can't drift from the game.
+
 ## Nowhere to Hide
 
 `LevelDefinition.foesAlwaysHunt` gives every foe in the level an unbounded `aggroRange` and `deAggroRange`, applied in `GameScene.spawnFoe()` - so it covers wave foes and hand-placed ones alike. The arena sets it.

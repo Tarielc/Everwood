@@ -2,7 +2,7 @@ import * as Phaser from 'phaser';
 
 import { HealthEvent } from '../../components/HealthComponent';
 import { FOES, FoeDefinition } from '../../data/foes';
-import { WaveConfig, WaveFoeRule } from '../../data/waves';
+import { WaveConfig, countFor } from '../../data/waves';
 import Foe from '../../entities/Foe';
 import { FootPoint } from '../world/WorldMap';
 
@@ -46,6 +46,9 @@ export class WaveDirector extends Phaser.Events.EventEmitter {
     /** Foes of the current wave whose turn to arrive hasn't come round yet */
     private queued: number = 0
 
+    /** Wave foes that went down while the run was on - what the leaderboard ranks a tie on */
+    private killed: number = 0
+
     /** `false` once the run is stopped - every pending timer checks it before firing */
     private running: boolean = false
 
@@ -76,6 +79,14 @@ export class WaveDirector extends Phaser.Events.EventEmitter {
     /** How many foes of the current wave are left, counting the ones still to arrive */
     get remaining(): number {
         return this.standing.size + this.queued
+    }
+
+    /**
+     * How many of the run's own foes died while it was on. Summons and hand-placed foes
+     * aren't counted, and neither is one that left the world without dying
+     */
+    get kills(): number {
+        return this.killed
     }
 
     /** `true` while waves are still coming */
@@ -159,7 +170,10 @@ export class WaveDirector extends Phaser.Events.EventEmitter {
 
         // counted out on death rather than when the corpse finishes fading, so the
         // breather starts the moment the last one goes down
-        foe.getHealth.once(HealthEvent.Died, () => this.retire(foe))
+        foe.getHealth.once(HealthEvent.Died, () => {
+            if (this.running && this.standing.has(foe)) this.killed += 1
+            this.retire(foe)
+        })
         // and on whatever else takes a foe out of the world - a wave can't be left
         // waiting on something that is no longer there to die
         foe.once(Phaser.GameObjects.Events.DESTROY, () => this.retire(foe))
@@ -218,20 +232,6 @@ function planWave(config: WaveConfig, wave: number): FoeDefinition[] {
     }
 
     return Phaser.Utils.Array.Shuffle(plan)
-}
-
-/**
- * How many of one foe a wave asks for
- *
- * @param rule - Roster entry being counted
- * @param wave - Which wave, counting from 1
- * @returns The count - `0` before the foe's first wave
- */
-function countFor(rule: WaveFoeRule, wave: number): number {
-    if (wave < rule.firstWave) return 0
-
-    const count = rule.baseCount + rule.countPerWave * (wave - rule.firstWave)
-    return Phaser.Math.Clamp(Math.floor(count), 0, rule.maxCount)
 }
 
 /**

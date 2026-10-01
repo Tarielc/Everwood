@@ -1,0 +1,17 @@
+{
+    // the functions run on Node rather than in the browser bundle, so they get their own
+    // settings - Vercel compiles them as CommonJS, which the root config's bundler mode refuses
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "lib": ["ES2022"],
+        "types": ["node"],
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
+    },
+    "include": ["./**/*.ts"]
+}

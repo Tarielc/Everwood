@@ -28,13 +28,13 @@ Sight is horizontal range *and* `verticalReach` - a target far enough above or b
 | `patrol` | Wanders up to `patrolRange` both sides where spawned `homeX` |
 | `Chase` | Runs towards the targed once it is within `aggroRange` |
 | `Attack` | Stands still while swings or shoots |
-| `Hurt` | Flinches and briefly stunned when takes damage, if not fatal |
+| `Hurt` | Flinches and briefly stunned when a hit breaks its poise, if not fatal |
 | `Dead` | Stops colliding and fades out |
 
 ## Update Order
 
 `GameScene.update()` calls `Foe.update()`, the order matters:
-1. **Health**: ticks i-frames.
+1. **Health**: ticks i-frames, then poise and flinch immunity.
 2. **Attack**: ticks the cooldown.
 3. **State machine**: runs the current state's behavior.
 
@@ -42,8 +42,17 @@ Sight is horizontal range *and* `verticalReach` - a target far enough above or b
 
 `bindHealth()` subscribes to health events:
 
-- **Damaged**: flash sprite and knockback enemy. if not fatal, transition to hurt state.
+- **Damaged**: flash sprite. If not fatal and the hit breaks its poise, knockback enemy and transition to hurt state.
 - **Dead**: transition to death state, which calls `collapse()`.
+
+### Poise
+
+Damage and flinching are separate, so spamming attacks can't stunlock a foe:
+
+- `FoeDefinition.poise` is damage a foe shrugs off before a hit flinches it. Hits below it still hurt and flash, but don't knock it back or cancel what it's doing. Left out, every hit flinches.
+- Mid-attack, only `ATTACK_POISE_SHARE` of a hit's damage counts - a committed swing is harder to interrupt.
+- Poise refills once the foe goes `POISE_RESET_MS` without being hit, or right after it breaks.
+- A flinch grants `FLINCH_IMMUNITY_MS` during which no hit can flinch it again - it outlasts the stun, so the foe always gets its turn to fight back.
 
 `collapse()` disables the physics body immediately, so a dying foe can't deal contact damage or hinder the player. If the foe has death animation, it plays first. In the end the foe fades out and destroys itself.
 

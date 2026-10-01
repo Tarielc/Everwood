@@ -321,6 +321,69 @@ export const END_SCREEN: EndScreenConfig = {
     margin: 24,
 }
 
+/** The arena leaderboard, reached from the death screen - used in `LeaderboardScene` */
+export interface LeaderboardScreenConfig {
+    /** Bitmap font keys, loaded in `BootScene` */
+    titleFont: string,
+    titleSize: number,
+    textFont: string,
+    /** The "your run" line under the title */
+    subtitleSize: number,
+    /** Board rows, the column headings, and the loading or error message in their place */
+    rowSize: number,
+    optionSize: number,
+    titleTint: number,
+    shadow: number,
+    textTint: number,
+    /** Column headings, and the loading or error message */
+    mutedTint: number,
+    /** The row that is the player's own run */
+    highlightTint: number,
+    optionTint: number,
+    optionHoverTint: number,
+    backdropColour: number,
+    backdropAlpha: number,
+    fadeInMs: number,
+    /** Where each column starts, measured from the left edge of the board */
+    columns: { rank: number, name: number, wave: number, kills: number },
+    /** Width of the board - the columns are laid out inside it */
+    boardWidth: number,
+    /** Room held under the board for the HTML name form while it's up */
+    formHeight: number,
+    /** Space between the blocks of the screen */
+    gap: number,
+    /** Space between two rows of the board */
+    rowGap: number,
+    /** Space kept clear on each side, in game pixels */
+    margin: number,
+}
+
+/** Default leaderboard configuration - the end screen's look, a size down */
+export const LEADERBOARD_SCREEN: LeaderboardScreenConfig = {
+    titleFont: "Jacquard24",
+    titleSize: 72,
+    textFont: "Jersey25",
+    subtitleSize: 28,
+    rowSize: 28,
+    optionSize: 36,
+    titleTint: 0xF2C57C,
+    shadow: 0x0B0B0F,
+    textTint: 0xFBFEF9,
+    mutedTint: 0x9A9AA6,
+    highlightTint: 0xF2C57C,
+    optionTint: 0xFBFEF9,
+    optionHoverTint: 0xF2C57C,
+    backdropColour: 0x0B0B0F,
+    backdropAlpha: 0.85,
+    fadeInMs: 300,
+    columns: { rank: 0, name: 56, wave: 330, kills: 430 },
+    boardWidth: 520,
+    formHeight: 64,
+    gap: 24,
+    rowGap: 6,
+    margin: 24,
+}
+
 /** The row of running power ups under the health bar - used in `PowerUpTray` */
 export interface PowerUpTrayConfig {
     /** Left edge of the first icon, before the safe area inset */

@@ -39,3 +39,70 @@ body {
     display: block;
     touch-action: none;
 }
+/* the name box on the arena leaderboard - real HTML laid over the canvas, because only a
+   real input can raise a phone's keyboard. LeaderboardScene places and sizes it in pixels */
+.name-entry {
+    position: fixed;
+    z-index: 10;
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.4em;
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    /* the page turns touch gestures off for the canvas - a text box needs them back */
+    touch-action: manipulation;
+}
+
+.name-entry input,
+.name-entry button {
+    box-sizing: border-box;
+    height: 62%;
+    font: inherit;
+    border: 2px solid #FBFEF9;
+    border-radius: 0;
+    color: #FBFEF9;
+    background: #0B0B0F;
+}
+
+.name-entry input {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 0.5em;
+}
+
+.name-entry input::placeholder {
+    color: #9A9AA6;
+}
+
+.name-entry input:focus {
+    outline: none;
+    border-color: #F2C57C;
+}
+
+.name-entry button {
+    padding: 0 0.9em;
+    cursor: pointer;
+}
+
+.name-entry button:hover:not(:disabled),
+.name-entry button:focus-visible {
+    color: #0B0B0F;
+    background: #F2C57C;
+    border-color: #F2C57C;
+    outline: none;
+}
+
+.name-entry :disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.name-entry-error {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 0.7em;
+    color: #E0707F;
+    text-shadow: 1px 1px 0 #0B0B0F;
+}

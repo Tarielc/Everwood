@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { END_SCREEN, EndScreenConfig } from '../config/ui';
 import { onResize, safeArea } from '../utils/viewport';
 import { AudioController } from '../systems/audio/AudioController';
+import type { ArenaRun, LeaderboardSceneData } from './LeaderboardScene';
 
 /** How a run ended - picks the headline, its colour and what the first option says */
 export type EndOutcome = "victory" | "defeat"
@@ -12,6 +13,8 @@ export interface EndSceneData {
     onRetry: () => void,
     /** Leave for the main menu */
     onMenu: () => void,
+    /** A ranked arena run - the screen says how deep it got and offers the leaderboard */
+    run?: ArenaRun,
 }
 
 /** Everything that differs between a win and a death */
@@ -41,6 +44,8 @@ export default class EndScene extends Phaser.Scene {
     private outcome: EndOutcome = "defeat"
     private onRetry: () => void = () => {}
     private onMenu: () => void = () => {}
+    /** Everything this screen was opened with, so coming back from the leaderboard can reopen it as it was */
+    private launchData!: EndSceneData
 
     private options: Phaser.GameObjects.BitmapText[] = []
     /** Which option the keyboard is on, -1 for none */
@@ -59,6 +64,7 @@ export default class EndScene extends Phaser.Scene {
         this.outcome = data.outcome
         this.onRetry = data.onRetry
         this.onMenu = data.onMenu
+        this.launchData = data
         this.options = []
         this.selected = -1
         this.ready = false
@@ -79,13 +85,14 @@ export default class EndScene extends Phaser.Scene {
             .setTint(config[outcome.tint])
             .setDropShadow(3, 3, config.shadow, 1)
 
-        const subtitle = this.add.bitmapText(0, 0, config.subtitleFont, outcome.subtitle, config.subtitleSize)
+        const subtitle = this.add.bitmapText(0, 0, config.subtitleFont, this.subtitleText(outcome.subtitle), config.subtitleSize)
             .setOrigin(0.5)
             .setTint(config.subtitleTint)
             .setDropShadow(2, 2, config.shadow, 1)
 
         // each one is added to `options` as it's made, which is what gives it its index
         this.addOption(outcome.retry, () => this.onRetry())
+        if (this.launchData.run) this.addOption("Leaderboard", () => this.openLeaderboard())
         this.addOption("Main Menu", () => this.onMenu())
 
         const content = [title, subtitle, ...this.options]
@@ -131,6 +138,25 @@ export default class EndScene extends Phaser.Scene {
         })
 
         this.bindKeys()
+    }
+
+    /** A ranked run is summed up under the headline in place of the usual line */
+    private subtitleText(fallback: string): string {
+        const run = this.launchData.run
+        if (!run) return fallback
+
+        return `Fell on wave ${run.wave} with ${run.kills} ${run.kills === 1 ? "kill" : "kills"}`
+    }
+
+    // the board takes this screen's place, and leaving it brings this screen back just as it was.
+    // the scene manager starts it rather than this scene's plugin, which won't launch its own key
+    private openLeaderboard(): void {
+        const data = this.launchData
+
+        this.scene.launch("LeaderboardScene", {
+            run: data.run,
+            onBack: () => this.scene.manager.start("EndScene", data),
+        } satisfies LeaderboardSceneData)
     }
 
     private addOption(label: string, choose: () => void): Phaser.GameObjects.BitmapText {

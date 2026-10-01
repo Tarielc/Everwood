@@ -30,6 +30,8 @@ import { BossBar } from '../ui/BossBar';
 import { AudioController } from '../systems/audio/AudioController';
 import { PLAYER_SOUNDS } from '../data/audio';
 import type { EndOutcome, EndSceneData } from './EndScene';
+import type { ArenaRun } from './LeaderboardScene';
+import { RANKED_LEVEL } from '../data/leaderboard';
 
 // used only if the map turns up without a PlayerStartPoint on it - somewhere to
 // stand is better than the top left corner of the world
@@ -117,6 +119,9 @@ export default class GameScene extends Phaser.Scene {
     // the run is over one way or the other - the first ending to land is the one that counts
     private finished: boolean = false
 
+    // how deep a ranked run got, taken the moment the player falls - null on every other level
+    private rankedRun: ArenaRun | null = null
+
     constructor() {
         super("GameScene")
     }
@@ -130,6 +135,7 @@ export default class GameScene extends Phaser.Scene {
         this.powerUps = []
         this.travelling = false
         this.finished = false
+        this.rankedRun = null
 
         // both are torn down by the shutdown the restart ran through - what's left
         // here is the stale handle, not the thing
@@ -270,10 +276,20 @@ export default class GameScene extends Phaser.Scene {
         if (this.finished) return
         this.finished = true
 
+        // before the run is stopped - a foe that dies after the player does isn't theirs
+        this.rankedRun = this.takeRankedRun()
+
         // nothing else arrives while the body is still on the floor
         this.waves?.stop()
 
         this.time.delayedCall(RESPAWN_DELAY_MS, () => this.showEndScreen("defeat"))
+    }
+
+    // the run as the leaderboard ranks it. dying before the first wave lands isn't a run
+    private takeRankedRun(): ArenaRun | null {
+        if (this.level !== RANKED_LEVEL || !this.waves || this.waves.wave === 0) return null
+
+        return { wave: this.waves.wave, kills: this.waves.kills }
     }
 
     // going again after a death. a level that names somewhere to be sent throws them out
@@ -319,6 +335,7 @@ export default class GameScene extends Phaser.Scene {
                 else this.startOver(STARTING_LEVEL)
             },
             onMenu: () => this.startOver(),
+            run: outcome === "defeat" ? this.rankedRun ?? undefined : undefined,
         } satisfies EndSceneData)
     }
 
