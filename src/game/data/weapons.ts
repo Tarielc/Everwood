@@ -39,9 +39,11 @@ export const WEAPONS = {
             cooldownMs: 240,
             bufferMs: 160,
             width: 58,
-            height: 96,
+            height: 32,
             offsetX: -8,
-            offsetY: -20,
+            // sweeps the same span the old 96px-tall box covered, top to bottom
+            offsetY: -52,
+            sweepY: 64,
         }
     },
 } as const satisfies Record<string, WeaponDefinition>

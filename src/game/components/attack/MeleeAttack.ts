@@ -22,6 +22,11 @@ export interface MeleeAttackConfig {
     offsetX: number,
     /** Negative reaches above the attacker's middle */
     offsetY: number,
+    /**
+     * How far the area's middle travels down over the active window, starting at `offsetY` -
+     * a sweep that follows the blade. Left out, the area stays put
+     */
+    sweepY?: number,
     /** Centre the area on the attacker instead of in front of it - a blast, not a swing. `offsetX` is ignored */
     centered?: boolean,
 }
@@ -180,7 +185,11 @@ export class MeleeAttack extends AttackComponent {
       */
     private reposition(): void {
         const body = this.owner.body as Phaser.Physics.Arcade.Body | null
-        const { width, height, offsetX, offsetY } = this.config
+        const { width, height, offsetX, windupMs, activeMs, sweepY = 0 } = this.config
+
+        // how far through the active window the swing is, 0 before it opens, 1 once it shuts
+        const progress = Phaser.Math.Clamp((this.elapsed - windupMs) / activeMs, 0, 1)
+        const offsetY = this.config.offsetY + sweepY * progress
 
         const centerX = body ? body.center.x : this.owner.x
         const centerY = body ? body.center.y : this.owner.y
