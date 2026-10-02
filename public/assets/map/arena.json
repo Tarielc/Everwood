@@ -1,10 +1,18 @@
 { "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json",
+         "target":"Arena.json"
+        }
+    },
  "height":30,
  "infinite":false,
  "layers":[
         {
          "id":5,
-         "image":"sky.png",
+         "image":"normal-sky.png",
          "imageheight":346,
          "imagewidth":1024,
          "name":"sky",
@@ -17,7 +25,7 @@
         }, 
         {
          "id":11,
-         "image":"mountains.png",
+         "image":"normal-mountains.png",
          "imageheight":346,
          "imagewidth":1024,
          "name":"mountains",
@@ -25,18 +33,6 @@
          "offsety":64,
          "opacity":1,
          "repeatx":true,
-         "type":"imagelayer",
-         "visible":true,
-         "x":0,
-         "y":0
-        }, 
-        {
-         "id":12,
-         "image":"castle.png",
-         "name":"castle",
-         "offsetx":784,
-         "offsety":160,
-         "opacity":1,
          "type":"imagelayer",
          "visible":true,
          "x":0,
@@ -145,7 +141,7 @@
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 331, 331, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 331, 331, 331, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -563,8 +559,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":26,
- "nextobjectid":11,
+ "nextlayerid":24,
+ "nextobjectid":9,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",
@@ -656,6 +652,15 @@
                 }, 
                 {
                  "id":8,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":51,
                  "properties":[
                         {
                          "name":"collides",
@@ -941,7 +946,8 @@
                          "type":"bool",
                          "value":true
                         }]
-                }, 
+                },
+            
                 {
                  "id":322,
                  "properties":[
@@ -950,8 +956,7 @@
                          "type":"bool",
                          "value":true
                         }]
-                },
-            
+                }, 
                 {
                  "id":324,
                  "properties":[
@@ -1311,7 +1316,8 @@
                          "type":"bool",
                          "value":true
                         }]
-                }, 
+                },
+            
                 {
                  "id":518,
                  "properties":[
@@ -1320,8 +1326,7 @@
                          "type":"bool",
                          "value":true
                         }]
-                },
-            
+                }, 
                 {
                  "id":519,
                  "properties":[
@@ -1681,7 +1686,8 @@
                          "type":"bool",
                          "value":true
                         }]
-                }, 
+                },
+            
                 {
                  "id":834,
                  "properties":[
@@ -1690,8 +1696,7 @@
                          "type":"bool",
                          "value":true
                         }]
-                },
-            
+                }, 
                 {
                  "id":835,
                  "properties":[
@@ -2004,7 +2009,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2013,7 +2018,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2022,7 +2027,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2031,7 +2036,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2051,7 +2056,8 @@
                          "type":"bool",
                          "value":true
                         }]
-                }, 
+                },
+            
                 {
                  "id":1350,
                  "properties":[
@@ -2060,8 +2066,7 @@
                          "type":"bool",
                          "value":true
                         }]
-                },
-            
+                }, 
                 {
                  "id":1351,
                  "properties":[
@@ -2077,7 +2082,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2086,7 +2091,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2095,7 +2100,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2104,7 +2109,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2140,7 +2145,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2149,7 +2154,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2158,7 +2163,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
@@ -2167,11 +2172,2103 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {
                  "id":1477,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1792,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1793,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1794,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1795,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1796,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1797,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1798,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1799,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1800,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1802,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1804,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1856,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1858,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1859,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1861,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1862,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1864,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1865,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1866,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1867,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1868,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1920,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1921,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1922,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1923,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1924,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1925,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                },
+            
+                {
+                 "id":1926,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1927,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1928,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1930,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1932,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1984,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1985,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1986,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1987,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1988,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1989,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1990,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1991,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1992,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1994,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":1996,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2048,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2050,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2051,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2053,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2054,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2056,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2057,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2058,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2059,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2060,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2112,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2113,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2114,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2115,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2116,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2117,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2118,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2119,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2120,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2122,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2124,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2176,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2177,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2178,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2179,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                },
+            
+                {
+                 "id":2180,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2181,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2182,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2183,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2184,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2188,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2240,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2242,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2244,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2245,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2246,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2247,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2248,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2304,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2305,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2306,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2307,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2308,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2309,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2310,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2311,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2312,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2368,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2369,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2370,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2371,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2372,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2373,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2374,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2375,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2376,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2378,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2380,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2432,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2434,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2435,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2437,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2438,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2440,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2441,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2442,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                },
+            
+                {
+                 "id":2443,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2444,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":2456
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2457
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2458
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2459
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2460
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2520
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2521
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2522
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2523
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2524
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2584
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2585
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2586
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2587
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2588
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2648
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2649
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2650
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2651
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2652
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2712
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2713
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2714
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2715
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2716
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2776
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2777
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2778
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2779
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2780
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2840
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2841
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2842
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2843
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2844
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2904
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2905
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2906
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2907
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2908
+                        }],
+                 "id":2456
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":2461
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2462
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2463
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2464
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2465
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2525
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2526
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2527
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2528
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2529
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2589
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2590
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2591
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2592
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2593
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2653
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2654
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2655
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2656
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2657
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2717
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2718
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2719
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2720
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2721
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2781
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2782
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2783
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2784
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2785
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2845
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2846
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2847
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2848
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2849
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2909
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2910
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2911
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2912
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2913
+                        }],
+                 "id":2461
+                }, 
+                {
+                 "id":2496,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2497,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2498,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2499,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2500,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2501,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2502,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2503,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2504,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2506,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2508,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":2530
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2531
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2532
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2533
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2534
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2535
+                        }],
+                 "id":2530
+                }, 
+                {
+                 "id":2560,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2561,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2562,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2563,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2564,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2565,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2566,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2567,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2568,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2570,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2572,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":2594
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2595
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2596
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2597
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2598
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2599
+                        }],
+                 "id":2594
+                }, 
+                {
+                 "id":2624,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2626,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2627,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2629,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2630,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2632,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2633,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2634,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2635,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2636,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":2658
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2659
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2660
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2661
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2662
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2663
+                        }],
+                 "id":2658
+                }, 
+                {
+                 "id":2688,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2689,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                },
+            
+                {
+                 "id":2690,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2691,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2692,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2693,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2694,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2695,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2696,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2698,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2700,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":2722
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2723
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2724
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2725
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2726
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2727
+                        }],
+                 "id":2722
+                }, 
+                {
+                 "id":2752,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2753,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2754,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2755,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2756,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2757,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2758,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2759,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2760,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2764,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":2786
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2787
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2788
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2789
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2790
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":2791
+                        }],
+                 "id":2786
+                }, 
+                {
+                 "id":2816,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2818,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2820,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2821,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2822,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2823,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2824,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2880,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2881,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2882,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2883,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2884,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2885,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2886,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2887,
+                 "properties":[
+                        {
+                         "name":"collides",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }, 
+                {
+                 "id":2888,
                  "properties":[
                         {
                          "name":"collides",
@@ -2401,6 +4498,58 @@
                  "animation":[
                         {
                          "duration":100,
+                         "tileid":50
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":51
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":52
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":53
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":54
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":55
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":56
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":57
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":58
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":59
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":60
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":61
+                        }],
+                 "id":50
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
                          "tileid":64
                         }, 
                         {
@@ -2584,6 +4733,34 @@
                          "tileid":109
                         }],
                  "id":104
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
+                         "tileid":114
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":115
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":116
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":117
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":118
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":119
+                        }],
+                 "id":114
                 }, 
                 {
                  "animation":[
@@ -2805,6 +4982,34 @@
                  "animation":[
                         {
                          "duration":100,
+                         "tileid":178
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":179
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":180
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":181
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":182
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":183
+                        }],
+                 "id":178
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
                          "tileid":192
                         }, 
                         {
@@ -3017,6 +5222,50 @@
                  "animation":[
                         {
                          "duration":100,
+                         "tileid":242
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":243
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":244
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":245
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":246
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":247
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":248
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":249
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":250
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":251
+                        }],
+                 "id":242
+                }, 
+                {
+                 "animation":[
+                        {
+                         "duration":100,
                          "tileid":256
                         }, 
                         {
@@ -3205,6 +5454,51 @@
                  "animation":[
                         {
                          "duration":100,
+                         "tileid":306
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":307
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":308
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":309
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":310
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":311
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":312
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":313
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":314
+                        }, 
+                        {
+                         "duration":100,
+                         "tileid":315
+                        }],
+                 "id":306
+                },
+            
+                {
+                 "animation":[
+                        {
+                         "duration":100,
                          "tileid":320
                         }, 
                         {
@@ -3340,8 +5634,7 @@
                          "tileid":359
                         }],
                  "id":350
-                },
-            
+                }, 
                 {
                  "animation":[
                         {
@@ -4345,7 +6638,8 @@
                          "tileid":718
                         }],
                  "id":714
-                }, 
+                },
+            
                 {
                  "animation":[
                         {
@@ -4465,8 +6759,7 @@
                          "tileid":782
                         }],
                  "id":778
-                },
-            
+                }, 
                 {
                  "animation":[
                         {
@@ -5486,7 +7779,8 @@
                          "tileid":1230
                         }],
                  "id":1226
-                }, 
+                },
+            
                 {
                  "animation":[
                         {
@@ -5606,8 +7900,7 @@
                          "tileid":1289
                         }],
                  "id":1285
-                },
-            
+                }, 
                 {
                  "animation":[
                         {
@@ -6360,23 +8653,23 @@
                  "animation":[
                         {
                          "duration":100,
-                         "tileid":1743
+                         "tileid":1679
                         }, 
                         {
                          "duration":100,
-                         "tileid":1744
+                         "tileid":1680
                         }, 
                         {
                          "duration":100,
-                         "tileid":1745
+                         "tileid":1681
                         }, 
                         {
                          "duration":100,
-                         "tileid":1746
+                         "tileid":1682
                         }, 
                         {
                          "duration":100,
-                         "tileid":1747
+                         "tileid":1683
                         }],
                  "id":1679
                 }, 
@@ -6611,7 +8904,8 @@
                          "tileid":1811
                         }],
                  "id":1807
-                }, 
+                },
+            
                 {
                  "animation":[
                         {
@@ -6751,8 +9045,7 @@
                          "tileid":1875
                         }],
                  "id":1871
-                },
-            
+                }, 
                 {
                  "animation":[
                         {
@@ -7616,7 +9909,8 @@
                          "tileid":2564
                         }],
                  "id":2560
-                }, 
+                },
+            
                 {
                  "animation":[
                         {
@@ -7736,8 +10030,7 @@
                          "tileid":2771
                         }],
                  "id":2767
-                },
-            
+                }, 
                 {
                  "animation":[
                         {

@@ -20,7 +20,7 @@
          "imageheight":346,
          "imagewidth":1024,
          "name":"mountains",
-         "offsetx":32,
+         "offsetx":0,
          "offsety":128,
          "opacity":1,
          "parallaxx":0.15,
@@ -47,12 +47,12 @@
         }, 
         {
          "id":5,
-         "image":"normal-forest-mid.png",
+         "image":"normal-forest-back.png",
          "imageheight":346,
          "imagewidth":1024,
          "name":"forest-back",
          "offsetx":0,
-         "offsety":192,
+         "offsety":184,
          "opacity":1,
          "parallaxx":0.3,
          "repeatx":true,
@@ -68,7 +68,7 @@
          "imagewidth":1024,
          "name":"forest-mid",
          "offsetx":0,
-         "offsety":192,
+         "offsety":186,
          "opacity":1,
          "parallaxx":0.45,
          "repeatx":true,
@@ -1467,6 +1467,11 @@
                  "opacity":1,
                  "properties":[
                         {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":"sprint"
+                        }, 
+                        {
                          "name":"keyboard",
                          "type":"string",
                          "value":"A \/ D or Arrow keys to move\nHold Shift to sprint"
@@ -1484,22 +1489,114 @@
                  "y":352
                 }, 
                 {
-                 "height":96,
+                 "height":38.5,
                  "id":23,
-                 "name":"",
+                 "name":"TravelHint",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"text",
+                         "type":"string",
+                         "value":"Enter Portal"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":101.5,
+                 "x":1486.5,
+                 "y":408.5
+                }, 
+                {
+                 "height":48,
+                 "id":24,
+                 "name":"NetherTalk",
                  "opacity":1,
                  "properties":[
                         {
                          "name":"textValue",
                          "type":"string",
-                         "value":"Travel the underworld to save the princess!"
+                         "value":"Travel the underworld to cleanse it and save the princess!"
                         }],
                  "rotation":0,
                  "type":"talkingText",
                  "visible":true,
-                 "width":176,
-                 "x":1360,
+                 "width":196,
+                 "x":1342.5,
+                 "y":399
+                }, 
+                {
+                 "height":96,
+                 "id":25,
+                 "name":"AttackHint",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":"attack"
+                        }, 
+                        {
+                         "name":"keyboard",
+                         "type":"string",
+                         "value":"F \/ J to attack"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"attack to kill foes"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":96,
+                 "x":736,
                  "y":352
+                }, 
+                {
+                 "height":96,
+                 "id":26,
+                 "name":"AttackHint",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":"attack"
+                        }, 
+                        {
+                         "name":"keyboard",
+                         "type":"string",
+                         "value":"F \/ J to attack"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"attack to kill foes"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":96,
+                 "x":352,
+                 "y":352
+                }, 
+                {
+                 "height":48,
+                 "id":27,
+                 "name":"ArenaTalk",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"textValue",
+                         "type":"string",
+                         "value":"Fight infinite enemy waves and test your skills!"
+                        }],
+                 "rotation":0,
+                 "type":"talkingText",
+                 "visible":true,
+                 "width":196,
+                 "x":62.5,
+                 "y":400.5
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1508,7 +1605,7 @@
          "y":0
         }],
  "nextlayerid":56,
- "nextobjectid":24,
+ "nextobjectid":28,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

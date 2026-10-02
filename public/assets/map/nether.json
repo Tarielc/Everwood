@@ -554,6 +554,11 @@
                          "value":"A \/ D or Arrow keys to move"
                         }, 
                         {
+                         "name":"text",
+                         "type":"string",
+                         "value":"hold arrows to move"
+                        }, 
+                        {
                          "name":"touch",
                          "type":"string",
                          "value":"Hold the arrow buttons to move"
@@ -582,6 +587,11 @@
                          "value":"Hold Shift to sprint"
                         }, 
                         {
+                         "name":"text",
+                         "type":"string",
+                         "value":"double tap to sprint"
+                        }, 
+                        {
                          "name":"touch",
                          "type":"string",
                          "value":"Double-tap to sprint"
@@ -607,7 +617,12 @@
                         {
                          "name":"keyboard",
                          "type":"string",
-                         "value":"SPACE, W, arrows to jump"
+                         "value":"SPACE, W, arrows to jump\nhold to jump higher"
+                        }, 
+                        {
+                         "name":"text",
+                         "type":"string",
+                         "value":"hold to jump higher"
                         }, 
                         {
                          "name":"touch",
@@ -636,6 +651,11 @@
                          "name":"keyboard",
                          "type":"string",
                          "value":"F \/ J to attack"
+                        }, 
+                        {
+                         "name":"text",
+                         "type":"string",
+                         "value":"attack to kill foes"
                         }, 
                         {
                          "name":"touch",
