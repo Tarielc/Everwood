@@ -75,7 +75,7 @@ export interface PowerUpDropConfig {
 
 /** Default drop configuration */
 export const POWER_UP_DROP: PowerUpDropConfig = {
-    chance: 0.2,
+    chance: 0.15,
     maxAlive: 3,
     lifetimeMs: 12000,
     pickupDelayMs: 600,

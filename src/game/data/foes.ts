@@ -262,9 +262,10 @@ export const FOES = {
             kind: "melee",
             // just inside the swing's reach, so it commits rather than nudging closer
             range: 50,
-            damage: 10,
+            damage: 12,
             swing: {
-                windupMs: 40,
+                // a beat to see it coming - it hits too often to be near-instant as well
+                windupMs: 120,
                 activeMs: 260,
                 // on top of the 600ms the animation itself takes, so there's a beat between swings
                 cooldownMs: 100,
@@ -309,10 +310,12 @@ export const FOES = {
             // just inside the swing's reach, so it commits rather than nudging closer
             range: 52,
             damage: 10,
-            knockback: { chance: 1, force: 460, lift: -120 },
-            stun: { chance: 0.7, durationMs: 900 },
+            knockback: { chance: 1, force: 340, lift: -120 },
+            // shorter than the player's i-frames, so a stun can't be chained into another hit
+            stun: { chance: 0.4, durationMs: 550 },
             swing: {
-                windupMs: 10,
+                // telegraphed - it's the hit that sends you flying
+                windupMs: 150,
                 activeMs: 260,
                 // on top of the 600ms the animation itself takes, so there's a beat between swings
                 cooldownMs: 250,
@@ -359,7 +362,7 @@ export const FOES = {
             // so standing still for the whole fuse is always a hit
             range: 40,
             damage: 20,
-            fuseMs: 460,
+            fuseMs: 560,
             radius: 64,
             knockback: { chance: 1, force: 320, lift: -200 },
         },
@@ -380,13 +383,15 @@ export const FOES = {
         body: { width: 48, height: 96, offsetX: 40, offsetY: 8 },
         health: {
             // fragile - one or two cuts pops it before it gets close
-            max: 2500,
+            // a dozen-odd sword cuts - a fight, not a slog
+            max: 1800,
             invulnerabilityMs: 400,
             regenPerSecond: 0,
             regenDelayMs: 0,
         },
         speed: 0,
-        chaseSpeed: 250,
+        // under the player's sprint, so it can be outpaced to set up a cut
+        chaseSpeed: 200,
         patrolRange: 160,
         pauseMs: 100,
         aggroRange: Infinity,
@@ -397,7 +402,7 @@ export const FOES = {
         // out along its bottom edge come down on them
         hoverHeight: 48,
         // a skull or two out of the flames every few seconds, never more than a handful
-        summon: { foe: "burning-skull", intervalMs: 9000, count: 2, maxAlive: 4, spread: 300 },
+        summon: { foe: "burning-skull", intervalMs: 11000, count: 2, maxAlive: 3, spread: 300 },
         boss: { title: "Infernal Skull" },
         // nothing - the blast is what hurts
         contactDamage: 0,
@@ -406,22 +411,22 @@ export const FOES = {
             // straight-line distance it lights the fuse at - a little inside the blast,
             // so standing still for the whole fuse is always a hit
             range: 110,
-            damage: 35,
+            damage: 30,
             knockback: { chance: 0.5, force: 150, lift: -120 },
             swing: {
                 // the flames are up from the 6th attack frame to the 10th, at 12fps
                 windupMs: 417,
                 activeMs: 417,
-                // on top of the ~1.7s the animation itself takes
-                cooldownMs: 90,
+                // on top of the ~1.7s the animation itself takes - the opening to hit back in
+                cooldownMs: 600,
                 bufferMs: 0, // unused - a foe's swing is started by its state, never queued
                 // the flame band along the bottom of the frame, the full width of the sprite
                 centered: true,
                 width: 232,
-                height: 65,
+                height: 68,
                 offsetX: 0, // ignored - centered
                 // from the body's middle (frame y 56) down to the band's middle (frame y 109), x2 scale
-                offsetY: 112,
+                offsetY: 110,
             },
         },
         // TODO: FIND SOUNDS - an explosion for death

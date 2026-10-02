@@ -39,7 +39,7 @@ export const WEAPONS = {
             cooldownMs: 240,
             bufferMs: 160,
             width: 58,
-            height: 74,
+            height: 96,
             offsetX: -8,
             offsetY: -20,
         }

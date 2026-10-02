@@ -516,6 +516,11 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
     private bindHealth(): void {
         this.health.on(HealthEvent.Damaged, (change: HealthChange) => {
             this.flashDamage()
+
+            // a boss shrugs off hits while it attacks - otherwise every cut cancels
+            // the swing, and it can be held in a flinch until it dies
+            if (this.definition.boss && this.stateMachine.isCurrentState(FoeState.Attack)) return
+
             this.knockbackFrom(change.source)
 
             // Died fires straight after and owns the collapse
