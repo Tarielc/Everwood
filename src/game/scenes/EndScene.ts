@@ -7,7 +7,9 @@ import type { ArenaRun, LeaderboardSceneData } from './LeaderboardScene';
 /** How a run ended - picks the headline, its colour and what the first option says */
 export type EndOutcome = "victory" | "defeat"
 
+/** What the scene that launches the end screen hands it */
 export interface EndSceneData {
+    /** Whether the run was won or lost */
     outcome: EndOutcome,
     /** Go again - what that means is up to whoever launched the screen */
     onRetry: () => void,
@@ -17,11 +19,14 @@ export interface EndSceneData {
     run?: ArenaRun,
 }
 
-/** Everything that differs between a win and a death */
+/**
+ * Everything that differs between a win and a death - the headline, the line under it,
+ * the label of the first option and which {@link EndScreenConfig} tint colours the headline
+ */
 const OUTCOMES: Record<EndOutcome, { title: string, subtitle: string, retry: string, tint: "victoryTint" | "defeatTint" }> = {
     victory: {
         title: "Victory",
-        subtitle: "The arena falls silent",
+        subtitle: "The underworld falls silent",
         retry: "Play Again",
         tint: "victoryTint",
     },
@@ -41,12 +46,16 @@ const OUTCOMES: Record<EndOutcome, { title: string, subtitle: string, retry: str
  * levels or progress: the scene that launched it says what each choice does.
  */
 export default class EndScene extends Phaser.Scene {
+    /** How the run ended - picks what the screen says */
     private outcome: EndOutcome = "defeat"
+    /** What "Try Again" / "Play Again" does, handed in by the launching scene */
     private onRetry: () => void = () => {}
+    /** What "Main Menu" does, handed in by the launching scene */
     private onMenu: () => void = () => {}
     /** Everything this screen was opened with, so coming back from the leaderboard can reopen it as it was */
     private launchData!: EndSceneData
 
+    /** The choices, top to bottom - an option's index here is what selection goes by */
     private options: Phaser.GameObjects.BitmapText[] = []
     /** Which option the keyboard is on, -1 for none */
     private selected: number = -1
@@ -55,11 +64,21 @@ export default class EndScene extends Phaser.Scene {
     /** The first pick wins - the scene is on its way out after it */
     private chosen: boolean = false
 
+    /**
+     * Registers the scene under the `EndScene` key.
+     *
+     * @param config - layout, fonts and colours of the screen, defaults to `END_SCREEN`
+     */
     constructor(private readonly config: EndScreenConfig = END_SCREEN) {
         super("EndScene")
     }
 
-    // a relaunched scene is the same instance, so every run starts from scratch
+    /**
+     * A relaunched scene is the same instance, so every run starts from scratch -
+     * the launch data is taken in and everything else is reset.
+     *
+     * @param data - the outcome, what each choice does, and the ranked run if there is one
+     */
     init(data: EndSceneData) {
         this.outcome = data.outcome
         this.onRetry = data.onRetry
@@ -71,6 +90,13 @@ export default class EndScene extends Phaser.Scene {
         this.chosen = false
     }
 
+    /**
+     * Build the screen: a click-swallowing backdrop, the headline, the subtitle and the
+     * options - retry, the leaderboard on a ranked run, and the main menu.
+     *
+     * The block is laid out centred in the safe area and redone on every resize. Everything
+     * fades in, and no option can be picked until the fade has finished.
+     */
     create() {
         const config = this.config
         const outcome = OUTCOMES[this.outcome]
@@ -140,7 +166,12 @@ export default class EndScene extends Phaser.Scene {
         this.bindKeys()
     }
 
-    /** A ranked run is summed up under the headline in place of the usual line */
+    /**
+     * The line under the headline. A ranked run is summed up here in place of the usual line.
+     *
+     * @param fallback - the outcome's usual subtitle
+     * @returns the wave and kill count of a ranked run, or `fallback` without one
+     */
     private subtitleText(fallback: string): string {
         const run = this.launchData.run
         if (!run) return fallback
@@ -148,8 +179,13 @@ export default class EndScene extends Phaser.Scene {
         return `Fell on wave ${run.wave} with ${run.kills} ${run.kills === 1 ? "kill" : "kills"}`
     }
 
-    // the board takes this screen's place, and leaving it brings this screen back just as it was.
-    // the scene manager starts it rather than this scene's plugin, which won't launch its own key
+    /**
+     * Open the leaderboard in this screen's place. Leaving it brings this screen back just
+     * as it was, from {@link launchData}.
+     *
+     * The way back goes through the scene manager rather than this scene's plugin, which
+     * won't launch its own key.
+     */
     private openLeaderboard(): void {
         const data = this.launchData
 
@@ -159,6 +195,14 @@ export default class EndScene extends Phaser.Scene {
         } satisfies LeaderboardSceneData)
     }
 
+    /**
+     * Add a choice below the ones already made. Hovering selects it and releasing the
+     * pointer picks it; the action is also kept on the text for the keyboard to find.
+     *
+     * @param label - the text the option shows
+     * @param choose - what picking the option does
+     * @returns the option's text object
+     */
     private addOption(label: string, choose: () => void): Phaser.GameObjects.BitmapText {
         const option = this.add.bitmapText(0, 0, this.config.optionFont, label, this.config.optionSize)
             .setOrigin(0.5)
@@ -179,7 +223,11 @@ export default class EndScene extends Phaser.Scene {
         return option
     }
 
-    // arrows or WASD to move between the options, enter or space to take one
+    /**
+     * Arrows or W/S to move between the options, wrapping round at either end, and
+     * Enter or Space to take one. With nothing selected yet, the first move lands on
+     * the top option, and confirming takes it.
+     */
     private bindKeys(): void {
         const keyboard = this.input.keyboard
         if (!keyboard) return
@@ -202,6 +250,12 @@ export default class EndScene extends Phaser.Scene {
         keyboard.on("keydown-SPACE", confirm)
     }
 
+    /**
+     * Highlight one option and put the rest back to normal. Clicks only once the screen
+     * is fully up, so the fade-in stays quiet.
+     *
+     * @param index - the option to highlight, -1 for none
+     */
     private select(index: number): void {
         if (index === this.selected) return
         this.selected = index
@@ -213,6 +267,12 @@ export default class EndScene extends Phaser.Scene {
         if (index >= 0 && this.ready) AudioController.instance.play("ui-click")
     }
 
+    /**
+     * Take a choice. Ignored until the screen is fully up, and after the first pick -
+     * the screen closes itself before running the choice.
+     *
+     * @param choose - the option's action
+     */
     private choose(choose: () => void): void {
         if (!this.ready || this.chosen) return
         this.chosen = true

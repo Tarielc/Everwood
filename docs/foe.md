@@ -42,7 +42,7 @@ Sight is horizontal range *and* `verticalReach` - a target far enough above or b
 
 `bindHealth()` subscribes to health events:
 
-- **Damaged**: flash sprite. If not fatal and the hit breaks its poise, knockback enemy and transition to hurt state.
+- **Damaged**: flash sprite. If not fatal and the hit breaks its poise, knockback enemy and transition to hurt state. A boss mid-attack skips the knockback and flinch entirely, so cuts can't cancel every swing and hold it in a flinch until it dies.
 - **Dead**: transition to death state, which calls `collapse()`.
 
 ### Poise

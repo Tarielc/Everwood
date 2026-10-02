@@ -65,6 +65,8 @@ The hit area is repositioned every frame so it stays in front of the owner's bod
 | `width`, `height` | Hit area size in world pixels (not scaled with the sprite) |
 | `offsetX` | Distance from the edge of the owner's body, mirrored with facing |
 | `offsetY` | Vertical offset from the body's center; negative is higher |
+| `sweepY` | Optional. How far the hit area's center travels down over the active window, starting at `offsetY` - a sweep that follows the blade. Left out, the area stays put |
+| `centered` | Optional. Centers the area on the owner instead of in front of it - a blast, not a swing. `offsetX` is ignored |
 
 `durationMs` = `windupMs + activeMs`.
 

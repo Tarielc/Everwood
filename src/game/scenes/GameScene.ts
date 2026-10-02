@@ -33,101 +33,125 @@ import type { EndOutcome, EndSceneData } from './EndScene';
 import type { ArenaRun } from './LeaderboardScene';
 import { RANKED_LEVEL } from '../data/leaderboard';
 
-// used only if the map turns up without a PlayerStartPoint on it - somewhere to
-// stand is better than the top left corner of the world
+/** Backup spawn point if the map has no PlayerStartPoint set on it */
 const FALLBACK_SPAWN: FootPoint = { x: 400, y: 300 }
 
-// how long the player stays down before respawning
+/** How long the player stays knocked down before the end screen goes up */
 const RESPAWN_DELAY_MS = 2500
 
-// how long the last foe of a winning level gets to fall over before the victory screen
-const VICTORY_DELAY_MS = 1500
+/** How long the last foe of a winning level gets to fall over before the victory screen */
+const VICTORY_DELAY_MS = 2000
 
-// what the player is holding the first time they set out - after that they
-// arrive in a level holding whatever they left the last one with
+/** Player's starting weapon - only used on a fresh run, a level change keeps whatever they were holding */
 const STARTING_WEAPON: WeaponId = "diamond-sword"
 
-// what the player carries between levels. the sprite is rebuilt from scratch on
-// the other side of a level change, so what travels is the state, not the entity
+/** Player progress tracker - data that travels between levels */
 interface Progress {
+    /** Health the player arrives in the next level with */
     health: number,
+    /** Weapon the player is holding, `null` for bare hands */
     weapon: WeaponId | null,
 }
 
-// kept on the game registry rather than in this scene - a scene restart is
-// exactly what a level change is, and the registry is what outlives one
+/**
+ * Registry key for {@link Progress}. A scene restart is exactly what a level change is,
+ * and the registry is what outlives one
+ */
 const PROGRESS_KEY = "progress"
 
-// number-row shortcuts for swapping weapons, until there's an inventory UI
+/**
+ * Temporary placeholder to switch between weapons.
+ * 
+ * Only accessible on desktop.
+ */
 const WEAPON_HOTKEYS: Record<string, WeaponId | null> = {
     "keydown-ONE": "diamond-sword",
     "keydown-ZERO": null, // bare hands
 }
 
+/**
+ * Main game scene, where the player and foes live and die. The map is the level, and
+ * the player is the only thing that carries over between them - the rest is torn down
+ * and rebuilt on a level change.
+ * 
+ * The scene is the only thing that knows what level is being played, and it hands the
+ * level's map to the world, which is what actually builds the level. The scene then
+ * spawns the player and any foes the map placed, and starts the waves if the level
+ * fights them.
+ */
 export default class GameScene extends Phaser.Scene {
 
+    /** Current world map - builds the level and sets the world and camera bounds */
     private world!: WorldMap
+    /** Player entity */
     private player!: Player
+    /** Input controls - either keyboard or touch screen */
     private controls!: InputController
 
-    // everything about who can hit what - the scene only says what's in the world
+    /** Everything about who can hit what, and what overlaps with what */
     private collisions!: CollisionManager
 
-    // what a landed blow does to the world around it - the hitstop and the shake
+    /** What a landed blow does to the world around it - the hitstop and the shake */
     private impact!: ImpactController
 
+    /** Every foe in the current scene */
     private foes: Foe[] = []
+    /** Every projectile in the current scene */
     private projectiles: Projectile[] = []
+    /** Every power-up in the current scene */
     private powerUps: PowerUp[] = []
 
-    // rolls every landed hit for a power up, and keeps the floor from filling up with them
+    /** Rolls every landed hit for a power-up drop, and caps how many are on the floor to avoid clutter */
     private dropper!: PowerUpDropper
 
-    // the running power ups under the health bar
+    /** Running power-ups displayed on the HUD (under the health bar) */
     private powerUpTray!: PowerUpTray
 
-    // what sends in the waves, on the levels that fight them - null anywhere the
-    // map places its foes by hand
+    /** Sends in the enemy waves on a level that fights them. `null` anywhere the map places its foes by hand */
     private waves: WaveDirector | null = null
 
-    // the "Wave 3" headline, up only on the levels that have waves to announce
+    /** Headline banner for wave announcements - `null` on levels without waves */
     private textBanner: TextBanner | null = null
-
-    // the standing "Wave 3" at the top of the screen, kept up between announcements
+    /** Standing wave counter kept up between {@link textBanner} announcements - `null` on levels without waves */
     private waveCounter: WaveCounter | null = null
 
-    // the boss's name and health along the bottom of the screen, built the first
-    // time a boss turns up and reused for any that come after it
+    /** Boss's name and health bar, built during the first boss encounter and reused for any that come after */
     private bossBar: BossBar | null = null
 
-    // the "Space to jump" lines the map places, shown while the player stands by them
+    /** Tutorial hint lines like "Space to jump", shown while the player stands by them */
     private hints!: MapHints
 
-    // speech bubbles the map's characters type their lines out in when the player comes close
+    /** Dialogue bubbles for map characters - currently no NPC class entity is implemented, so every speech bubble is placed in Tiled by hand */
     private dialogue!: MapDialogue
 
-    // read off the map once, and kept for every respawn after the first
+    /** Where the player gets back up after a death - the map's PlayerStartPoint, moved by any checkpoint touched */
     private spawn: FootPoint = FALLBACK_SPAWN
 
-    // which map is being played, handed in by whatever started this scene
+    /** Current level ID - which map is being played, handed in by whatever started this scene */
     private level: LevelId = STARTING_LEVEL
 
-    // a level change is a scene restart, and it takes a beat to come round -
-    // this is what stops the exit firing again while it's on its way
+    /** A level change is a scene restart - this stops the exit firing non-stop while it's on its way */
     private travelling: boolean = false
 
-    // the run is over one way or the other - the first ending to land is the one that counts
+    /** Whether the run is over, one way or the other - the first ending to land is the one that counts */
     private finished: boolean = false
 
-    // how deep a ranked run got, taken the moment the player falls - null on every other level
+    /** How deep a ranked run got, taken the moment the player falls - `null` on every other level */
     private rankedRun: ArenaRun | null = null
 
+    /** Registers the scene under the `GameScene` key */
     constructor() {
         super("GameScene")
     }
 
-    // a restarted scene is the same instance over again, so anything held
-    // between frames is put back to how it started rather than left to carry
+    /**
+     * A restarted scene is the same instance over again, so anything held
+     * between frames is put back to how it started rather than left to carry over.
+     * 
+     * The level is passed in on the data, and the rest is reset to the defaults for a new run.
+     * 
+     * @param data - the level to play, defaults to `STARTING_LEVEL`
+     */
     init(data: { level?: LevelId }) {
         this.level = data?.level ?? STARTING_LEVEL
         this.foes = []
@@ -145,6 +169,15 @@ export default class GameScene extends Phaser.Scene {
         this.bossBar = null
     }
 
+    /**
+     * Creates the game scene and initializes all necessary components.
+     * 
+     * This method sets up the world, player, controls, collisions, impact controller,
+     * power-up dropper, power-up tray, progress restoration, weapon hotkeys, foe spawning,
+     * wave management, exit and hazard monitoring, checkpoint handling, hints, dialogue, and health bar.
+     * 
+     * It also sets up event listeners for player death and damage events.
+     */
     create() {
         // before any body exists, so nothing spends a frame under the wrong pull
         this.applyWorldConfig()
@@ -222,9 +255,11 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    // the level's physics overrides. arcade builds a fresh world from the game config on
-    // every scene start, so a level change can't carry the last level's settings over -
-    // only what this level sets needs putting on
+    /**
+     * Apply the level's physics overrides. Arcade builds a fresh world from the game config
+     * on every scene start, so a level change can't carry the last level's settings over -
+     * only what this level sets needs putting on.
+     */
     private applyWorldConfig(): void {
         const config = LEVELS[this.level].world
         if (!config) return
@@ -232,9 +267,10 @@ export default class GameScene extends Phaser.Scene {
         if (config.gravity !== undefined) this.physics.world.gravity.y = config.gravity
     }
 
-    // what the level sounds like. both beds are crossfaded rather than cut, and asking
-    // for what is already playing does nothing - so walking back into a level that shares
-    // a track with the last one carries straight on rather than starting it over
+    /**
+     * Start the level's music and ambience with a crossfade. Walking back into a level that shares a track
+     * with the last level carries on rather than starting over.
+     */
     private startLevelAudio(): void {
         const { music, ambience } = LEVELS[this.level]
         const audio = AudioController.instance
@@ -243,8 +279,10 @@ export default class GameScene extends Phaser.Scene {
         if (ambience) audio.playAmbience(ambience)
     }
 
-    // pick the player back up where they left the last level off, or kit them
-    // out fresh if this is where they came in
+    /**
+     * Retrieve progress data from the registry and restore the player's health and weapon.
+     * With nothing saved, this is a fresh run and the player gets `STARTING_WEAPON`.
+     */
     private restoreProgress(): void {
         const progress = this.registry.get(PROGRESS_KEY) as Progress | undefined
 
@@ -261,8 +299,12 @@ export default class GameScene extends Phaser.Scene {
         else this.player.unequip()
     }
 
-    // `health` is spelled out for a player who is leaving dead - what they arrive
-    // with somewhere else is not what they had left when they fell over
+    /**
+     * Save player progress to the registry - health and weapon.
+     *
+     * @param health - the health to arrive with, defaults to current health. Spelled out
+     * for a player leaving dead, who shouldn't arrive with what they fell on
+     */
     private saveProgress(health: number = this.player.getHealth.current): void {
         this.registry.set(PROGRESS_KEY, {
             health,
@@ -270,8 +312,11 @@ export default class GameScene extends Phaser.Scene {
         } satisfies Progress)
     }
 
-    // the player is down, and once they've hit the floor the death screen goes up. a win
-    // that already landed stands - falling to the last foe's parting shot doesn't undo it
+    /**
+     * Handle player death event. Mark game as finished,
+     * take the ranked run if applicable, stop any ongoing waves,
+     * and display the end screen after a delay. A win that already landed stands.
+     */
     private onPlayerDeath(): void {
         if (this.finished) return
         this.finished = true
@@ -285,16 +330,23 @@ export default class GameScene extends Phaser.Scene {
         this.time.delayedCall(RESPAWN_DELAY_MS, () => this.showEndScreen("defeat"))
     }
 
-    // the run as the leaderboard ranks it. dying before the first wave lands isn't a run
+    /**
+     * The run as the leaderboard ranks it.
+     *
+     * @returns the wave reached and kills on `RANKED_LEVEL`, or `null` on any other
+     * level or if the player died before the first wave landed
+     */
     private takeRankedRun(): ArenaRun | null {
         if (this.level !== RANKED_LEVEL || !this.waves || this.waves.wave === 0) return null
 
         return { wave: this.waves.wave, kills: this.waves.kills }
     }
 
-    // going again after a death. a level that names somewhere to be sent throws them out
-    // to it, kit and all and patched up on the way - an arena has no other exit. anywhere
-    // else they get back up where they fell, the way they always have
+    /**
+     * Going again after a death. A level with `deathReturnsTo` sends the player there,
+     * kit and all and fully healed. Otherwise, respawn the player at the last checkpoint
+     * or the map's start point.
+     */
     private retryAfterDeath(): void {
         const returnTo = LEVELS[this.level].deathReturnsTo
 
@@ -308,8 +360,10 @@ export default class GameScene extends Phaser.Scene {
         this.world.stand(this.player, this.spawn)
     }
 
-    // a level that's won by clearing it is won the moment the last foe in it dies - those
-    // still fading out are dead already, so they don't hold the screen back
+    /**
+     * Win a level that's won by clearing it (`winWhenCleared`) the moment every foe in it
+     * is dead. Foes still fading out are already dead, so they don't hold the screen back.
+     */
     private checkCleared(): void {
         if (this.finished || !LEVELS[this.level].winWhenCleared) return
         if (this.player.getHealth.isDead) return
@@ -324,7 +378,11 @@ export default class GameScene extends Phaser.Scene {
         })
     }
 
-    // freeze the level where it stands and put the ending over it
+    /**
+     * Pause the level where it stands and put the end screen over it.
+     * 
+     * @param outcome - the outcome of the run, either "victory" or "defeat"
+     */
     private showEndScreen(outcome: EndOutcome): void {
         this.scene.pause()
         this.scene.launch("EndScene", {
@@ -339,9 +397,13 @@ export default class GameScene extends Phaser.Scene {
         } satisfies EndSceneData)
     }
 
-    // a fresh run, or back to the menu when no level is given. nothing is carried over,
-    // and the HUD comes down too - it's relaunched with the new player's health rather
-    // than left showing what the last one finished on
+    /**
+     * A fresh run, or back to the menu when no level is given. Nothing is carried over,
+     * and the HUD comes down too - it's relaunched with the new player's health rather than
+     * left showing what the last one finished on.
+     * 
+     * @param level - the level to start over with, or undefined to return to the main menu
+     */
     private startOver(level?: LevelId): void {
         this.travelling = true
         this.registry.remove(PROGRESS_KEY)
@@ -351,8 +413,10 @@ export default class GameScene extends Phaser.Scene {
         else this.scene.start("MainMenuScene")
     }
 
-    // touching a checkpoint makes it where the player gets back up after a death. the
-    // last one touched wins, so walking back over an earlier one moves the spawn back
+    /**
+     * Update the player's spawn point upon touching a checkpoint.
+     * The last one touched wins, so walking back over an earlier one moves the spawn back.
+     */
     private watchForCheckpoints(): void {
         for (const checkpoint of this.world.checkpoints) {
             const point = this.world.foot(checkpoint)
@@ -364,17 +428,19 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    // spikes and anything else that kills on touch. the overlap fires every frame,
-    // but a dead player can't be killed twice
+    /**
+     * Spikes and anything else that kills on touch. The overlap fires every frame, but dead players can't be killed twice.
+     */
     private watchForHazards(): void {
         for (const hazard of this.world.hazards) {
             this.collisions.watchZone(hazard, () => this.player.kill(hazard))
         }
     }
 
-    // the exit is a marker like any other until the map says where it goes. a
-    // `nextLevel` property on it names the next one; without one, this map is simply
-    // the end of the line and standing on the exit does nothing
+    /**
+     * For every exit object, watch for the player's overlap and send them to the
+     * level its `nextLevel` property names. An exit without one does nothing.
+     */
     private watchForExit(): void {
         const exits = this.world.exit
         if (!exits) return
@@ -391,8 +457,13 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    // off to somewhere else. the overlap that calls this fires every frame the
-    // player is stood in the exit, so the first one through wins
+    /**
+     * Send the player to a different level. The overlap that calls this fires every frame
+     * the player is stood in the exit, so only the first one through wins.
+     * 
+     * @param level - the level to travel to
+     * @param health - the player's health to save in the progress registry, defaults to current health
+     */
     private travelTo(level: LevelId, health?: number): void {
         if (this.travelling) return
 
@@ -401,9 +472,11 @@ export default class GameScene extends Phaser.Scene {
         this.scene.restart({ level })
     }
 
-    // every foe the map asked for, each stood on its own marker. which foe comes
-    // from the object's `foeType` property, or failing that from its name, so
-    // a foe can be placed in Tiled without touching any of this
+    /**
+     * Spawn foes on the map based on the enemy objects defined in the map's object layer.
+     * It ignores wave spawn points and only spawns actual foes, picked by the
+     * `foeType` custom property or, failing that, the object's name.
+     */
     private spawnMapFoes(): void {
         for (const object of this.world.objects(MAP.objectLayers.enemies)) {
             if (object.type !== MAP.foeType) continue
@@ -419,8 +492,10 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    // levels that fight waves say so in their definition, and mark on the map where
-    // the waves come in. one without either simply never starts a run
+    /**
+     * Levels that contain waves, say so in their definition, and mark on the map where
+     * the waves come in. One without either simply never starts a run.
+     */
     private startWaves(): void {
         const config = LEVELS[this.level].waves
         if (!config) return
@@ -466,18 +541,34 @@ export default class GameScene extends Phaser.Scene {
         this.waves.start()
     }
 
-    // a foe as this level fields it. on a level that hunts, both aggro ranges go
-    // unbounded - the wider one has to go too, or a foe would acquire the player from
-    // across the map and drop the chase again on the very next frame, over and over.
-    // the attack ranges are left alone, so what a foe can reach is still what it could
+    /**
+     * A modified foe definition for this specific level.
+     * 
+     * On a level with `foesAlwaysHunt`, foes have infinite aggro and de-aggro ranges.
+     * The attack ranges are left unchanged, so the foe's reach remains the same.
+     * 
+     * @param definition - the original foe definition
+     * @returns modified foe definition for this level,
+     * or the original if the level doesn't force hunting.
+     */
     private asHuntedIn(definition: FoeDefinition): FoeDefinition {
         if (!LEVELS[this.level].foesAlwaysHunt) return definition
 
         return { ...definition, aggroRange: Infinity, deAggroRange: Infinity }
     }
 
-    // bring a foe into the world and hook it up to the player. `grounded` puts it
-    // on the floor at `at` - a summon passes false, and appears in the air right there
+    /**
+     * Bring a foe into the world and hook it up to the player, collisions, impacts,
+     * loot drops, summons and the boss bar.
+     *
+     * `grounded` puts it on the floor at `at` - a summon passes false, and appears
+     * in the air right there.
+     * 
+     * @param definition - definition of the foe to spawn
+     * @param at - position to spawn the foe at
+     * @param grounded - whether the foe should be placed on the floor
+     * @returns the spawned foe
+     */
     private spawnFoe(definition: FoeDefinition, at: FootPoint, grounded = true): Foe {
         const foe = new Foe(this, at.x, at.y, this.asHuntedIn(definition)).setTarget(this.player)
         this.foes.push(foe)
@@ -536,14 +627,23 @@ export default class GameScene extends Phaser.Scene {
         return foe
     }
 
-    // a boss gets its health shown on the HUD for as long as it's alive - the bar
-    // lets go of it on its own once it dies
+    /**
+     * A boss gets its health bar shown on the HUD for as long as it's alive.
+     * 
+     * @param foe - the foe that is a boss
+     * @param boss - the boss definition containing the title to display
+     */
     private showBossBar(foe: Foe, boss: FoeBoss): void {
         this.bossBar ??= new BossBar(this)
         this.bossBar.track(foe.getHealth, boss.title)
     }
 
-    // put a shot in the world and give it something to land on
+    /**
+     * Put a projectile in the world and set up its collision handling.
+     *
+     * @param shot - shot information containing projectile type, position, direction, damage and shooter
+     * @returns spawned projectile
+     */
     private spawnProjectile(shot: Shot): Projectile {
         const projectile = new Projectile(
             this, shot.x, shot.y, shot.projectile, shot.direction, shot.damage, shot.shooter,
@@ -558,7 +658,15 @@ export default class GameScene extends Phaser.Scene {
         return projectile
     }
 
-    // put a power up on the floor and let the player pick it up
+    /**
+     * Spawn a power-up in the world and set up its collision handling for pickup by the player.
+     * 
+     * @param id - the power-up ID
+     * @param definition - the power-up definition containing its properties
+     * @param x - the x-coordinate to spawn the power-up at
+     * @param y - the y-coordinate to spawn the power-up at
+     * @returns spawned power-up
+     */
     private spawnPowerUp(id: PowerUpId, definition: PowerUpDefinition, x: number, y: number): PowerUp {
         const powerUp = new PowerUp(this, x, y, id, definition)
         this.powerUps.push(powerUp)
@@ -572,7 +680,11 @@ export default class GameScene extends Phaser.Scene {
         return powerUp
     }
 
-    // the player walked over one - the effect goes on, and the name floats up off it
+    /**
+     * The player walked over a power-up - the effect goes on, and the name floats up off it.
+     *
+     * @param powerUp - the power-up that was picked up
+     */
     private collectPowerUp(powerUp: PowerUp): void {
         const { definition } = powerUp
         this.player.applyPowerUp(powerUp.id, definition)
@@ -581,7 +693,14 @@ export default class GameScene extends Phaser.Scene {
         this.showCallout(definition.name, definition.tint, powerUp.x, powerUp.y)
     }
 
-    // a word rising off the spot and fading out
+    /**
+     * A word rising off the power-up and fading out.
+     *
+     * @param label - the text to display in the callout
+     * @param tint - the color tint to apply to the callout text
+     * @param x - the x-coordinate to position the callout
+     * @param y - the y-coordinate to position the callout
+     */
     private showCallout(label: string, tint: number, x: number, y: number): void {
         const { font, size, shadow, rise, durationMs, depth } = POWER_UP_CALLOUT
         const text = this.add.bitmapText(x, y, font, label, size)
@@ -600,7 +719,7 @@ export default class GameScene extends Phaser.Scene {
         })
     }
 
-    // temporary stand-in for an inventory - swap weapons with the number row
+    /** Temporary stand-in for weapon selection - swap weapons with the number row. See {@link WEAPON_HOTKEYS} */
     private bindWeaponHotkeys(): void {
         const keyboard = this.input.keyboard
         if (!keyboard) return
@@ -613,6 +732,15 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    /**
+     * Update the game scene, including player, foes, projectiles, power-ups, and collisions.
+     * 
+     * Called every frame. The whole frame is skipped while a hitstop holds, then input is
+     * sampled once, and collisions run last so every swing lands against where everything ended up.
+     * 
+     * @param time - the current time in ms since the game started
+     * @param delta - the time elapsed since the last frame, in ms
+     */
     update(time:number, delta:number){
         // a blow that just landed holds the whole frame, input included - a press made
         // during the freeze is still a fresh press on the frame it lifts, rather than
@@ -647,16 +775,24 @@ export default class GameScene extends Phaser.Scene {
     }
 }
 
-// a marker the waves come in at rather than a foe standing on the spot. matched on
-// either the object's type or its name, so it can be authored in Tiled as a class of
-// its own or dropped in as a named object on the ordinary foe type
+/**
+ * Check whether an object is a wave spawn point - a marker the waves come in at rather
+ * than a foe standing on the spot. Matched on either the object's type or its name.
+ * 
+ * @param object - the map object to check
+ * @returns `true` if the object is a wave spawn point, `false` otherwise
+ */
 function isWaveSpawnPoint(object: MapObject): boolean {
     return object.type === MAP.waveSpawnPoint || object.name === MAP.waveSpawnPoint
 }
 
-// which foe an object on the enemies layer asks for - its `foeType` property wins,
-// and its name is the fallback, so "Archer" in Tiled is enough on its own. one
-// that names neither is left out rather than guessed at
+/**
+ * Which foe an object on the enemies layer asks for - its `foeType` property wins,
+ * and its name is the fallback. One that names neither is skipped with a warning.
+ * 
+ * @param object - the map object to check for foe definition
+ * @returns the corresponding foe definition if found, or `null` if no match is found
+ */
 function foeDefinitionFor(object: MapObject): FoeDefinition | null {
     const candidates = [
         WorldMap.property<string>(object, MAP.foeTypeProperty),
