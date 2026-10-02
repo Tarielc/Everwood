@@ -1489,7 +1489,7 @@
                  "y":352
                 }, 
                 {
-                 "height":38.5,
+                 "height":37.5,
                  "id":23,
                  "name":"TravelHint",
                  "opacity":1,
@@ -1504,10 +1504,10 @@
                  "visible":true,
                  "width":101.5,
                  "x":1486.5,
-                 "y":408.5
+                 "y":409.5
                 }, 
                 {
-                 "height":48,
+                 "height":95.5,
                  "id":24,
                  "name":"NetherTalk",
                  "opacity":1,
@@ -1520,9 +1520,9 @@
                  "rotation":0,
                  "type":"talkingText",
                  "visible":true,
-                 "width":196,
-                 "x":1342.5,
-                 "y":399
+                 "width":256,
+                 "x":1313,
+                 "y":351
                 }, 
                 {
                  "height":96,
@@ -1581,7 +1581,7 @@
                  "y":352
                 }, 
                 {
-                 "height":48,
+                 "height":94.75,
                  "id":27,
                  "name":"ArenaTalk",
                  "opacity":1,
@@ -1595,8 +1595,8 @@
                  "type":"talkingText",
                  "visible":true,
                  "width":196,
-                 "x":62.5,
-                 "y":400.5
+                 "x":62.75,
+                 "y":353.5
                 }],
          "opacity":1,
          "type":"objectgroup",

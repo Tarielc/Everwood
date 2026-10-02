@@ -32,7 +32,7 @@ interface Dialogue {
  * Each is a `talkingText` object on the player layer in Tiled, with its line in
  * `textValue`. A point object speaks when the player comes within `radius` of it, and
  * its bubble's tail points down at it - so the point goes at the speaker's head. A
- * rectangle speaks while the player is inside it, from its top-centre.
+ * rectangle speaks while the player is inside it, from its centre.
  *
  * The line is typed out a character at a time while the bubble is up, and starts over
  * every time the player walks back up to it. Like {@link MapHints}, it lives in the world
@@ -105,7 +105,7 @@ export class MapDialogue {
         const isPoint = area.width === 0 && area.height === 0
         const tip = isPoint
             ? { x: area.x, y: area.y }
-            : { x: area.centerX, y: area.top }
+            : { x: area.centerX, y: area.centerY }
         if (isPoint) {
             const radius = (WorldMap.property<number>(object, MAP.dialogueRadiusProperty) ?? config.radius) * world.scale
             area.setTo(tip.x - radius, tip.y - radius, radius * 2, radius * 2)

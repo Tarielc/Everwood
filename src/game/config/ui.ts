@@ -513,5 +513,5 @@ export const MAP_DIALOGUE: MapDialogueConfig = {
     charsPerSecond: 40,
     fadeMs: 200,
     radius: 96,
-    depth: 810,
+    depth: 499,
 }
