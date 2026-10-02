@@ -359,7 +359,7 @@ export const FOES = {
             // so standing still for the whole fuse is always a hit
             range: 40,
             damage: 20,
-            fuseMs: 530,
+            fuseMs: 460,
             radius: 64,
             knockback: { chance: 1, force: 320, lift: -200 },
         },
@@ -381,21 +381,21 @@ export const FOES = {
         health: {
             // fragile - one or two cuts pops it before it gets close
             max: 2500,
-            invulnerabilityMs: 200,
+            invulnerabilityMs: 400,
             regenPerSecond: 0,
             regenDelayMs: 0,
         },
         speed: 0,
-        chaseSpeed: 230,
-        patrolRange: 60,
-        pauseMs: 1000,
+        chaseSpeed: 250,
+        patrolRange: 160,
+        pauseMs: 100,
         aggroRange: Infinity,
         deAggroRange: Infinity,
         verticalReach: 0, // unused - a flier measures straight-line distance
         flying: true,
         // a big sprite - held up over the player's head, so the flames it bursts
         // out along its bottom edge come down on them
-        hoverHeight: 64,
+        hoverHeight: 48,
         // a skull or two out of the flames every few seconds, never more than a handful
         summon: { foe: "burning-skull", intervalMs: 9000, count: 2, maxAlive: 4, spread: 300 },
         boss: { title: "Infernal Skull" },
@@ -407,21 +407,21 @@ export const FOES = {
             // so standing still for the whole fuse is always a hit
             range: 110,
             damage: 35,
-            knockback: { chance: 0.5, force: 120, lift: -100 },
+            knockback: { chance: 0.5, force: 150, lift: -120 },
             swing: {
                 // the flames are up from the 6th attack frame to the 10th, at 12fps
                 windupMs: 417,
                 activeMs: 417,
                 // on top of the ~1.7s the animation itself takes
-                cooldownMs: 100,
+                cooldownMs: 90,
                 bufferMs: 0, // unused - a foe's swing is started by its state, never queued
                 // the flame band along the bottom of the frame, the full width of the sprite
                 centered: true,
-                width: 256,
-                height: 76,
+                width: 232,
+                height: 65,
                 offsetX: 0, // ignored - centered
                 // from the body's middle (frame y 56) down to the band's middle (frame y 109), x2 scale
-                offsetY: 106,
+                offsetY: 112,
             },
         },
         // TODO: FIND SOUNDS - an explosion for death

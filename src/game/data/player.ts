@@ -56,7 +56,7 @@ export const PLAYER_RESPAWN_INVULNERABILITY_MS:number = 1500
 export const PLAYER_UNARMED_ATTACK:MeleeAttackConfig = {
     windupMs: 180,
     activeMs: 260,
-    cooldownMs: 240,
+    cooldownMs: 290,
     bufferMs: 160,
     width: 18,
     height: 64,

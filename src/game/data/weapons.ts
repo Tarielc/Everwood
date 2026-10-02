@@ -30,8 +30,8 @@ export const WEAPONS = {
         framePrefix: "diamond-sword/diamond-sword-",
         poseAliases: { swing: "attack" },
         damage: 150,
-        knockback: 160,
-        knockbackLift: -120,
+        knockback: 120,
+        knockbackLift: -90,
         swingSound: "player-swing-sword",
         swing: {
             windupMs: 180,
@@ -39,7 +39,7 @@ export const WEAPONS = {
             cooldownMs: 240,
             bufferMs: 160,
             width: 58,
-            height: 68,
+            height: 74,
             offsetX: -8,
             offsetY: -20,
         }
@@ -53,5 +53,5 @@ export type WeaponId = keyof typeof WEAPONS
 export const UNARMED_DAMAGE:number = 6
 
 /** Shove a bare-handed hit gives, when nothing is equipped */
-export const UNARMED_KNOCKBACK:number = 100
-export const UNARMED_KNOCKBACK_LIFT:number = -60
+export const UNARMED_KNOCKBACK:number = 60
+export const UNARMED_KNOCKBACK_LIFT:number = -30

@@ -18,7 +18,7 @@ export const FoeState = {
 export type FoeStateName = typeof FoeState[keyof typeof FoeState]
 
 /** how long a flinch holds on a sheet that hasn't got a hurt animation to time it */
-const HURT_STUN_MS = 520
+const HURT_STUN_MS = 320
 
 /** What a flier keeps of its knockback each frame - nothing else would slow it with no ground to land on */
 const FLIER_HURT_DAMPING = 0.88
