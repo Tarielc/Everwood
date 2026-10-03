@@ -55,7 +55,7 @@ Depth deserves a note. Neither Phaser, nor Tiled tracks a depth property, and wh
 
 ## Tiled Convention for Designing New Levels
 
-**Dimensions** - map height should be at least `MAX_VIEW_HEIGHT` (1280px), so it can feel display fully on every screen.
+**Dimensions** - map height should be at least `MAX_VIEW_HEIGHT` (736px), so it can feel display fully on every screen.
 
 **Tile, image, and group layers** — As many as you want, in whatever nesting you want. `WorldMap` walks the tree and builds them dynamically. Loading and building them is handled dynamically in `WorldMap`.
 

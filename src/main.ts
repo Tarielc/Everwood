@@ -46,7 +46,7 @@ const config: Phaser.Types.Core.GameConfig = {
 // function to start the game
 const StartGame = (parent: string) => {
     const game = new Game({ ...config, parent });
-    fitToParent(game, MAX_VIEW_HEIGHT, MIN_VIEW_HEIGHT);
+    fitToParent(game, MIN_VIEW_HEIGHT, MAX_VIEW_HEIGHT);
     return game;
 }
 

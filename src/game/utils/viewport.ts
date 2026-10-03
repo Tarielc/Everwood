@@ -63,14 +63,16 @@ export function safeArea(scale: Phaser.Scale.ScaleManager): SafeArea {
 
 /**
  * Size the game the way Scale.RESIZE does - filling the parent, one game pixel
- * per CSS pixel - except it never gets shorter than `minHeight` game pixels.
+ * per CSS pixel - except the view is never shorter than `minHeight` game pixels
+ * or taller than `maxHeight`.
  *
  * A phone held sideways is only ~390 CSS pixels tall, which under plain RESIZE
  * shows a stripped view of the level. Below `minHeight` the game is given
  * `minHeight` pixels of height (and the matching width) and the browser draws
  * that canvas down into the parent, so the view keeps its proportions instead
- * of being cropped. Anything at least that tall - desktops, phones in portrait -
- * is left exactly as RESIZE would have it.
+ * of being cropped. Above `maxHeight` it is given `maxHeight` pixels and drawn up
+ * instead, so a big monitor doesn't see more of the level than a small one.
+ * Anything in between is left exactly as RESIZE would have it.
  * 
  * We use `ResizeObserver()` which size of an HTML element, instead of window size.
  *
@@ -78,6 +80,7 @@ export function safeArea(scale: Phaser.Scale.ScaleManager): SafeArea {
  *
  * @param game - Game to size
  * @param minHeight - Fewest game pixels of height ever shown
+ * @param maxHeight - Most game pixels of height ever shown
  */
 export function fitToParent(game: Phaser.Game, minHeight: number, maxHeight: number): void {
     const scale = game.scale
@@ -87,8 +90,9 @@ export function fitToParent(game: Phaser.Game, minHeight: number, maxHeight: num
         const { width, height } = parent.getBoundingClientRect()
         if (width === 0 || height === 0) return
 
-        // CSS pixels per game pixel - 1 on tall screens, below 1 on short ones
-        const zoom = Math.max(height / maxHeight, height / minHeight)
+        // CSS pixels per game pixel - 1 between the two limits, below 1 on a
+        // shorter screen and above 1 on a taller one
+        const zoom = height / Phaser.Math.Clamp(height, minHeight, maxHeight)
 
         // the canvas has to be its final on-screen size before resize() refreshes,
         // since that's what displayScale - and so every pointer - is measured from

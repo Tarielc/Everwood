@@ -1,14 +1,20 @@
 # Responsive Design
 
-The game is sized by `fitToParent()`, which behaves like `Phaser.Scale.RESIZE` with a minimum height (see below), so `scale.width` and `scale.height` change with the device and window size. Everything placed relative to screen, should be positioned from live size, not the 1280x720 in the game config.
+The game is sized by `fitToParent()`, which behaves like `Phaser.Scale.RESIZE` with a minimum and a maximum height (see below), so `scale.width` and `scale.height` change with the device and window size. Everything placed relative to screen, should be positioned from live size, not the 1280x720 in the game config.
 
-## `fitToParent(game, minHeight)`
+## `fitToParent(game, minHeight, maxHeight)`
 
 Called once in [main.ts](/src/main.ts), to handle reponsive desing manually - `Scale.NONE` gives us full control over the scaling, no automatic size changing.
 
-Screens with a height of a least `MIN_VIEW_HEIGHT` in CSS pixels, act exactly as `Phaser.Scale.RESIZE` would - 1 game pixel is 1 CSS pixel.
+The view is always between `MIN_VIEW_HEIGHT` (704) and `MAX_VIEW_HEIGHT` (736) game pixels tall. The band is deliberately narrow: every device shows almost the same slice of a level, and only the width changes with the aspect ratio.
 
-On shorter screens the game gets `MIN_VIEW_HEIGHT` pixels of height, and the browser draws that canvas scaled down. Plain `RESIZE` would crop the top and bottom levels instead and `EXPAND` would display empty space below the game.
+Screens with a height inside that band in CSS pixels, act exactly as `Phaser.Scale.RESIZE` would - 1 game pixel is 1 CSS pixel.
+
+On shorter screens (a phone in landscape) the game gets `MIN_VIEW_HEIGHT` pixels of height, and the browser draws that canvas scaled down. Plain `RESIZE` would crop the top and bottom levels instead and `EXPAND` would display empty space below the game.
+
+On taller screens (most desktop windows, a phone in portrait) the game gets `MAX_VIEW_HEIGHT` pixels of height, and the browser draws that canvas scaled up, so a big monitor doesn't show more of a level than a small one.
+
+Both values live in [display.ts](/src/game/config/display.ts).
 
 A `ResizeObserver()` is a browser API on the parent, and it watches size change of parent element. After detecting a change, we resize `Phaser.Scale` which fires `RESIZE` event and `onResize()` listener is triggered.
 
@@ -60,7 +66,7 @@ Returns the scale a HUD element should be drawn at on the current view. `base` i
 
 ## Orientation
 
-The game plays in both portrait and landscape; there is no orientation lock or rotate overlay. Portrait uses the screen as-is (narrow and tall view), while landscape on a phone is scaled by `fitToParent()` so the full height of the view stays visible.
+The game plays in both portrait and landscape; there is no orientation lock or rotate overlay. Both are scaled by `fitToParent()`: portrait is taller than `MAX_VIEW_HEIGHT` in CSS pixels, so it's drawn scaled up into a narrow and tall view, while landscape on a phone is shorter than `MIN_VIEW_HEIGHT` and drawn scaled down, so the full height of the view stays visible.
 
 ## Adding a Responsive Element
 - Create the object at any position
