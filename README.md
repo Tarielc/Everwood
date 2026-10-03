@@ -17,3 +17,7 @@
 - [Wave Director](/docs/wave-director.md)
 - [Audio Controller](/docs/audio-controller.md)
 - [Arena Leaderboard](/docs/leaderboard.md)
+
+## License
+
+The source code template is under the [MIT license](/LICENSE). The art, music, sound effects and fonts are third-party assets under their own licenses - see [CREDITS.md](/CREDITS.md).

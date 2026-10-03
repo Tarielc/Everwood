@@ -1,6 +1,12 @@
 MIT License
 
-Copyright (c) 2025 Phaser Studio Inc
+Copyright (c) 2026 Tarielc
+Copyright (c) 2025 Phaser Studio Inc (the phaserjs/template-vite-ts project template this game was started from)
+
+This license covers the source code of Everwood only: everything under `src/`,
+`api/`, `docs/` and the build configuration. It does NOT cover the art, music,
+sound effects and fonts under `public/assets/`. Those are third-party works used
+under their own authors' licenses and are not relicensed here - see CREDITS.md.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
