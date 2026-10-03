@@ -1,6 +1,6 @@
 {
   "name": "everwood",
-  "description": "A 2D platformer game. Fight foes, kill the boss, or test your skills against inifnite enemy waves, and check your position in global rating.",
+  "description": "A 2D action platformer that runs in the browser. Battle enemies, challenge a boss, or test your skills against endless enemy waves and fight your way up the global leaderboard. How long can you last?",
   "version": "1.4.0",
   "repository": {
     "type": "git",
@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/Tarielc/Everwood/issues"
   },
-  "homepage": "https://github.com/Tarielc/Everwoods#readme",
+  "homepage": "https://github.com/Tarielc/Everwood#readme",
   "scripts": {
     "dev": "node log.js dev & vite --config vite/config.dev.mjs",
     "build": "node log.js build & vite build --config vite/config.prod.mjs",
