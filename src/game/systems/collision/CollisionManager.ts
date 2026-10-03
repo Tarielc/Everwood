@@ -26,6 +26,18 @@ export class CollisionManager {
     /** Set to track current foes, removed when they die */
     private readonly foes = new Set<Foe>()
 
+    /**
+     * Everything of a kind shares one group, and each group gets one collider - arcade
+     * never lets go of a collider by itself, so one per arrow would pile up for as long
+     * as the level runs. A group drops a member the moment it is destroyed
+     */
+    private readonly foeGroup: Phaser.GameObjects.Group
+    private readonly projectileGroup: Phaser.GameObjects.Group
+    private readonly pickupGroup: Phaser.GameObjects.Group
+
+    /** What picking each pickup up does, handed in with it */
+    private readonly onCollect = new Map<PowerUp, (pickup: PowerUp) => void>()
+
     /** Track all colliders for cleanup */
     private readonly colliders: Phaser.Physics.Arcade.Collider[] = []
 
@@ -33,7 +45,8 @@ export class CollisionManager {
     private readonly targetBounds: Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle()
 
     /**
-     * Creates a manager and registers cleanup for scene shutdown
+     * Creates a manager, collides every group with the world's solid layers
+     * and registers cleanup for scene shutdown
      * 
      * @param scene - Scene that owns the physics interactions
      * @param world - World map that providde solid-layer collisions and zones
@@ -42,11 +55,22 @@ export class CollisionManager {
         private readonly scene: Phaser.Scene,
         private readonly world: WorldMap,
     ) {
+        // plain groups rather than physics groups - a physics group would overwrite
+        // the body settings each entity gave itself
+        this.foeGroup = scene.add.group()
+        this.projectileGroup = scene.add.group()
+        this.pickupGroup = scene.add.group()
+
+        this.track(world.collide(this.foeGroup))
+        this.track(world.collide(this.projectileGroup, projectile => (projectile as Projectile).strike()))
+        this.track(world.collide(this.pickupGroup))
+
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
     /**
-     * Registers the players and adds collision with world's solid layers
+     * Registers the players, adds collision with world's solid layers
+     * and the overlaps with every foe, projectile and pickup
      * 
      * Call first. Other registrations aren't upated when player is missing.
      * 
@@ -64,15 +88,38 @@ export class CollisionManager {
         this.player = player
         this.track(this.world.collide(player))
 
+        this.track([
+            // contact costs health - the two of them can still stand in the same place
+            this.scene.physics.add.overlap(player, this.foeGroup, (_player, object) => {
+                const foe = object as Foe
+                if (!foe.isDead) player.takeDamage(foe.contactDamage, foe)
+            }),
+            this.scene.physics.add.overlap(player, this.projectileGroup, (_player, object) => {
+                const projectile = object as Projectile
+                if (!projectile.active) return
+
+                // the shooter is the source, not the arrow - being knocked back
+                // towards whoever fired it would read as being pulled in
+                player.takeDamage(projectile.damage, projectile.shooter)
+
+                // spent either way - an arrow stopped by i-frames still stops
+                projectile.strike()
+            }),
+            this.scene.physics.add.overlap(player, this.pickupGroup, (_player, object) => {
+                const pickup = object as PowerUp
+                // a corpse doesn't pick things up, and collect() refuses a second go
+                if (player.getHealth.isDead || !pickup.collect()) return
+                this.onCollect.get(pickup)?.(pickup)
+            }),
+        ])
+
         return this
     }
 
     /**
      * Registers a foe for world collisions and player touching damage detection.
      * 
-     * If player is present also adds physical blocking and an overlap
-     * that attempts contact damage. Removes the foe from tracked set when
-     * its game object is destroyed.
+     * Removes the foe from tracked set when its game object is destroyed.
      * 
      * @param foe - A single foe object to register
      * @returns The same foe instance
@@ -80,19 +127,7 @@ export class CollisionManager {
      */
     addFoe(foe: Foe): Foe {
         this.foes.add(foe)
-        this.track(this.world.collide(foe))
-
-        const player = this.player
-        if (player) {
-            this.track([
-                this.scene.physics.add.overlap(player, foe, () => {
-                    if (!foe.isDead) player.takeDamage(foe.contactDamage, foe)
-                }),
-                // alongside the overlap rather than instead of it - contact costs
-                // health, and the two of them still can't stand in the same place
-                //this.scene.physics.add.collider(player, foe),
-            ])
-        }
+        this.foeGroup.add(foe)
 
         foe.once(Phaser.GameObjects.Events.DESTROY, () => this.foes.delete(foe))
 
@@ -108,23 +143,7 @@ export class CollisionManager {
      * @returns The same projectile instance.
      */
     addProjectile(projectile: Projectile): Projectile {
-        this.track(this.world.collide(projectile, () => projectile.strike()))
-
-        const player = this.player
-        if (player) {
-            this.track([
-                this.scene.physics.add.overlap(player, projectile, () => {
-                    if (!projectile.active) return
-
-                    // the shooter is the source, not the arrow - being knocked back
-                    // towards whoever fired it would read as being pulled in
-                    player.takeDamage(projectile.damage, projectile.shooter)
-
-                    // spent either way - an arrow stopped by i-frames still stops
-                    projectile.strike()
-                }),
-            ])
-        }
+        this.projectileGroup.add(projectile)
 
         return projectile
     }
@@ -140,18 +159,10 @@ export class CollisionManager {
      * @returns The same pickup instance
      */
     addPickup(pickup: PowerUp, onCollect: (pickup: PowerUp) => void): PowerUp {
-        this.track(this.world.collide(pickup))
+        this.pickupGroup.add(pickup)
 
-        const player = this.player
-        if (player) {
-            this.track([
-                this.scene.physics.add.overlap(player, pickup, () => {
-                    // a corpse doesn't pick things up, and collect() refuses a second go
-                    if (player.getHealth.isDead || !pickup.collect()) return
-                    onCollect(pickup)
-                }),
-            ])
-        }
+        this.onCollect.set(pickup, onCollect)
+        pickup.once(Phaser.GameObjects.Events.DESTROY, () => this.onCollect.delete(pickup))
 
         return pickup
     }
@@ -193,7 +204,14 @@ export class CollisionManager {
         for (const collider of this.colliders) collider.destroy()
 
         this.colliders.length = 0
+
+        // the groups only - their members belong to the scene
+        this.foeGroup.destroy()
+        this.projectileGroup.destroy()
+        this.pickupGroup.destroy()
+
         this.foes.clear()
+        this.onCollect.clear()
         this.player = null
     }
 

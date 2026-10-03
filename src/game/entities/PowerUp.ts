@@ -62,8 +62,6 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
         // a little hop out of the foe, off to a random side, so a drop is seen happening
         const side = Math.random() < 0.5 ? -1 : 1
         this.setVelocity(side * config.popVelocityX, config.popVelocityY)
-
-        scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
     /**

@@ -3,6 +3,7 @@ import type Foe from '../../entities/Foe';
 import { targetCenter } from '../../entities/Foe';
 import { FoeAnims } from '../../data/animations';
 import { State } from './StateMachine';
+import { damping } from '../../utils/damping';
 
 /** List of foe states, keyd by {@link FoeStateName} */
 export const FoeState = {
@@ -20,7 +21,7 @@ export type FoeStateName = typeof FoeState[keyof typeof FoeState]
 /** how long a flinch holds on a sheet that hasn't got a hurt animation to time it */
 const HURT_STUN_MS = 320
 
-/** What a flier keeps of its knockback each frame - nothing else would slow it with no ground to land on */
+/** What a flier keeps of its knockback each frame at 60 FPS - nothing else would slow it with no ground to land on */
 const FLIER_HURT_DAMPING = 0.88
 
 /**
@@ -253,7 +254,7 @@ export function createFoeStates(): State<Foe>[] {
             enter(foe) {
                 play(foe, "hurt")
             },
-            update(foe) {
+            update(foe, dt) {
                 // a sheet with a flinch drawn on it holds for exactly as long as that
                 // plays; the rest fall back to a fixed stun on their idle frames
                 const stunned = foe.getAnimations.has("hurt")
@@ -263,7 +264,8 @@ export function createFoeStates(): State<Foe>[] {
                 if (foe.definition.flying) {
                     // no landing to end a shove, so it bleeds off instead
                     const { x, y } = (foe.body as Phaser.Physics.Arcade.Body).velocity
-                    foe.setVelocity(x * FLIER_HURT_DAMPING, y * FLIER_HURT_DAMPING)
+                    const keep = damping(FLIER_HURT_DAMPING, dt)
+                    foe.setVelocity(x * keep, y * keep)
                     if (stunned) return
                 } else if (stunned || !foe.isGrounded) {
                     // a knockback can outlast the flinch - hold until it lands, so the

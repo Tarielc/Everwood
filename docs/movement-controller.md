@@ -37,10 +37,10 @@ this.movement.update(NO_INPUT, delta)
 ## Horizontal Movement
 
 - Holding left or right sets acceleration to `±acceleration`. In the air it is 70% of that, so air control is weaker.
-- With no direction held, acceleration is `0` and velocity is multiplied by `0.85` per frame on the ground and `0.95` in the air.
+- With no direction held, acceleration is `0` and velocity is multiplied by `0.85` per 60 FPS frame on the ground and `0.95` in the air.
 - Velocity is then clamped to `sprintSpeed` if sprint is held, otherwise to `speed`.
 
-The damping factors are applied per frame, not per second, so deceleration depends on frame rate.
+The damping factors are authored per frame at 60 FPS and passed through `damping(factor, dt)` ([damping.ts](/src/game/utils/damping.ts)), which stretches them over the real frame time - so deceleration is the same on a 60 Hz and a 120 Hz screen.
 
 ## Jumping
 

@@ -149,8 +149,6 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
 
         this.bindHealth()
         this.bindAudio()
-
-        scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
     /**

@@ -26,6 +26,7 @@ import { createPlayerStates, PlayerState } from '../systems/state/PlayerStates';
 import { MeleeAttack } from '../components/attack/MeleeAttack';
 import { StatusEffectComponent, StatusEffectEvent } from '../components/StatusEffectComponent';
 import type { PowerUpDefinition } from '../data/powerUps';
+import { damping } from '../utils/damping';
 
 /** How fast the sprite blinks while it is in i-frames */
 const INVULNERABILITY_BLINK_MS = 70
@@ -156,8 +157,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.bindHealth()
         this.bindEquipment()
         this.bindEffects()
-
-        scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
     /**
@@ -199,7 +198,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
             // gravity, jumping and the input buffers all still ran above - a swing
             // can be jumped out of, it just can't be walked out of
-            if (this.attack.isAttacking && this.isGrounded()) this.plantFeet()
+            if (this.attack.isAttacking && this.isGrounded()) this.plantFeet(delta)
         }
 
         // ticks the cooldown and drags the hit area along with the player
@@ -530,10 +529,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     /**
      * Apply drag to slow velocity.
      * So a grounded swing bring player to a stop.
+     *
+     * @param delta - Time elapsed since the previous frame
      */
-    private plantFeet(): void {
+    private plantFeet(delta: number): void {
         const body = this.body as Phaser.Physics.Arcade.Body
-        body.velocity.x *= SWING_FOOT_DRAG
+        body.velocity.x *= damping(SWING_FOOT_DRAG, delta)
     }
 
     /**

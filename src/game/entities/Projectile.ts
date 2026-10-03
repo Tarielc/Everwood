@@ -56,8 +56,6 @@ export default class Projectile extends Phaser.Physics.Arcade.Sprite {
         if (definition.gravity > 0) body.setGravityY(definition.gravity)
 
         this.setVelocityX(direction * definition.speed)
-
-        scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }
 
     /** Update projectile timer and discard it */

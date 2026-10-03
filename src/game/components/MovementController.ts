@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { InputState } from '../systems/inputs/InputController';
+import { damping } from '../utils/damping';
 
 /**
  * Tuning for a {@link MovementController}. Speeds are in px/s,
@@ -77,7 +78,7 @@ export class MovementController {
      */
     update(input: InputState, dt:number, capSpeed = true): void {
         this.updateTimers(input, dt)
-        this.applyHorizontal(input, capSpeed)
+        this.applyHorizontal(input, dt, capSpeed)
         this.applyGravity()
         this.tryConsumeJump(input)
         this.applyJumpCut(input)
@@ -155,7 +156,7 @@ export class MovementController {
      * Accelerates toward the held direction (weaker in the air), damps veocity
      * when nothing is held, and clamps maximum walking or sprinting speed.
      */
-    private applyHorizontal(input: InputState, capSpeed: boolean): void {
+    private applyHorizontal(input: InputState, dt: number, capSpeed: boolean): void {
         const body = this.sprite.body as Phaser.Physics.Arcade.Body
         const grounded = body.blocked.down || body.touching.down
         const acceleration = this.config.acceleration * this.speedMultiplier * (grounded ? 1 : 0.7) // weak air control
@@ -168,7 +169,7 @@ export class MovementController {
         } else {
             // set accelerations to 0 and apply drag to make deceleration feel natural
             body.setAccelerationX(0)
-            body.velocity.x *= grounded? 0.85 : 0.95
+            body.velocity.x *= damping(grounded ? 0.85 : 0.95, dt)
         }
 
         if (!capSpeed) return

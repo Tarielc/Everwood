@@ -62,4 +62,4 @@ An attack press is queued even if player can't act on it. This stores presses ne
 
 ## Cleanup
 
-`Player` destroys itself and all of its components when the scene SHUTDOWNs. 
+`Player` and all of its components are destroyed when the scene shuts down - Phaser destroys every game object on the display list then, which runs `Player.destroy()`. 
