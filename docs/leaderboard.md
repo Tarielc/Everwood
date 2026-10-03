@@ -37,7 +37,7 @@ One Vercel function, `api/arena/leaderboard.ts`, using web-standard `GET`/`POST`
 | --- | --- |
 | `GET /api/arena/leaderboard` | `200 { entries: [{ name, wave, kills }] }` - top `LEADERBOARD_SIZE`, best first |
 | `POST /api/arena/leaderboard` with `{ name, wave, kills }` | `201 { rank }` - ties share a rank |
-| Anything that fails a check | `400 { error }` - a message the game shows as-is |
+| Anything that fails a check, or a name the filter turns away | `400 { error }` - a message the game shows as-is |
 | Database down or misconfigured | `500 { error: "Leaderboard unavailable" }` |
 
 Scores live in the `arenaScores` collection as `{ name, wave, kills, createdAt }`, with a `ranking` index on `{ wave: -1, kills: -1, createdAt: 1 }` created on first use. The Mongo client is cached per warm function instance (`api/_lib/mongo.ts`) so requests reuse a pool rather than opening a connection each.
@@ -52,7 +52,16 @@ Scores live in the `arenaScores` collection as `{ name, wave, kills, createdAt }
 - **Wave**: an integer from 1 to `MAX_RANKED_WAVE`.
 - **Kills**: must fall in `killRange(wave)`. A wave only begins once the one before is cleared, so a run that ended on wave *N* killed every foe of waves 1..*N*-1, plus anywhere from none to all of wave *N*. The counts come from `foesInWave(ARENA_WAVES, w)` - the same `countFor` the `WaveDirector` plans waves with - so the check can't drift from the game.
 
-This turns away anything the game couldn't have produced. It doesn't stop someone posting a plausible made-up run with `curl`; that would need server-side verification of the run itself. There's no rate limiting or profanity filter either.
+This turns away anything the game couldn't have produced. It doesn't stop someone posting a plausible made-up run with `curl`; that would need server-side verification of the run itself. There's no rate limiting either.
+
+## Name Filter
+
+A name that passes the shared checks is then run through [`obscenity`](https://github.com/jo3-l/obscenity) in `api/_lib/profanity.ts`, and turned away with `400 { error: "Pick another name" }` if it matches. This one is server-only on purpose: the word list stays out of the game's bundle, and a filter running in the player's browser wouldn't stop anyone.
+
+- Uses the library's English dataset and recommended transformers, so leetspeak (`sh1t`), lookalike characters and stretched letters are seen through, and innocent words containing a bad one (`Scunthorpe`, `Dickens`) pass.
+- The name is checked twice - as typed, and with its separators (space `.` `_` `'` `-`) removed, so `f.u.c.k` is caught. The cost is the odd false positive where two clean words join into a bad one (`Push It`).
+- English only. Names in other scripts pass through unfiltered.
+- It only guards new submissions - names already in `arenaScores` aren't re-checked.
 
 > Changing `ARENA_WAVES` changes what counts as a possible run. Deploy the game and the API together - they're one Vercel project, so a normal deploy does that.
 

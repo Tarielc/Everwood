@@ -1,4 +1,5 @@
 import { arenaScores } from "../_lib/mongo"
+import { isObscene } from "../_lib/profanity"
 import { LEADERBOARD_SIZE, LeaderboardEntry, checkArenaScore } from "../../src/game/data/leaderboard"
 
 /*
@@ -49,6 +50,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!check.ok) return json({ error: check.error }, 400)
 
     const { score } = check
+    if (isObscene(score.name)) return json({ error: "Pick another name" }, 400)
 
     try {
         const scores = await arenaScores()

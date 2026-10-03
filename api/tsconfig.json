@@ -3,8 +3,8 @@
     // settings - Vercel compiles them as CommonJS, which the root config's bundler mode refuses
     "compilerOptions": {
         "target": "ES2022",
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "module": "node16",
+        "moduleResolution": "node16",
         "lib": ["ES2022"],
         "types": ["node"],
         "strict": true,
