@@ -11,8 +11,8 @@ import { AudioController } from '../systems/audio/AudioController';
  *
  * Runs after {@link BootScene}, which has already loaded the essential stuff -
  * including the sprite atlas every character, foe, weapon, projectile, pickup and
- * HUD image is drawn from. What's left is driven off {@link BUTTONS}, the audio
- * bank and the map JSON, so adding an entry there is all it takes to get it loaded.
+ * HUD image is drawn from. What's left is driven off {@link BUTTONS}, the sound
+ * effects and the map JSON, so adding an entry there is all it takes to get it loaded.
  *
  * When loading is done starts `MainMenuScene`.
  */
@@ -43,7 +43,7 @@ export default class PreloadScene extends Phaser.Scene {
      * Queued here:
      * - map tileset sheets and backdrops, via {@link loadMapImages}
      * - touch control button SVGs (up and down textures), rasterized at {@link BUTTON_SVG_SCALE}
-     * - every music track, ambience bed and sound effect in the audio bank
+     * - the sound effects sprite - music and ambience are fetched by the mixer as they play
      */
     preload() {
         // create a loading graph
@@ -54,7 +54,8 @@ export default class PreloadScene extends Phaser.Scene {
             loadingGraph.setPosition(width / 2, height / 2)
         })
 
-        // the whole audio bank, driven off the registries in data/audio.ts
+        // sound effects only - music and ambience are far too big to decode up front,
+        // so the mixer fetches each track as it is about to play
         AudioController.load(this.load)
 
         // every sheet and backdrop the map names, queued off the map data that

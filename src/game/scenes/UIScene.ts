@@ -60,6 +60,8 @@ export default class UIScene extends Phaser.Scene {
         this.addAudioButtons()
 
         onResize(this, (width, height) => this.layout(width, height))
+
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)
     }
 
     /**

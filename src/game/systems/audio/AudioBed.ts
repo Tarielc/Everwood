@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 
-import { audioKey, AudioBankName, BedDefinition } from '../../data/audio';
+import { BedDefinition } from '../../data/audio';
 
 /**
  * A sound the mixer can actually work with.
@@ -14,14 +14,32 @@ export type GameSound =
     | Phaser.Sound.WebAudioSound
 
 /**
- * How a bed gets a sound. The controller owns the sound manager and the cache, so it
- * makes them; the bed only ever asks for a key it built itself
+ * Where a bed gets its tracks. The controller owns the sound manager and the cache, so
+ * it fetches, makes and lets go of them; the bed only says which file it wants and when
+ * it is done with it.
+ *
+ * A track is fetched and decoded the moment it is about to play and dropped the moment
+ * it stops - decoded audio is tens of megabytes a track, so only what is audible is held
  */
-export type BedSoundFactory = (key: string, config: Phaser.Types.Sound.SoundConfig) => GameSound | null
+export interface BedSource {
+    /**
+     * Fetch and decode a file, and hold it until {@link release}
+     *
+     * @param file - The file, as the bed's definition writes it
+     * @returns The cache key to {@link create} it with, or `null` if it couldn't be loaded. Never rejects
+     */
+    acquire(file: string): Promise<string | null>
+    /** Make a sound from a key {@link acquire} handed back, or `null` if it can't be made */
+    create(key: string, config: Phaser.Types.Sound.SoundConfig): GameSound | null
+    /** Done with a key - every {@link acquire} that returned one is matched by one of these */
+    release(key: string): void
+}
 
 /** One track on the bed, with the fade it is in the middle of */
 interface BedVoice {
     sound: GameSound
+    /** The cache key it was made from, handed back to the source when it stops */
+    key: string
     /** Which entry it belongs to - a track that ends after a swap is not the one that advances the playlist */
     id: string
     /** Where its fade currently sits, `0` silent to `1` fully in */
@@ -40,6 +58,10 @@ interface BedVoice {
  * Music and ambience are the same machine pointed at different registries: one bed each,
  * swapped by crossfade rather than cut, with an entry of several files played as a
  * playlist that advances when a track ends.
+ *
+ * A track is loaded when it is asked for rather than up front, so there is a moment
+ * between asking and hearing. Whatever was on the bed keeps playing through it, and the
+ * crossfade starts once the new track is ready.
  *
  * It owns no volume of its own. Every frame it asks {@link level} what its channel is
  * currently worth - which is where the player's sliders, the master bus and any ducking
@@ -62,16 +84,17 @@ export class AudioBed {
     /** How far through {@link order} the bed is */
     private position: number = 0
 
+    /** Bumped whenever the bed changes its mind, so a track that finishes loading after that is dropped */
+    private request: number = 0
+
     /**
-     * @param bank - Registry the bed's entries come from, so it can build their cache keys
      * @param defaultFadeMs - Crossfade used by an entry that doesn't name its own
-     * @param create - How to make a sound
+     * @param source - Where tracks are loaded from and made
      * @param level - What this bed's channel is worth right now, `0`-`1`
      */
     constructor(
-        private readonly bank: AudioBankName,
         private readonly defaultFadeMs: number,
-        private readonly create: BedSoundFactory,
+        private readonly source: BedSource,
         private readonly level: () => number,
     ) { }
 
@@ -95,14 +118,13 @@ export class AudioBed {
 
         const fade = fadeMs ?? definition.fadeMs ?? this.defaultFadeMs
 
-        this.fadeOutAll(fade)
-
         this.id = id
         this.definition = definition
         this.order = this.buildOrder(definition)
         this.position = 0
 
-        this.startTrack(fade)
+        // whatever is on the bed is faded out once the new track is ready to come in
+        this.startTrack(fade, true)
     }
 
     /**
@@ -111,6 +133,8 @@ export class AudioBed {
      * @param fadeMs - How long the fade out takes - `0` cuts it
      */
     stop(fadeMs?: number): void {
+        // anything still loading is no longer wanted
+        this.request += 1
         this.fadeOutAll(fadeMs ?? this.definition?.fadeMs ?? this.defaultFadeMs)
 
         this.id = null
@@ -163,6 +187,7 @@ export class AudioBed {
 
     /** Destructor - drops every track on the bed, fade or no fade */
     destroy(): void {
+        this.request += 1
         for (let i = this.voices.length - 1; i >= 0; i--) this.retire(i)
 
         this.id = null
@@ -171,11 +196,12 @@ export class AudioBed {
     }
 
     /**
-     * Start the track {@link position} points at, fading it in
+     * Load the track {@link position} points at and start it, fading it in
      *
      * @param fadeMs - How long it takes to come up
+     * @param replace - Fade out everything else on the bed as it comes in - a swap, rather than a playlist moving on
      */
-    private startTrack(fadeMs: number): void {
+    private startTrack(fadeMs: number, replace: boolean = false): void {
         const definition = this.definition
         if (!definition || this.order.length === 0) return
 
@@ -185,9 +211,40 @@ export class AudioBed {
         const loop = definition.files.length === 1
 
         const id = this.id!
-        const sound = this.create(audioKey(this.bank, id, index), { loop, volume: 0 })
-        if (!sound) return
+        const request = ++this.request
 
+        this.source.acquire(definition.files[index]).then(key => {
+            // swapped or stopped while it was loading - nobody is waiting for it any more
+            if (request !== this.request) {
+                if (key) this.source.release(key)
+                return
+            }
+
+            // ready or failed, the bed has moved on from whatever it was playing
+            if (replace) this.fadeOutAll(fadeMs)
+            if (!key) return
+
+            const sound = this.source.create(key, { loop, volume: 0 })
+            if (!sound) {
+                this.source.release(key)
+                return
+            }
+
+            this.begin(sound, key, id, loop, fadeMs, definition.volume)
+        })
+    }
+
+    /**
+     * Put a loaded track on the bed
+     *
+     * @param sound - The track
+     * @param key - The cache key it was made from
+     * @param id - The entry it belongs to
+     * @param loop - Whether it loops on itself rather than handing over to the next track
+     * @param fadeMs - How long it takes to come up
+     * @param volume - The entry's own volume
+     */
+    private begin(sound: GameSound, key: string, id: string, loop: boolean, fadeMs: number, volume: number): void {
         // the track that just ended is dropped before the next one starts, so a long
         // playlist doesn't leave a voice behind on every hand-over
         if (!loop) sound.once(Phaser.Sound.Events.COMPLETE, () => this.finish(sound, id))
@@ -196,12 +253,13 @@ export class AudioBed {
 
         this.voices.push({
             sound,
+            key,
             id,
             // no fade means it is simply already up, rather than heading there at no speed
             level: fadeMs > 0 ? 0 : 1,
             target: 1,
             speed: fadeMs > 0 ? 1 / fadeMs : 0,
-            volume: definition.volume,
+            volume,
         })
     }
 
@@ -257,7 +315,7 @@ export class AudioBed {
     }
 
     /**
-     * Stop a voice and let go of it
+     * Stop a voice and let go of it, and of the decoded track it was playing
      *
      * @param index - Where it sits in {@link voices}
      */
@@ -265,6 +323,7 @@ export class AudioBed {
         const [voice] = this.voices.splice(index, 1)
         voice.sound.stop()
         voice.sound.destroy()
+        this.source.release(voice.key)
     }
 
     /**

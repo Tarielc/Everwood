@@ -4,10 +4,10 @@ import { AUDIO, AudioBus, AUDIO_BUSES, AudioChannel } from '../../config/audio';
 import {
     AMBIENCE,
     AmbienceId,
-    AUDIO_BANKS,
-    AudioBankName,
-    audioKey,
     audioPath,
+    BED_FORMATS,
+    BedFormat,
+    bedKey,
     MUSIC,
     MusicId,
     SFX_SPRITE,
@@ -15,7 +15,7 @@ import {
     SoundDefinition,
     SoundId,
 } from '../../data/audio';
-import { AudioBed, GameSound } from './AudioBed';
+import { AudioBed, BedSource, GameSound } from './AudioBed';
 
 /** What the controller tells the rest of the game about - an options menu follows these rather than polling */
 export const AudioEvent = {
@@ -76,7 +76,8 @@ interface SavedSettings {
  * - **Voices.** Each sound is throttled and capped, so a frame that reports four hits
  *   plays one impact rather than four stacked copies of it
  * - **Beds.** One music bed and one ambience bed, crossfaded rather than cut, each able to
- *   play a shuffled playlist
+ *   play a shuffled playlist. A track is fetched and decoded when it is about to play and
+ *   dropped when it stops, so only what is audible is ever held in memory
  * - **Space.** {@link playAt} thins a sound out with its distance from the listener and pans
  *   it to the side it happened on, and drops it outright past the falloff's range
  * - **Ducking.** A sound can dip the beds while it plays, so a death or a fanfare is heard
@@ -129,6 +130,12 @@ export class AudioController extends Phaser.Events.EventEmitter {
     /** Which variation each sound used last, so a two-file sound alternates rather than repeats */
     private readonly lastVariant: Map<SoundId, number> = new Map()
 
+    /** Bed files being fetched or already decoded, by cache key - shared, so one file is only ever loaded once */
+    private readonly loads: Map<string, Promise<boolean>> = new Map()
+
+    /** How many bed voices hold each decoded file - at none, it is dropped from the cache */
+    private readonly holds: Map<string, number> = new Map()
+
     /** Keys already reported missing, so a sound that failed to load warns once rather than every frame */
     private readonly missing: Set<string> = new Set()
 
@@ -165,19 +172,14 @@ export class AudioController extends Phaser.Events.EventEmitter {
         this.mutes = { master: false, music: false, ambience: false, sfx: false, ui: false }
         this.loadSettings()
 
-        this.musicBed = new AudioBed(
-            "music",
-            AUDIO.musicFadeMs,
-            (key, config) => this.createSound(key, config),
-            () => this.bedLevel("music"),
-        )
+        const tracks: BedSource = {
+            acquire: file => this.acquireTrack(file),
+            create: (key, config) => this.createSound(key, config),
+            release: key => this.releaseTrack(key),
+        }
 
-        this.ambienceBed = new AudioBed(
-            "ambience",
-            AUDIO.ambienceFadeMs,
-            (key, config) => this.createSound(key, config),
-            () => this.bedLevel("ambience"),
-        )
+        this.musicBed = new AudioBed(AUDIO.musicFadeMs, tracks, () => this.bedLevel("music"))
+        this.ambienceBed = new AudioBed(AUDIO.ambienceFadeMs, tracks, () => this.bedLevel("ambience"))
 
         // the game's own step rather than a scene's, so nothing here is torn down by a
         // level change - which is a scene restart, and takes every scene timer with it
@@ -219,10 +221,11 @@ export class AudioController extends Phaser.Events.EventEmitter {
     }
 
     /**
-     * Queue every file in the bank onto a loader - the sfx sprite, and every bed.
+     * Queue the sfx sprite onto a loader - every sound effect is a marker in it.
      *
-     * Driven off the registries, so a new bed is an entry in `data/audio.ts` and nothing
-     * else, and a new sound is that plus a marker in the sprite
+     * The beds aren't queued here. Music and ambience are fetched one track at a time as
+     * they are about to play - see {@link acquireTrack} - so a new bed is an entry in
+     * `data/audio.ts` and nothing else
      *
      * @param load - Loader to queue against, from a scene's `preload()`
      */
@@ -230,16 +233,6 @@ export class AudioController extends Phaser.Events.EventEmitter {
         // the audio is named here rather than read out of the json's own `resources`,
         // which lists formats that were never exported and resolves against the wrong folder
         load.audioSprite(SFX_SPRITE.key, audioPath(SFX_SPRITE.json), SFX_SPRITE.audio.map(audioPath))
-
-        const banks = Object.entries(AUDIO_BANKS) as [AudioBankName, Record<string, { files: readonly string[] }>][]
-
-        for (const [bank, entries] of banks) {
-            for (const [id, entry] of Object.entries(entries)) {
-                entry.files.forEach((file, index) => {
-                    load.audio(audioKey(bank, id, index), audioPath(file))
-                })
-            }
-        }
     }
 
     // sound effects ----------------------------------------------------------
@@ -510,12 +503,122 @@ export class AudioController extends Phaser.Events.EventEmitter {
         this.ambienceBed.destroy()
 
         this.voices.clear()
+        this.loads.clear()
+        this.holds.clear()
         this.lastPlayed.clear()
         this.lastVariant.clear()
 
         if (AudioController.current === this) AudioController.current = null
 
         super.destroy()
+    }
+
+    // bed tracks ---------------------------------------------------------------
+
+    /**
+     * Fetch and decode one bed file, and hold it until {@link releaseTrack}.
+     *
+     * Beds are loaded here, when they are about to play, rather than by a scene's loader
+     * up front: a decoded track is around 20 MB a minute, so decoding all of them at
+     * once costs hundreds of megabytes that a phone hasn't got
+     *
+     * @param file - The file, as it is written in {@link MUSIC} or {@link AMBIENCE}
+     * @returns The cache key it is held under, or `null` if it couldn't be loaded
+     */
+    private async acquireTrack(file: string): Promise<string | null> {
+        const key = bedKey(file)
+        this.holds.set(key, (this.holds.get(key) ?? 0) + 1)
+
+        let load = this.loads.get(key)
+        if (!load) {
+            load = this.loadTrack(key, file)
+            this.loads.set(key, load)
+        }
+
+        if (await load) return key
+
+        // nothing to hold - letting go also forgets the failure, so the next ask tries again
+        this.releaseTrack(key)
+        return null
+    }
+
+    /**
+     * Let go of a bed file. The decoded audio is dropped once nothing holds it
+     *
+     * @param key - Cache key, from {@link acquireTrack}
+     */
+    private releaseTrack(key: string): void {
+        const left = (this.holds.get(key) ?? 1) - 1
+        if (left > 0) {
+            this.holds.set(key, left)
+            return
+        }
+
+        this.holds.delete(key)
+        this.loads.delete(key)
+        this.game.cache.audio.remove(key)
+    }
+
+    /**
+     * Download a track and decode it into the audio cache, in the first of
+     * {@link BED_FORMATS} that works - ogg by default, mp3 where ogg isn't supported.
+     *
+     * A format the browser says it can't play is skipped without being downloaded. One
+     * it claims to play but then fails to decode falls through to the next
+     *
+     * @param key - Cache key to put it under
+     * @param file - The track, without its extension
+     * @returns `true` once it is in the cache, `false` if no format could be fetched and decoded
+     */
+    private async loadTrack(key: string, file: string): Promise<boolean> {
+        // only Web Audio decodes into the cache this way - with no audio at all, or the
+        // HTML5 fallback, the beds simply stay silent
+        const context = "context" in this.manager
+            ? (this.manager as Phaser.Sound.WebAudioSoundManager).context
+            : null
+        if (!context) return false
+
+        let failure: unknown = "no supported format"
+
+        for (const format of this.playableFormats()) {
+            try {
+                const response = await fetch(audioPath(`${file}.${format}`))
+                if (!response.ok) throw new Error(`${response.status}`)
+
+                const data = await response.arrayBuffer()
+                // the callback form, which every browser has - the promise form came later
+                const buffer = await new Promise<AudioBuffer>((resolve, reject) => {
+                    context.decodeAudioData(data, resolve, reject)
+                })
+
+                // let go of while it was still on its way - nothing is left to play it
+                if (!this.holds.has(key)) return false
+
+                this.game.cache.audio.add(key, buffer)
+                return true
+            } catch (error) {
+                // on to the next format, if there is one
+                failure = error
+            }
+        }
+
+        if (!this.missing.has(key)) {
+            this.missing.add(key)
+            console.warn(`AudioController: couldn't load "${file}"`, failure)
+        }
+        return false
+    }
+
+    /**
+     * The bed formats this browser says it can play, in the order to try them
+     *
+     * @returns The supported entries of {@link BED_FORMATS} - all of them if the browser claims none, so something is still tried
+     */
+    private playableFormats(): readonly BedFormat[] {
+        const support = this.game.device.audio
+        const playable = BED_FORMATS.filter(format => support[format])
+
+        return playable.length > 0 ? playable : BED_FORMATS
     }
 
     // internals --------------------------------------------------------------
@@ -599,7 +702,7 @@ export class AudioController extends Phaser.Events.EventEmitter {
     /**
      * Make a sound, or say why it can't be made
      *
-     * @param key - Cache key, from {@link audioKey}
+     * @param key - Cache key, from {@link acquireTrack}
      * @param config - How it is to be played
      * @returns The sound, or `null` when its file isn't in the cache
      */

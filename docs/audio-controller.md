@@ -15,7 +15,7 @@
 - Phaser's sound manager is game-wide already, so the sounds outlive a scene whether or not anything is managing them
 - the player's volumes belong to the player, not to whichever level they happen to be standing in
 
-`AudioController.load(this.load)` in `PreloadScene` queues the whole bank off the registries, the same way the foe and item sheets are queued off theirs.
+`AudioController.load(this.load)` in `PreloadScene` queues the sound effects sprite. Music and ambience are not preloaded - see [Loading Beds](#loading-beds).
 
 ## The Bank
 
@@ -27,7 +27,9 @@
 
 An entry with several files means two different things by design: for a sound, they are **variations** - picked at random and never the same one twice in a row, which is what keeps two takes of a grunt from sounding like one; for a bed, they are a **playlist**, optionally shuffled, played one after another.
 
-`audioKey()` builds the cache key (`sound:player-hurt:1`) and `audioPath()` the URL, both from the entry. The loader and the controller go through the same two functions, so renaming a sound can't quietly leave the game playing nothing - and `audioPath()` encodes, which is what makes `music/Action 1.mp3` load.
+`audioPath()` builds the URL a file is loaded from, and encodes it, so a file name with a space in it would still load. `bedKey()` builds the cache key a bed track is held under (`bed:music/action-1`) - keyed by the track, so one that two beds share is only ever loaded once.
+
+A bed names its tracks **without an extension**. Every track is exported once per entry in `BED_FORMATS` (`ogg`, then `mp3`), and the controller loads the first one the browser can play: ogg by default, mp3 where ogg isn't supported. A format the browser claims but fails to decode falls through to the next. A new track needs both files under `public/assets/audio/`.
 
 Adding a sound is an entry in `SOUNDS` and a call to `play()`. Nothing else.
 
@@ -63,6 +65,18 @@ A bed is the looping layer underneath everything, and there are two: music and a
 - asking for what is already playing does nothing, so a scene can say what it wants on every `create()` without restarting the track every time the level restarts
 - a single-file bed loops on itself; a playlist runs each track once, drops it, and moves on to the next, reshuffling when it comes round
 - `null` stops the bed
+
+### Loading Beds
+
+A decoded track costs about 20 MB of memory per minute of stereo audio, so decoding every bed up front would cost hundreds of megabytes - more than a phone will give a browser tab. Instead a track is fetched and decoded the moment it is about to play, and dropped from the cache the moment it stops:
+
+- `AudioBed` asks its `BedSource` (the controller) to `acquire()` a file, and `release()`s it when the voice is retired
+- the controller counts who holds each file, so a track shared by two beds - or by both halves of a crossfade - is loaded once and dropped only when the last holder lets go
+- whatever was on the bed keeps playing while the new track loads, and the crossfade starts once it is ready
+- a playlist loads its next track when the current one ends, so there is a short pause between tracks rather than two of them held at once
+- a swap or a `stop()` that lands while a track is still loading drops it as it arrives
+
+So at most one music track and one ambience track are held at a time, two of each during a crossfade.
 
 A bed owns no volume of its own. Every frame it asks the controller what its channel is currently worth, so a slider moved mid-fade lands on the very next frame.
 

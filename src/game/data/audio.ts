@@ -62,8 +62,9 @@ export interface SoundDefinition extends AudioEntry {
  */
 export interface BedDefinition extends AudioEntry {
     /**
-     * The files this bed is played from, under {@link AUDIO_ROOT}. Several are a playlist,
-     * played back to back
+     * The tracks this bed is played from, under {@link AUDIO_ROOT}, named without an
+     * extension - each exists once per {@link BED_FORMATS} entry, and which one is
+     * loaded is decided by the browser. Several are a playlist, played back to back
      */
     files: readonly string[],
     /** Deal the playlist out in a random order, reshuffled each time round */
@@ -111,7 +112,7 @@ export const SOUNDS = {
     "player-death": {
         markers: ["player-death"],
         channel: "sfx",
-        volume: 0.65,
+        volume: 0.55,
         duck: true,
     },
     "player-jump": {
@@ -167,13 +168,13 @@ export const SOUNDS = {
     "foe-hurt": {
         markers: ["foe-hurt"],
         channel: "sfx",
-        volume: 0.3,
+        volume: 0.25,
         rateJitter: 0.02,
     },
     "foe-death": {
         markers: ["foe-death"],
         channel: "sfx",
-        volume: 0.35,
+        volume: 0.30,
         rateJitter: 0.02,
     },
     "archer-draw": {
@@ -240,23 +241,23 @@ export type SoundId = keyof typeof SOUNDS
 export const MUSIC = {
     /** The menu's own track, so the game has a voice before a level is even loaded */
     menu: {
-        files: ["music/Ambient 2.mp3"],
+        files: ["music/ambient-2"],
         volume: 0.5,
     },
     /** Out in the wood - the three ambient tracks, shuffled and played back to back */
     wood: {
-        files: ["music/Ambient 1.mp3", "music/Ambient 2.mp3", "music/Ambient 3.mp3"],
+        files: ["music/ambient-1", "music/ambient-2", "music/ambient-3"],
         volume: 0.45,
         shuffle: true,
     },
     /** The arena, where the fight never stops and neither does the drumming */
     arena: {
-        files: ["music/Action 1.mp3", "music/Action 2.mp3", "music/Action 3.mp3"],
+        files: ["music/action-1", "music/action-2", "music/action-3"],
         volume: 0.5,
         shuffle: true,
     },
     nether: {
-        files: ["music/Horror 1.mp3", "music/Horror 2.mp3", "music/Horror 3.mp3"],
+        files: ["music/horror-1", "music/horror-2", "music/horror-3"],
         volume: 0.1,
         shuffle: true,
     }
@@ -268,20 +269,20 @@ export type MusicId = keyof typeof MUSIC
 /** Every ambience bed - the room tone under the music, one per level */
 export const AMBIENCE = {
     forest: {
-        files: ["background-ambience/forest-background-animals.ogg"],
+        files: ["background-ambience/forest-background-animals"],
         volume: 0.5,
     },
     "arena-crowd": {
-        files: ["background-ambience/crowd-arena-background-noise.mp3"],
-        volume: 0.45,
+        files: ["background-ambience/crowd-arena-background-noise"],
+        volume: 0.7,
     },
     town: {
-        files: ["background-ambience/crowd-town-background-noise.mp3"],
-        volume: 0.4,
+        files: ["background-ambience/crowd-town-background-noise"],
+        volume: 0.45,
     },
     abyss: {
-        files: ["background-ambience/abyssal-pulse.mp3", "background-ambience/abyssal-chill.mp3", "background-ambience/abyssal-echo.mp3"],
-        volume: 0.3,
+        files: ["background-ambience/abyssal-pulse", "background-ambience/abyssal-chill", "background-ambience/abyssal-echo"],
+        volume: 0.4,
         shuffle: true,
     }
 } as const satisfies Record<string, BedDefinition>
@@ -290,36 +291,31 @@ export const AMBIENCE = {
 export type AmbienceId = keyof typeof AMBIENCE
 
 /**
- * The bed registries the loader walks, file by file, keyed by {@link AudioBankName}.
- * {@link SOUNDS} isn't one of them - it is played out of {@link SFX_SPRITE}
+ * The formats every bed track is exported in, in the order they are tried. Ogg first,
+ * as the smaller of the two; mp3 is what a browser that can't decode ogg falls back to
  */
-export const AUDIO_BANKS = {
-    music: MUSIC,
-    ambience: AMBIENCE,
-} as const
+export const BED_FORMATS = ["ogg", "mp3"] as const
 
-/** Which registry an entry came out of - part of its cache key, so ids can't collide across banks */
-export type AudioBankName = keyof typeof AUDIO_BANKS
+/** One of {@link BED_FORMATS} */
+export type BedFormat = typeof BED_FORMATS[number]
 
 /**
- * The cache key one file of a bank entry is loaded under.
+ * The cache key a bed file is held under while it plays.
  *
- * The loader and the controller both build it through here, so renaming a sound can't
- * quietly leave the game playing nothing
+ * Keyed by the file rather than by the bed that names it, so a track two beds share
+ * is one download and one decoded copy - and without its format, since only one is ever loaded
  *
- * @param bank - Which registry the entry is in
- * @param id - The entry's key in that registry
- * @param index - Which of the entry's files, counting from 0
- * @returns The cache key, e.g. `"music:wood:1"`
+ * @param file - The file, as it is written in {@link MUSIC} or {@link AMBIENCE}
+ * @returns The cache key, e.g. `"bed:music/action-1"`
  */
-export function audioKey(bank: AudioBankName, id: string, index: number): string {
-    return `${bank}:${id}:${index}`
+export function bedKey(file: string): string {
+    return `bed:${file}`
 }
 
 /**
  * The URL a bank file is loaded from.
  *
- * Encoded, because a couple of the music tracks are named with spaces in them
+ * Encoded, so a file named with a space or any other character a URL can't carry still loads
  *
  * @param file - The file, as it is written in the bank or in {@link SFX_SPRITE}
  * @returns Path under `public/`, ready for the loader
