@@ -6,7 +6,7 @@
 
 ## World Bounds
 
-world-bound behaviour is handled by the objecs themselves.
+world-bound behaviour is handled by the objects themselves.
 - `Player` and `Foe` objects allow `setColliderWorldBounds()` in their constructors.
 - `Projectiles` can leave the world bounds, and their `hasLeftTheWorld()` determines when object should get destroyed.
 
@@ -20,8 +20,8 @@ Foes, projectiles and pickups each live in one plain `Group`, and each group get
 
 Foe-related colliders include:
 - **Contact Damage**: An overlap check between player and foe applies foe's `ContactDamage` - (`ContactDamage = 0` for foes without overlap damage).
-- **Physical Blocking**: A simple collider between player and foe prevents them for passing through each other.
-- **Meele Attacks**: Hit detection checks swing's overlap against it's targets.
+- **Physical Blocking**: A simple collider between player and foe prevents them from passing through each other.
+- **Melee Attacks**: Hit detection checks swing's overlap against its targets.
 - **Ranged Attacks**: Projectiles overlap with the player and collide with solid layers. Either interaction disposes the projectile.
 
 ## Adding a New Collision/Overlap
@@ -41,8 +41,8 @@ Foe-related colliders include:
 
 ## Ownership and Cleanup
 
-`CollisionManager` manages relationships and interactions between objects such as aplyer-foe, projectile-world, player-zone, etc.
+`CollisionManager` manages relationships and interactions between objects such as player-foe, projectile-world, player-zone, etc.
 
-The private `track()` method stores collider/overlap handles for later cleanup. Pass every handle created by the manager ot this method.
+The private `track()` method stores collider/overlap handles for later cleanup. Pass every handle created by the manager to this method.
 
-The constructor registers one-time event listener for scene's `SHUTDOWN` event. Listener calls `destroy()` to cleanup the manager's tracked colliders when scene shutdowns.
+The constructor registers one-time event listener for scene's `SHUTDOWN` event. Listener calls `destroy()` to cleanup the manager's tracked colliders when the scene shuts down.

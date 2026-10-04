@@ -1,6 +1,6 @@
 # Movement Controller
 
-`MovementController` moves user-controller player character. It only touches the physics body velocity, acceleration, and gravity. Facing and animation is handled by `AnimationController`. Whether the owner is allowed ot act is the owners call.
+`MovementController` moves user-controlled player character. It only touches the physics body velocity, acceleration, and gravity. Facing and animation is handled by `AnimationController`. Whether the owner is allowed to act is the owner's call.
 
 Source:
 [MovementController.ts](/src/game/components/MovementController.ts)

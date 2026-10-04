@@ -4,7 +4,7 @@ The game is sized by `fitToParent()`, which behaves like `Phaser.Scale.RESIZE` w
 
 ## `fitToParent(game, minHeight, maxHeight)`
 
-Called once in [main.ts](/src/main.ts), to handle reponsive desing manually - `Scale.NONE` gives us full control over the scaling, no automatic size changing.
+Called once in [main.ts](/src/main.ts), to handle responsive design manually - `Scale.NONE` gives us full control over the scaling, no automatic size changing.
 
 The view is always between `MIN_VIEW_HEIGHT` (704) and `MAX_VIEW_HEIGHT` (736) game pixels tall. The band is deliberately narrow: every device shows almost the same slice of a level, and only the width changes with the aspect ratio.
 
@@ -24,11 +24,11 @@ Each scene has its own objects and needs different solutions, but shared helpers
 
 ## Safe Area
 
-On phones with notches, rounded corners or a home part, part of the screen is unsafe for UI. The browser exposes these regions as CSS enviromental variables, but script can't read `env()` directly.
+On phones with notches, rounded corners or a home part, part of the screen is unsafe for UI. The browser exposes these regions as CSS environment variables, but script can't read `env()` directly.
 
 ### Inset Probe
 
-`InsetProbe()` creates a hidden `<div>` which acts as a ruler. values from `env(safe-area-inset)` is set as padding on `<div>` element. This makes possible for TypeScript and `getComputedStyle()` read them as plain pixels.
+`InsetProbe()` creates a hidden `<div>` which acts as a ruler. Values from `env(safe-area-inset)` are set as padding on `<div>` element. This makes it possible for TypeScript and `getComputedStyle()` to read them as plain pixels.
 
 - Element is created on the first use and stored in module-level `probe` variable. If `probe` already exists, we reuse it.
 - `pointer-events: none` stops this element from blocking inputs.
@@ -37,7 +37,7 @@ On phones with notches, rounded corners or a home part, part of the screen is un
 
 Returns current insets of live size as a `SafeArea` object.
 
-The probe gives values in CSS pixels, and functions multiplies them by `scale` to convert them into game pixels.
+The probe gives values in CSS pixels, and the function multiplies them by `scale` to convert them into game pixels.
 
 On desktop and on devices without a notch, every inset is `0`.
 
@@ -49,7 +49,7 @@ Creates event listener on resize which runs `layout(width, height)` every time e
 |Scene| What it does |
 | --- | --- |
 | `PreloadScene` | Background size, loading bar, and title centered |
-| `MainMenyScene` | Logo and start button centered and resized |
+| `MainMenuScene` | Logo and start button centered and resized |
 | `TouchSource` | Movement and action buttons distributed and scaled |
 | `WorldMap` | Stretched backdrops to cover the screen |
 | `HealthBar` | Health bar scaled with the view, kept in the top-left safe corner |
@@ -72,4 +72,4 @@ The game plays in both portrait and landscape; there is no orientation lock or r
 - Create the object at any position
 - Call `onResize()` in the scene's `create()`, or object's constructor, and position the object relative to `width` and `height`.
 - For UI, use `safeArea()` inset for edges.
-- If object can be destroyed before it's scene, keep the returned function and call it in the object's `destroy()`
+- If object can be destroyed before its scene, keep the returned function and call it in the object's `destroy()`

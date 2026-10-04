@@ -1,6 +1,6 @@
 ## Animation Controller
 
-`AnimationController` owns the animations of a single sprite. One objet holds one controller and one animation plays at a time. Every Foe and Player has AnimationControler. The owner creates it in its constructor, calls `setFacing()` when the sprite turns, and lets `StateMachine` do the playing. Animations data lives in [animations.ts](/src/game/data/animations.ts).
+`AnimationController` owns the animations of a single sprite. One object holds one controller and one animation plays at a time. Every Foe and Player has AnimationController. The owner creates it in its constructor, calls `setFacing()` when the sprite turns, and lets `StateMachine` do the playing. Animations data lives in [animations.ts](/src/game/data/animations.ts).
 
 Source:
 [AnimationController.ts](/src/game/components/AnimationController.ts)
@@ -8,7 +8,7 @@ Source:
 
 ## Lifecycle
 
-The owner builds the controller in its construcor, passing the sprite, animation set, and the texture the frames are cut from.
+The owner builds the controller in its constructor, passing the sprite, animation set, and the texture the frames are cut from.
 
 ```ts
 this.animations = new AnimationController(this, PLAYER_ANIMS, { texture, facing: 'left' })
@@ -16,24 +16,24 @@ this.animations = new AnimationController(this, PLAYER_ANIMS, { texture, facing:
 
 The constructor registers every animation in the set with the scene's global animation manager - keys that already exist are skipped, so several foes of the same type register once. Starting facing direction is applied. `destroy()` clears the pending completion listener and resets the trackers; the owner calls it from its own destructor.
 
-`facing` is the direction the sprite is drawn in, not where the sprite should look. `player.png` is drawn facing left, so the controller mirrors the frames with `setFlipX` whenever needed. Foe gets it's facing direction in [FoeDefinition](/src/game/data/foes.ts).
+`facing` is the direction the sprite is drawn in, not where the sprite should look. `player.png` is drawn facing left, so the controller mirrors the frames with `setFlipX` whenever needed. Foe gets its facing direction in [FoeDefinition](/src/game/data/foes.ts).
 
 ## Animation Set
 
 An `AnimSet` is a record of names to `AnimConfig`. Entries are optional, so a sheet can leave out animations it doesn't have. Callers check using `has()` to determine whether animation exists or not and pick a fallback in case requested animation is missing.
 
-Requesting to play animation that doesn't exists, isn't fatal. `Play()` logs warning message and returns `false` to indicate requested animation wasn't played.
+Requesting to play animation that doesn't exist, isn't fatal. `Play()` logs warning message and returns `false` to indicate requested animation wasn't played.
 
 ## Priority and Locking
 
 Two `AnimConfig` fields decide what can interrupt what.
 
-- `priority` - higher priority animation takes precedence animations conflict.
-- `lockUntilComplete` - hold the animation until it finished, so nothing below it's priority can cut it short. *Continously repeating animations can't be locked*.
+- `priority` - higher priority animation takes precedence when animations conflict.
+- `lockUntilComplete` - hold the animation until it finishes, so nothing below its priority can cut it short. *Continuously repeating animations can't be locked*.
 
 `PlayOptions` parameter on the `play()` overrides them per call.
 
-While an animation is locked, `play()` rejects anythign whose priority is below or equal to the locked one. Returns `false`.
+While an animation is locked, `play()` rejects anything whose priority is below or equal to the locked one. Returns `false`.
 
 The lock clears on its own when the animation completes via one-time `ANIMATION_COMPLETE_KEY` listener. Callers watch `isLocked` to know when the pose is over.
 

@@ -1,41 +1,41 @@
 # Attack Component
 
-`AttackComponent` holds what every attack has in commong: the timer, whether an attack is allowed to start, and which way the attack is facing. The base class owns *when* an attack happens; a subclass owns *what* happens — a meele hit area that is open for a short window, or anouncing projectile shot. Neither of them knows what it hits; scene is the only place that decides who a hit lands on.
+`AttackComponent` holds what every attack has in common: the timer, whether an attack is allowed to start, and which way the attack is facing. The base class owns *when* an attack happens; a subclass owns *what* happens — a melee hit area that is open for a short window, or announcing a projectile shot. Neither of them knows what it hits; scene is the only place that decides who a hit lands on.
 
 Source:
 [AttackComponent.ts](/src/game/components/attack/AttackComponent.ts)
-[MeeleAttack.ts](/src/game/components/attack/MeleeAttack.ts)
+[MeleeAttack.ts](/src/game/components/attack/MeleeAttack.ts)
 [RangedAttack.ts](/src/game/components/attack/RangedAttack.ts)
 
 ## Subclasses
 
 | Class | Description | Used By |
 | --- | --- | --- |
-| `MeleeAttack` | Opens a hit rectangle in front of the owner for a short window and remembers who it already hit | Playe, melee foes (e.g. warrior) |
-| `RangedAttack | Announces one projectiles at a release moment. Scene spawns it. | Ranged foes (e.g. archer) |
+| `MeleeAttack` | Opens a hit rectangle in front of the owner for a short window and remembers who it already hit | Player, melee foes (e.g. warrior) |
+| `RangedAttack` | Announces one projectile at a release moment. Scene spawns it. | Ranged foes (e.g. archer) |
 
 ## Lifecycle
 
 `queue()` → `start(facing)` → `update(dt)` every frame → `end()`
 
-1. **`queue()`**: remembers buttons press for `butfferMs` so a press sligthly earl still lands. Only used by button-driven owners (the player). For anything else `bufferMs` is equal to `0`.
-2. **`start(facing)`**: begins the attack and locks `facing` until the attack ends, so turning around can't drag the reacr or shot projectile to the other side. *This doesn't check `isReady` - that is the caller's job.
-3. **`update(dt)`**: ticks the cooldown and queued press, then advances to run attack. Caleed from owner's `update()`.
-4. **`end()`** - stops the attack and starts the cooldown. Does nothing if not attack is running.
+1. **`queue()`**: remembers button press for `bufferMs` so a press slightly early still lands. Only used by button-driven owners (the player). For anything else `bufferMs` is equal to `0`.
+2. **`start(facing)`**: begins the attack and locks `facing` until the attack ends, so turning around can't drag the reach or shot projectile to the other side. *This doesn't check `isReady`* - that is the caller's job.
+3. **`update(dt)`**: ticks the cooldown and queued press, then advances to run attack. Called from owner's `update()`.
+4. **`end()`** - stops the attack and starts the cooldown. Does nothing if no attack is running.
 
 The owner decides when the attack ends; usually after animation finishes or after `durationMs` if there's no animation to wait for.
 
-Subclasses hook in through three optional methos and override only the ones they need: `onStart()`, `advanve(dt)`, `onEnd()`.
+Subclasses hook in through three optional methods and override only the ones they need: `onStart()`, `advance(dt)`, `onEnd()`.
 
 ## Events
 
-`AttackComponent` extends `Phaseer.Events.EventEmitter`. Listen with `attack.on(AttackEvent.X, ...)`.
+`AttackComponent` extends `Phaser.Events.EventEmitter`. Listen with `attack.on(AttackEvent.X, ...)`.
 
 | Event | Emitted By | Payload | Meaning |
 | --- | --- | --- | --- |
 | `Started` | Both | - | An attack has begun |
-| `Ended` | Both | - | The attack is over, not matter how it ended. Cooldown starts |
-| `Hit` | `MeleeAttack` | target | The swing connected to the target it hadn's already connected yet |
+| `Ended` | Both | - | The attack is over, no matter how it ended. Cooldown starts |
+| `Hit` | `MeleeAttack` | target | The swing connected to the target it hadn't already connected yet |
 | `Shot` | `RangedAttack` | `Shot` | A projectile has left and needs to be put in the world |
 
 ## Melee Swing
@@ -52,7 +52,7 @@ How swing is resolved:
 
 The hit area is repositioned every frame so it stays in front of the owner's body, measured from the body's edge.
 
-`setConfig()` is used to change weapons it gives `MeleeAttack` a new meele attack configuration.
+`setConfig()` is used to change weapons - it gives `MeleeAttack` a new melee attack configuration.
 
 ### `MeleeAttackConfig`
 

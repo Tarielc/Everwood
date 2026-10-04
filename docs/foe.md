@@ -1,6 +1,6 @@
 # Foe
 
-Every foe type in game is an instance of `Foe` class. Everything that differs between foes are set in `FOES` list in [foes.ts](/src/game/data/foes.ts), including how theyt fight. `Foe` class contains collection of components and is obligated to wire them together.
+Every foe type in game is an instance of `Foe` class. Everything that differs between foes is set in `FOES` list in [foes.ts](/src/game/data/foes.ts), including how they fight. `Foe` class contains collection of components and is obligated to wire them together.
 
 Source:
 [Foe.ts](/src/game/entities/Foe.ts)
@@ -14,11 +14,11 @@ Source:
 | `AnimationController` | Plays animations and mirrors the sprite to match facing | `FoeDefinition.anims` |
 | `StateMachine` | States and state transitions | `createFoeStates()` |
 | `HealthComponent` | Hitpoints, i-frames, regeneration | `FoeDefinition.health` |
-| `MeeleAttack` / `RangedAttack` | Attack timing, colldown, and hit area or shot. Foes without an attack only have body contact damage | `FoeDefinition.attack` |
+| `MeleeAttack` / `RangedAttack` | Attack timing, cooldown, and hit area or shot. Foes without an attack only have body contact damage | `FoeDefinition.attack` |
 
 ## States
 
-A foe patrols in predefined patrol range and if it sees a taget (player) chases it. If target moves beyong `deAggroRange` it stops chasing - this is larger than `aggroRange` so a target standing near the edge doesn't make the foe switch between chase and idle every frame.
+A foe patrols in predefined patrol range and if it sees a target (player) chases it. If target moves beyond `deAggroRange` it stops chasing - this is larger than `aggroRange` so a target standing near the edge doesn't make the foe switch between chase and idle every frame.
 
 Sight is horizontal range *and* `verticalReach` - a target far enough above or below is out of sight however close it stands. An **infinite** range is the exception: it skips the geometry outright, reach included, so a foe given one never loses the target to a jump. `LevelDefinition.foesAlwaysHunt` gives every foe in a level exactly that (see [Wave Director](/docs/wave-director.md)); the attack ranges are left finite, so what a foe can *reach* is unchanged.
 
@@ -26,7 +26,7 @@ Sight is horizontal range *and* `verticalReach` - a target far enough above or b
 | --- | --- |
 | `Idle` | Pauses at the end of a patrol, or has nothing to do |
 | `patrol` | Wanders up to `patrolRange` both sides where spawned `homeX` |
-| `Chase` | Runs towards the targed once it is within `aggroRange` |
+| `Chase` | Runs towards the target once it is within `aggroRange` |
 | `Attack` | Stands still while swings or shoots |
 | `Hurt` | Flinches and briefly stunned when a hit breaks its poise, if not fatal |
 | `Dead` | Stops colliding and fades out |
@@ -58,9 +58,9 @@ Damage and flinching are separate, so spamming attacks can't stunlock a foe:
 
 ## Combat
 
-A foe has three types of damage deal:
-- **Contact damage**: `contactDamage` is dealth when the player touches the foe. `0` for foes with other attack type. Example: `Fox`.
-- **Meele attack**: a swing with `MeleeAttackConfig` - timing, reach, hitarea.
+A foe has three types of damage:
+- **Contact damage**: `contactDamage` is dealt when the player touches the foe. `0` for foes with other attack type. Example: `Fox`.
+- **Melee attack**: a swing with `MeleeAttackConfig` - timing, reach, hit area.
 - **Ranged attack**: fires a projectile. The foe backs off to `standoff` distance. The ranged attack only fires `Shot` event, the scene spawns projectile and decides what it hits and what it does.
 
 ## Facing
@@ -72,7 +72,7 @@ Each Foe declares which way its spritesheet art is drawn, so the sprite is only 
 1. Add spritesheet [public/assets/sprites/foes](/public/assets/sprites/foes). `PreloadScene` loads every spritesheet automatically. As long as it's defined in `FOES` list.
 2. Define Foe animations at [animations.ts](/src/game/data/animations.ts).
 3. Add an entry to `FOES` at [foes.ts](/src/game/data/foes.ts).
-4. Place foe in Tiled: add an object of type/class `Foe` to `MAP.objectLayers.enemies`. Set custom propertyt `foeType` to foe's ID.
+4. Place foe in Tiled: add an object of type/class `Foe` to `MAP.objectLayers.enemies`. Set custom property `foeType` to foe's ID.
 
 No code changes are needed in `GameScene`, because `spawnMapFoes()` spawns every foe on the map, sets colliders and sets its target to player.
 

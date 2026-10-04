@@ -17,21 +17,21 @@ this.stateMachine = new StateMachine<Foe>(this)
     .start(FoeState.Idle)
 ```
 
-Then it calls `this.stateMachine.update(delta)` once per frame, and `thisstateMachine.destroy()` from its own destructor.
+Then it calls `this.stateMachine.update(delta)` once per frame, and `this.stateMachine.destroy()` from its own destructor.
 
 ## States
 
-A state is an object implementing `State<TContect>`, where `TContext` is the owner. It has unique `name` and three optional hooks.
+A state is an object implementing `State<TContext>`, where `TContext` is the owner. It has unique `name` and three optional hooks.
 
-- `enter(contect, ...args)` - runs once when state starts. `args` are optional arguments.
-- `update(contect, dt)` - runs every frame as long as state is active.
+- `enter(context, ...args)` - runs once when state starts. `args` are optional arguments.
+- `update(context, dt)` - runs every frame as long as state is active.
 - `exit(context)` - runs once when the state ends. Including when machine is destroyed.
 
 ## Transition
 
-`transition(name, ...args)` calls `exit()` on the current state, and then `enter()` on new state. It does nothing is state isn't registered, or new state is already current.
+`transition(name, ...args)` calls `exit()` on the current state, and then `enter()` on new state. It does nothing if state isn't registered, or new state is already current.
 
-Transitions requested from inside a hook are **queued** if state machine is in transitioning phase; states aren't applied straight away, they are queued and run after current state transition ends. *Only the latest queed state is kept.*
+Transitions requested from inside a hook are **queued** if state machine is in transitioning phase; states aren't applied straight away, they are queued and run after current state transition ends. *Only the latest queued state is kept.*
 
 ## Adding a New State
 
@@ -46,7 +46,7 @@ For example, a new foe state:
 
 For a new class, e.g. `Example`:
 
-1. Create `ExampleStates.ts` with and `ExampleState` object holding the state names, and a `createExampleStates()` function, returning array of example states: `State<Example>[]`
+1. Create `ExampleStates.ts` with an `ExampleState` object holding the state names, and a `createExampleStates()` function, returning array of example states: `State<Example>[]`
 2. In `Example`'s constructor, create the machine, add the states and `start()` default state.
 3. Use `get states()` so states can call `example.states.transition()`.
 4. Call `states.update(dt)` from `Example.update()` and `states.destroy()` from `Example.destroy()`.
