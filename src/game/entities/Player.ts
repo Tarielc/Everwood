@@ -198,7 +198,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
             // gravity, jumping and the input buffers all still ran above - a swing
             // can be jumped out of, it just can't be walked out of
-            if (this.attack.isAttacking && this.isGrounded()) this.plantFeet(delta)
+            if (this.attack.isAttacking && this.movement.isGrounded) this.plantFeet(delta)
         }
 
         // ticks the cooldown and drags the hit area along with the player
@@ -514,16 +514,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     /** `true` while a hit has the player stunned and ignoring input */
     get isStunned(): boolean {
         return this.stateMachine.isCurrentState(PlayerState.Hurt)
-    }
-
-    /**
-     * Whether a player is staning on something
-     * 
-     * @returns `true` if player is touching ground, `false` otherwise.
-     */
-    private isGrounded(): boolean {
-        const body = this.body as Phaser.Physics.Arcade.Body
-        return body.blocked.down || body.touching.down
     }
 
     /**

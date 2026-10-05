@@ -91,14 +91,18 @@ export class MovementController {
         return this.didJump
     }
 
+    /** Whether solid ground supports the player, excluding trigger overlaps and takeoff. */
+    get isGrounded(): boolean {
+        const body = this.sprite.body as Phaser.Physics.Arcade.Body
+        // Overlaps (including checkpoints) set touching.down without supporting the body.
+        // Upward movement overrides blocked.down left over from the takeoff frame.
+        return body.blocked.down && body.velocity.y >= 0
+    }
+
     /** Refill and drain the coyote and jump-buffer timers */
     private updateTimers(input: InputState, dt:number){
-        const body = this.sprite.body as Phaser.Physics.Arcade.Body
-        // Ground flags can still be set on takeoff; upward movement must not refill jumps.
-        const grounded = (body.blocked.down || body.touching.down) && body.velocity.y >= 0
-
         // Coyote Time: countdown only while airborne
-        if(grounded){
+        if(this.isGrounded){
             this.coyoteTimer = this.config.coyoteTimeMs
             this.jumpsUsed = 0
         } else {
@@ -163,7 +167,7 @@ export class MovementController {
      */
     private applyHorizontal(input: InputState, dt: number, capSpeed: boolean): void {
         const body = this.sprite.body as Phaser.Physics.Arcade.Body
-        const grounded = body.blocked.down || body.touching.down
+        const grounded = this.isGrounded
         const acceleration = this.config.acceleration * this.speedMultiplier * (grounded ? 1 : 0.7) // weak air control
 
         // accelerate sprite - mirroring it belongs to AnimationController.setFacing()

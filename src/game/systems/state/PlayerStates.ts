@@ -29,9 +29,7 @@ const IDLE_SPEED_EPSILON = 10
  * @returns `true` if player is touching ground, `false` otherwise
  */
 function isGrounded(player: Player): boolean {
-    const body = player.body as Phaser.Physics.Arcade.Body
-    // Movement runs before states, so takeoff can leave the previous ground flags set.
-    return (body.blocked.down || body.touching.down) && body.velocity.y >= 0
+    return player.getMovement.isGrounded
 }
 
 /**

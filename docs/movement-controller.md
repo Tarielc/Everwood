@@ -56,7 +56,7 @@ A jump needs all of the following in the same frame:
 
 A jump sets vertical velocity to `jumpVelocity`, clears extra fall gravity, and empties both timers, so one press gives one jump. A third press cannot jump until landing; it can still be buffered into a landing jump if held and within `jumpBufferMs`.
 
-Landing restores both jumps. The controller considers the body grounded when `blocked.down` or `touching.down` is set and vertical velocity is nonnegative. Ground flags left over from takeoff cannot refill jumps while the player is rising.
+Landing restores both jumps. The controller's `isGrounded` getter requires `blocked.down` and nonnegative vertical velocity. Solid tiles and world bounds set `blocked.down`; overlap-only interactions such as checkpoints can set `touching.down` without supporting the player and must not count as ground. Ground flags left over from takeoff cannot refill jumps while the player is rising. Horizontal movement, player animation states, and attack foot drag share this getter.
 
 **Jump cut**: releasing jump while moving up multiplies vertical velocity by `jumpCutMultiplier`. A short tap gives a short hop, holding gives the full height. This applies to both jumps.
 

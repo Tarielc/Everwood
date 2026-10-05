@@ -35,6 +35,8 @@ The player can jump from the ground or during coyote time, then jump once more i
 
 Movement runs before the state machine. `PlayerStates` reads `player.getMovement.jumpedThisFrame` to play jump feedback, including restarting the jump animation when a second jump happens while already rising. Upward velocity overrides ground-contact flags left over from takeoff. Jumps during attacks play their sound without interrupting the locked attack animation; recovery does not replay that sound. Stunned players receive neutral input and cannot jump.
 
+Animation states and attack foot drag use `MovementController.isGrounded`, which requires solid ground contact (`blocked.down`) and nonnegative vertical velocity. Checkpoint and other trigger overlaps can set `touching.down` while the player is falling; those overlaps do not select walk/idle animations or restore jumps.
+
 ## Health
 
 Health events are driven by event listeners `bindHealth()`:
