@@ -12,7 +12,12 @@ export const ATLAS_PATH = {
 
 /** Frame names of the single-image UI art packed into the atlas */
 export const UI_FRAMES = {
-    "startBtn": "UI/start-btn.png",
+    "yellow-btn-normal": "UI/yellow-btn-normal.png",
+    "yellow-btn-pressed": "UI/yellow-btn-pressed.png",
+    "red-btn-normal": "UI/red-btn-normal.png",
+    "red-btn-pressed": "UI/red-btn-pressed.png",
+    "gray-btn-normal": "UI/gray-btn-normal.png",
+    "gray-btn-pressed": "UI/gray-btn-pressed.png",
     "progBar-frame": "UI/progBar-frame.png",
     "progBar-line": "UI/progBar-line.png",
     "hpBar": "UI/healthbar/HP-bar.png",

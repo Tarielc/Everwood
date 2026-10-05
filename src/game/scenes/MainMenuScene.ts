@@ -1,135 +1,115 @@
 import * as Phaser from 'phaser';
-import { onResize, safeArea } from '../utils/viewport';
-import { ATLAS, UI_FRAMES } from '../config/atlas';
+import { hudScale, onResize, safeArea } from '../utils/viewport';
+import { UI_SCALE_FACTOR } from '../config/display';
+import { UI_BUTTONS } from '../config/ui';
 import { AudioController } from '../systems/audio/AudioController';
-import { STARTING_LEVEL } from '../data/levels';
+import { MenuButton } from '../ui/MenuButton';
+import type { LeaderboardSceneData } from './LeaderboardScene';
 
-/** Title font size on screens wide enough to fit it */
+/** Design sizes; the whole menu shrinks together on narrow screens. */
 const TITLE_SIZE = 100
-/** Space kept clear on each side of the menu, in game pixels */
 const MENU_MARGIN = 24
-/** Peak scale of the start button's breathing pulse, relative to its resting size */
-const BREATH_SCALE = 1.06
-/** Time in ms for one half of the breath (inhale or exhale) */
-const BREATH_DURATION = 1200
-/** Font size of the landscape hint at the bottom of the menu */
+const TITLE_GAP = 32
+const BUTTON_GAP = 20
 const HINT_SIZE = 24
 
-/**
- * Main menu scene before starting the game.
- * 
- * Launches {@link UIScene} and starts {@link GameScene} on button click.
- */
+/** Main menu, with level selection and a read-only visit to the leaderboard. */
 export default class MainMenuScene extends Phaser.Scene {
-    /** Constructor */
     constructor() {
         super("MainMenuScene")
     }
 
-    /**
-     * Add logo text and button, which are resized
-     * Based on screen width
-     */
     create() {
-        // add background image
         const background = this.add.image(0, 0, "load-bg").setOrigin(0.5)
-
-        // add temporary logo
         const logo = this.add.bitmapText(0, 0, "Jacquard24", "Everwood", TITLE_SIZE)
-            .setOrigin(0.5)
+            .setOrigin(0.5, 0)
             .setTint(0xFBFEF9)
             .setDropShadow(2, 2, 0xA63446, 1)
 
-        // add temporary start button
-        const startButton = this.add.image(0, 0, ATLAS, UI_FRAMES.startBtn)
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true })
+        // Layout scales this parent; hover animations only scale its children.
+        const content = this.add.container(0, 0, [logo])
+        let leaving = false
+        const choose = (action: () => void) => {
+            if (leaving) return
+            leaving = true
+            AudioController.instance.play("ui-confirm")
+            action()
+        }
 
-        // nudge portrait players to turn their device - the game is laid out for 16:9
-        const landscapeHint = this.add.bitmapText(0, 0, "Jersey25", "For the best experience, play in landscape mode", HINT_SIZE)
+        const buttons = [
+            new MenuButton(this, "yellow", "ranked", () => choose(() => {
+                // Always supply the level so a previous run cannot leak into this one.
+                this.scene.start("GameScene", { level: "arena" })
+            })),
+            new MenuButton(this, "red", "platformer", () => choose(() => {
+                this.scene.start("GameScene", { level: "nether" })
+            })),
+            new MenuButton(this, "gray", "leaderboard", () => choose(() => {
+                // Keep the background under the board, with the menu hidden and paused.
+                content.setVisible(false)
+                landscapeHint.setVisible(false)
+                this.scene.pause()
+                this.scene.launch("LeaderboardScene", {
+                    run: undefined,
+                    onBack: () => {
+                        leaving = false
+                        content.setVisible(true)
+                        this.scene.resume()
+                        layout(this.scale.width, this.scale.height)
+                        buttons.forEach((button, index) => button.reveal(index * 70))
+                    },
+                } satisfies LeaderboardSceneData)
+                this.scene.bringToTop("UIScene")
+            })),
+        ]
+
+        buttons.forEach((button, index) => {
+            content.add(button)
+            button.setPosition(0, logo.height + TITLE_GAP + button.height / 2
+                + index * (button.height + BUTTON_GAP))
+            button.reveal(index * 70)
+        })
+
+        const contentWidth = Math.max(logo.width, ...buttons.map(button => button.width * 1.04))
+        const lastButton = buttons[buttons.length - 1]
+        const contentHeight = lastButton.y + lastButton.height * 1.04 / 2
+
+        const landscapeHint = this.add.bitmapText(0, 0, "Jersey25",
+            "For the best experience, play in landscape mode", HINT_SIZE)
             .setOrigin(0.5, 1)
             .setCenterAlign()
             .setTint(0xFBFEF9)
             .setDropShadow(1, 1, 0x000000, 1)
 
-        // scale set by the resize handler; the breathing tween multiplies on top of it
-        let baseScale = 1
-        let breath = 1
-
-        // slow, endless pulse so the button draws the eye
-        this.tweens.addCounter({
-            from: 1,
-            to: BREATH_SCALE,
-            duration: BREATH_DURATION,
-            ease: "Sine.easeInOut",
-            yoyo: true,
-            repeat: -1,
-            onUpdate: (tween) => {
-                breath = tween.getValue() ?? 1
-                startButton.setScale(baseScale * breath)
-            }
-        })
-
-        // the menu has a voice of its own. a browser gives no audio until the page has
-        // been clicked on, so this may well start on the press of the start button -
-        // the mixer remembers what was asked for and puts it on the moment it can
         AudioController.instance.playMusic("menu")
         AudioController.instance.playAmbience("town")
+        if (!this.scene.isActive("UIScene")) this.scene.launch("UIScene")
 
-        if (!this.scene.isActive("UIScene")){
-            this.scene.launch("UIScene")
-        }
-
-        // centred off the live size, which under fitToParent() isn't always 1280x720 -
-        // a portrait phone is far narrower than the 100px title
-        onResize(this, (width, height) => {
+        const layout = (width: number, height: number) => {
             const inset = safeArea(this.scale)
-            const maxWidth = width - inset.left - inset.right - MENU_MARGIN * 2
-
-            // measure at full size, then shrink the font until it fits the width
-            logo.setFontSize(TITLE_SIZE)
-            logo.setFontSize(Math.floor(TITLE_SIZE * Phaser.Math.Clamp(1, 0.3, maxWidth / logo.width)))
-
-            baseScale = Phaser.Math.Clamp(1, 0.4, maxWidth / startButton.width)
-            startButton.setScale(baseScale * breath)
-
-            // keep the gap between title and button proportional to the title
-            const gap = logo.fontSize / 2
+            const maxWidth = Math.max(1, width - inset.left - inset.right - MENU_MARGIN * 2)
             const centerX = inset.left + (width - inset.left - inset.right) / 2
-            const centerY = inset.top + (height - inset.top - inset.bottom) / 2
+            const portrait = height > width
 
-            logo.setPosition(centerX, centerY - gap)
-            startButton.setPosition(centerX, centerY + gap)
-
-            // only worth saying while the screen is taller than it is wide; wrap it
-            // so it fits a narrow phone
-            landscapeHint
-                .setVisible(height > width)
+            landscapeHint.setVisible(portrait && !leaving)
                 .setMaxWidth(maxWidth)
                 .setPosition(centerX, height - inset.bottom - MENU_MARGIN)
 
-            // background size and scale
-            const scale = Math.max(
-                this.scale.width / background.width,
-                this.scale.height / background.height
-            );
+            // Leave room above the menu for the persistent sound/fullscreen controls.
+            const uiRatio = hudScale(UI_SCALE_FACTOR, width, height) / UI_SCALE_FACTOR
+            const controlsHeight = UI_BUTTONS.margin + UI_BUTTONS.radius * uiRatio
+                + (portrait ? 2 * (UI_BUTTONS.radius + UI_BUTTONS.gap) * uiRatio : 0)
+            const top = inset.top + controlsHeight + MENU_MARGIN
+            const bottom = height - inset.bottom - MENU_MARGIN
+                - (portrait ? landscapeHint.height + MENU_MARGIN : 0)
+            const availableHeight = Math.max(1, bottom - top)
+            const scale = Math.min(1, maxWidth / contentWidth, availableHeight / contentHeight)
+            content.setScale(scale)
+                .setPosition(centerX, top + (availableHeight - contentHeight * scale) / 2)
 
-            background
-                .setDisplaySize(width, height)
-                .setScale(scale)
+            background.setScale(Math.max(width / background.width, height / background.height))
                 .setPosition(width / 2, height / 2)
-        })
-
-        startButton.on("pointerover", () => startButton.setTint(0xAAAAAA))
-        startButton.on("pointerout", () => startButton.clearTint())
-        
-        // pointerup rather than pointerdown - browsers only grant fullscreen on
-        // the release half of a gesture
-        startButton.on("pointerup", () => {
-            AudioController.instance.play("ui-confirm")
-            // the level is spelled out - started without data, a scene keeps the data it
-            // was last (re)started with, and would pick up wherever the last run ended
-            this.scene.start("GameScene", { level: STARTING_LEVEL })
-        })
+        }
+        onResize(this, layout)
     }
 }

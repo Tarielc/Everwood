@@ -52,6 +52,6 @@ const StartGame = (parent: string) => {
 
 // start game after DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const game = StartGame('game-container');
+    StartGame('game-container');
 });
 

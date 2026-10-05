@@ -16,7 +16,8 @@ GameScene ──death──▶ EndScene ──"Leaderboard"──▶ Leaderboard
 - `GameScene.onPlayerDeath()` takes `{ wave, kills }` the moment the player falls, before the run is stopped, and only on `RANKED_LEVEL` once the first wave has landed.
 - `EndScene` sums the run up under the headline and adds a **Leaderboard** option between retry and the main menu.
 - `LeaderboardScene` shows the top ten and a name box. Once submitted, the run's `rank` and `name` are set on the run object itself, so going back and in again doesn't offer a second submit. The row the run landed on is highlighted.
-- **Back** reopens the end screen exactly as it was.
+- The main menu's **leaderboard** button opens the board without a run or name box, over the menu background.
+- **Back** returns to the screen that opened the board: the end screen or the main menu.
 
 ## The Name Box
 

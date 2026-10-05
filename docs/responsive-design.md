@@ -49,7 +49,7 @@ Creates event listener on resize which runs `layout(width, height)` every time e
 |Scene| What it does |
 | --- | --- |
 | `PreloadScene` | Background size, loading bar, and title centered |
-| `MainMenuScene` | Logo and start button centered and resized |
+| `MainMenuScene` | Title and three labeled buttons scale together, leaving room for the persistent controls and portrait hint; hover scaling is independent of layout |
 | `TouchSource` | Movement and action buttons distributed and scaled |
 | `WorldMap` | Stretched backdrops to cover the screen |
 | `HealthBar` | Health bar scaled with the view, kept in the top-left safe corner |
