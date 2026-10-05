@@ -23,7 +23,7 @@ export const PLAYER_ANIMS = {
     idle: { key: "player-idle", prefix: "player/player-idle-", start: 0, end: 4, frameRate: 8, repeat: -1 },
     walk: { key: "player-walk", prefix: "player/player-walk-", start: 0, end: 7, frameRate: 14, repeat: -1 },
     sprint: { key: "player-sprint", prefix: "player/player-sprint-", start: 0, end: 7, frameRate: 14, repeat: -1 },
-    jump: { key: "player-jump", prefix: "player/player-jump-", start: 0, end: 3, frameRate: 12, repeat: 0 },
+    jump: { key: "player-jump", prefix: "player/player-jump-", start: 0, end: 3, frameRate: 12, repeat: -1 },
     fall: { key: "player-fall", prefix: "player/player-fall-", start: 0, end: 3, frameRate: 8, repeat: -1 },
     // hurt and death outrank the movement animations, and hold their frames to the
     // end so a flinch can't be cut short by the walk cycle resuming underneath it
