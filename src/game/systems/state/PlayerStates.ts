@@ -30,7 +30,8 @@ const IDLE_SPEED_EPSILON = 10
  */
 function isGrounded(player: Player): boolean {
     const body = player.body as Phaser.Physics.Arcade.Body
-    return body.blocked.down || body.touching.down
+    // Movement runs before states, so takeoff can leave the previous ground flags set.
+    return (body.blocked.down || body.touching.down) && body.velocity.y >= 0
 }
 
 /**
@@ -160,11 +161,20 @@ export function createPlayerStates(): State<Player>[] {
         {
             name: PlayerState.Jump,
             enter(player) {
-                AudioController.instance.play(PLAYER_SOUNDS.jump)
-                player.getAnimations.play("jump")
+                // Attacks announce their jumps while locked; recovering must not replay the sound.
+                if (player.getMovement.jumpedThisFrame && player.states.previous !== PlayerState.Attack) {
+                    AudioController.instance.play(PLAYER_SOUNDS.jump)
+                }
+                player.getAnimations.play("jump", { restart: true })
             },
             update(player) {
                 if (isGrounded(player)) return player.states.transition(groundedState(player))
+
+                // A second jump while rising stays in this state, so enter() will not run again.
+                if (player.getMovement.jumpedThisFrame) {
+                    AudioController.instance.play(PLAYER_SOUNDS.jump)
+                    player.getAnimations.play("jump", { restart: true })
+                }
 
                 const body = player.body as Phaser.Physics.Arcade.Body
                 if (body.velocity.y >= 0) player.states.transition(PlayerState.Fall)
@@ -198,6 +208,8 @@ export function createPlayerStates(): State<Player>[] {
                 AudioController.instance.play(player.gear.weapon?.swingSound ?? UNARMED_SWING_SOUND)
             },
             update(player) {
+                if (player.getMovement.jumpedThisFrame) AudioController.instance.play(PLAYER_SOUNDS.jump)
+
                 // the swing animation locks itself, so windup, hit and recovery all
                 // last exactly as long as they're drawn for
                 if (!player.getAnimations.isLocked) player.states.transition(recoverState(player))

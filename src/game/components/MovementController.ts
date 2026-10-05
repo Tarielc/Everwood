@@ -35,7 +35,7 @@ export interface MovementConfig{
 }
 
 /**
- * Playe movement: walking, sprinting, jumping, and falling driven
+ * Player movement: walking, sprinting, double jumping, and falling driven
  * by {@link InputState} each frame.
  *
  * It only touches the physics body velocity, acceleration, and gravity.
@@ -50,8 +50,9 @@ export class MovementController {
     private coyoteTimer:number = 0
     /** ms left for the last jump press to still trigger a jump */
     private jumpBufferTimer:number = 0
-    /** set on jump, cleared on landing - keeps one press from jumping twice */
-    private isJumping:boolean = false
+    /** Ground/coyote jump uses one, midair jump uses both; landing restores them */
+    private jumpsUsed:number = 0
+    private didJump:boolean = false
 
     /**
      * Scales walk speed, sprint speed and acceleration together - a speed boost or a
@@ -77,6 +78,7 @@ export class MovementController {
      * @param capSpeed - clamp to walk/sprint speed - off while stunned, so a knockback isn't cut short
      */
     update(input: InputState, dt:number, capSpeed = true): void {
+        this.didJump = false
         this.updateTimers(input, dt)
         this.applyHorizontal(input, dt, capSpeed)
         this.applyGravity()
@@ -84,14 +86,21 @@ export class MovementController {
         this.applyJumpCut(input)
     }
 
+    /** Whether a jump fired in the latest update, for animation and sound feedback */
+    get jumpedThisFrame(): boolean {
+        return this.didJump
+    }
+
     /** Refill and drain the coyote and jump-buffer timers */
     private updateTimers(input: InputState, dt:number){
-        // check if player is grounded
-        const grounded = this.sprite.body!.blocked.down
+        const body = this.sprite.body as Phaser.Physics.Arcade.Body
+        // Ground flags can still be set on takeoff; upward movement must not refill jumps.
+        const grounded = (body.blocked.down || body.touching.down) && body.velocity.y >= 0
 
         // Coyote Time: countdown only while airborne
         if(grounded){
             this.coyoteTimer = this.config.coyoteTimeMs
+            this.jumpsUsed = 0
         } else {
             this.coyoteTimer = Math.max(0, this.coyoteTimer - dt)
         }
@@ -122,24 +131,20 @@ export class MovementController {
         }
     }
 
-    /** Jumps when a buffered press and coyote time overlap and jump is still held. */
+    /** Consume a buffered press for a ground/coyote jump or the one available midair jump. */
     private tryConsumeJump(input: InputState){
         // check if sprite is allowed to jump
         if(this.jumpBufferTimer > 0
-            && this.coyoteTimer > 0
-            && !this.isJumping
+            && this.jumpsUsed < 2
             && input.jumpHeld
         ){
-            // give sprite vertical acceleration
+            // After coyote time expires, walking off a ledge leaves only the midair jump.
+            this.jumpsUsed = this.jumpsUsed === 0 && this.coyoteTimer > 0 ? 1 : 2
             this.sprite.setVelocityY(this.config.jumpVelocity)
-            this.isJumping = true
+            this.sprite.setGravityY(0)
+            this.didJump = true
             this.coyoteTimer = 0
             this.jumpBufferTimer = 0
-        }
-
-        // check if sprite is grounded
-        if(this.sprite.body!.blocked.down){
-            this.isJumping = false
         }
     }
 

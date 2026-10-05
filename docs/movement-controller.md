@@ -28,10 +28,10 @@ this.movement.update(NO_INPUT, delta)
 
 `update(input, dt)` runs these steps in order:
 
-1. **Timers**: refills coyote time when grounded and drains it in the air. A jump press starts the jump buffer timer, which then drains.
+1. **Timers**: clears `jumpedThisFrame`, restores both jumps and refills coyote time when grounded, and drains coyote time in the air. A jump press starts the jump buffer timer, which then drains.
 2. **Horizontal**: accelerate toward the held direction, damps velocity when nothing is held, and clamps to maximum walk or sprint speed.
 3. **Gravity**: adds extra gravity while falling and caps maximum fall speed.
-4. **Jump**: jumps if the buffer and coyote time overlap.
+4. **Jump**: consumes a buffered press if jump is held and a ground/coyote or midair jump remains. Clears extra fall gravity when a jump fires.
 5. **Jump cut**: shortens the jump height if jump was released while rising.
 
 ## Horizontal Movement
@@ -44,16 +44,27 @@ The damping factors are authored per frame at 60 FPS and passed through `damping
 
 ## Jumping
 
+The player has a normal ground/coyote jump and one additional midair jump. Both use the same `jumpVelocity`. Release and press jump again to use the midair jump while rising or falling; holding the button does not trigger it automatically.
+
 A jump needs all of the following in the same frame:
 
 - **Jump buffer** active: jump was pressed within the last `jumpBufferMs`. A press slightly before landing still counts.
-- **Coyote time** active: the body was on the ground within the last `coyoteTimeMs`. A jump slightly after walking off a ledge still counts.
 - Jump is **still held**. A tap released before landing is dropped.
-- Not already jumping.
+- A jump is **available**: the normal jump during coyote time, or the one midair jump.
 
-A jump sets vertical velocity to `jumpVelocity` and empties both timers, so one press gives one jump.
+**Coyote time** allows the normal jump within `coyoteTimeMs` after walking off a ledge, leaving the extra midair jump available. After coyote time expires, only the midair jump remains, even if no jump has been used yet.
 
-**Jump cut**: releasing jump while moving up multiplies vertical velocity by `jumpCutMultiplier`. A short tap gives a short hop, holding gives the full height.
+A jump sets vertical velocity to `jumpVelocity`, clears extra fall gravity, and empties both timers, so one press gives one jump. A third press cannot jump until landing; it can still be buffered into a landing jump if held and within `jumpBufferMs`.
+
+Landing restores both jumps. The controller considers the body grounded when `blocked.down` or `touching.down` is set and vertical velocity is nonnegative. Ground flags left over from takeoff cannot refill jumps while the player is rising.
+
+**Jump cut**: releasing jump while moving up multiplies vertical velocity by `jumpCutMultiplier`. A short tap gives a short hop, holding gives the full height. This applies to both jumps.
+
+## Jump Feedback
+
+The read-only `jumpedThisFrame` getter reports whether a jump fired in the latest movement update. It resets at the start of each `update()` and becomes `true` only when a buffered press is consumed. Read it after movement updates.
+
+`PlayerStates` uses this flag for animation and sound. A second jump while already in `Jump` restarts the jump animation and plays the jump sound without a state transition; jumping from `Fall` transitions to `Jump`. During an attack, the jump sound plays while the attack animation keeps its lock. Recovering from an attack or hurt state into `Jump` does not play another jump sound unless a new jump fired, and attack recovery never duplicates a sound already played by the attack state.
 
 ## Gravity
 
@@ -76,11 +87,11 @@ Speeds are in px/s, accelerations in px/s², times in ms.
 | `sprintSpeed` | Max horizontal speed while sprint is held |
 | `acceleration` | Horizontal acceleration on the ground. 70% of it applies in the air |
 | `drag` | Not used yet. Deceleration uses the fixed per-frame damping above |
-| `jumpVelocity` | Vertical velocity set on jump. Negative is up |
+| `jumpVelocity` | Vertical velocity set on both jumps. Negative is up |
 | `jumpCutMultiplier` | Upward velocity is multiplied by this when jump is released while rising |
 | `gravity` | Base for the extra fall gravity |
 | `fallGravityMultiplier` | How much heavier falling is. `1` means no extra gravity |
-| `coyoteTimeMs` | How long after leaving the ground a jump is still allowed |
+| `coyoteTimeMs` | How long after leaving the ground the normal jump remains available, before only the midair jump remains |
 | `jumpBufferMs` | How long a jump press is remembered |
 | `maxFallSpeed` | Maximum downward speed |
 

@@ -10,6 +10,8 @@ Everwood is a browser action platformer built with TypeScript, Phaser 4, and Vit
 
 Add content through typed registries and compose entity behavior from components. Keep scenes focused on coordination. Shared `data/leaderboard.ts` and `data/waves.ts` must remain free of Phaser and DOM imports because the API uses them.
 
+Player jump availability and physics belong in `MovementController`; animation and sound feedback belong in `PlayerStates`. Movement updates before states, which read `jumpedThisFrame` for actual jump events. Preserve the normal ground/coyote jump plus one midair jump, landing reset, and attack/hurt animation locks; see `docs/movement-controller.md` and `docs/player.md`.
+
 ## Build, Test, and Development Commands
 
 - `npm install` — install dependencies.
@@ -28,6 +30,8 @@ Use four-space indentation and strict TypeScript. Match surrounding quote and se
 ## Testing Guidelines
 
 There is no automated test suite, test naming convention, or coverage threshold. Run both type checks and the production build for code changes. Manually exercise affected gameplay, scene transitions, and desktop/touch layouts; validate leaderboard changes through `vercel dev`.
+
+For movement changes, verify both jumps, third-jump rejection, ledge/coyote behavior, landing reset, held input, buffering/jump cuts, and jump feedback during attacks on keyboard and touch.
 
 ## Commit & Pull Request Guidelines
 

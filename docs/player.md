@@ -10,7 +10,7 @@ Source:
 ## Components
 | Component | Responsibility | Config |
 | --- | --- | --- |
-| `MovementController` | Walking, Sprinting, Jumping, Gravity | `PLAYER_MOVEMENT` |
+| `MovementController` | Walking, Sprinting, Double jumping, Gravity | `PLAYER_MOVEMENT` |
 | `AnimationController` | Plays animations and mirrors the sprite to match facing | `PLAYER_ANIMS` |
 | `StateMachine` | States and state transitions | `createPlayerStates()` |
 | `HealthComponent` | Hitpoints, i-frames, regeneration | `PLAYER_HEALTH` |
@@ -28,6 +28,12 @@ Source:
 3. **Attack**: ticks the cooldown and moves the hit area along with the player, so hit area during movement is generated in front of a player.
 4. **Invulnerability blink** and **state machine** update.
 5. **Equipment**: runs last, so the item copies the pose the sprite settled on this frame.
+
+## Jumping
+
+The player can jump from the ground or during coyote time, then jump once more in midair. Both jumps use the existing jump control and strength; release and press again to trigger the second jump. Landing restores both jumps, and leaving a ledge after coyote time expires leaves only one midair jump. Buffering and variable jump height apply to both jumps; see [Movement Controller](/docs/movement-controller.md).
+
+Movement runs before the state machine. `PlayerStates` reads `player.getMovement.jumpedThisFrame` to play jump feedback, including restarting the jump animation when a second jump happens while already rising. Upward velocity overrides ground-contact flags left over from takeoff. Jumps during attacks play their sound without interrupting the locked attack animation; recovery does not replay that sound. Stunned players receive neutral input and cannot jump.
 
 ## Health
 

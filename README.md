@@ -33,6 +33,8 @@ A 2D action platformer that runs in the browser. Battle enemies, challenge a bos
 | Attack | F or J | Attack button |
 | Swap weapon | 1 (sword), 0 (bare hands) | Not supported |
 
+Release and press jump again in midair for a second jump. Hold either jump for more height. Landing restores both jumps.
+
 ## Run Locally
 
 To play the game, clone the repository, install the dependencies and start the dev server:
