@@ -76,16 +76,16 @@ export default class MainMenuScene extends Phaser.Scene {
 
         const lastButton = buttons[buttons.length - 1]
         const helpLinks = [
-            { label: "About game modes", popup: new ModeInfoPopup(this) },
+            { label: "Game Modes", popup: new ModeInfoPopup(this) },
             { label: "Controls", popup: new ControlsPopup(this) },
         ].map(({ label, popup }) => {
             const link = this.add.bitmapText(0, 0, "Jersey25", label, HINT_SIZE)
                 .setOrigin(0, 0)
-                .setTint(0xF2C57C)
+                .setTint(0xFBFEF9)
                 .setDropShadow(1, 1, 0x000000, 1)
                 .setInteractive({ useHandCursor: true })
-            link.on("pointerover", () => link.setTint(0xFBFEF9))
-            link.on("pointerout", () => link.setTint(0xF2C57C))
+            link.on("pointerover", () => link.setTint(0xF2C57C))
+            link.on("pointerout", () => link.setTint(0xFBFEF9))
             link.on("pointerup", () => {
                 if (leaving) return
                 AudioController.instance.play("ui-click")
