@@ -106,3 +106,157 @@ body {
     color: #E0707F;
     text-shadow: 1px 1px 0 #0B0B0F;
 }
+
+/* Native modal: readable HTML above the canvas, including in fullscreen. */
+.menu-popup {
+    box-sizing: border-box;
+    width: min(640px, calc(100% - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+    max-height: calc(100% - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    margin: auto;
+    padding: clamp(16px, 4vw, 28px);
+    overflow-y: auto;
+    border: 2px solid #F2C57C;
+    border-radius: 8px;
+    color: #FBFEF9;
+    background: #15131C;
+    color-scheme: dark;
+    box-shadow: 0 12px 48px #0008;
+    font: 16px / 1.5 system-ui, sans-serif;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+}
+
+.menu-popup::backdrop {
+    background: #0B0B0FCC;
+}
+
+.menu-popup h2 {
+    margin: 0;
+    font-size: clamp(24px, 5vw, 32px);
+    line-height: 1.2;
+}
+
+/* The heading receives initial focus so short screens open at the top. */
+.menu-popup h2:focus {
+    outline: none;
+}
+
+.menu-popup-intro {
+    margin: 8px 0 20px;
+    color: #C6C1CE;
+}
+
+.menu-popup-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.menu-popup-columns section {
+    padding: 16px;
+    border: 1px solid #51495F;
+    border-top: 3px solid #F2C57C;
+    border-radius: 4px;
+    background: #211D2B;
+}
+
+.menu-popup-columns section + section {
+    border-top-color: #E0707F;
+}
+
+.menu-popup-columns h3 {
+    margin: 0;
+    color: #F2C57C;
+    font-size: 22px;
+}
+
+.menu-popup-columns section + section h3 {
+    color: #E0707F;
+}
+
+.menu-popup-columns p {
+    margin: 12px 0 0;
+}
+
+.menu-popup-columns .menu-popup-tagline {
+    margin-top: 4px;
+    color: #C6C1CE;
+    font-size: 14px;
+}
+
+.menu-popup form {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.menu-popup button {
+    min-height: 44px;
+    padding: 8px 24px;
+    border: 2px solid #F2C57C;
+    border-radius: 4px;
+    color: #15131C;
+    background: #F2C57C;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.menu-popup button:hover {
+    border-color: #FBFEF9;
+    background: #FBFEF9;
+}
+
+.menu-popup button:focus-visible {
+    outline: 2px solid #FBFEF9;
+    outline-offset: 4px;
+}
+
+@media (max-width: 540px) {
+    .menu-popup-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+.controls-popup {
+    width: min(760px, calc(100% - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+}
+
+.controls-bindings {
+    margin: 16px 0 0;
+    font-size: 15px;
+}
+
+.controls-bindings div {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.controls-bindings dt {
+    font-weight: 700;
+}
+
+.controls-bindings dd {
+    margin: 0;
+}
+
+.controls-bindings kbd {
+    display: inline-block;
+    padding: 0 4px;
+    border: 1px solid #51495F;
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    background: #15131C;
+    font: inherit;
+    font-size: 0.9em;
+}
+
+.controls-tip {
+    margin: 16px 0 0;
+    padding: 12px 16px;
+    border-left: 3px solid #F2C57C;
+    background: #211D2B;
+}

@@ -4,6 +4,8 @@ import { UI_SCALE_FACTOR } from '../config/display';
 import { UI_BUTTONS } from '../config/ui';
 import { AudioController } from '../systems/audio/AudioController';
 import { MenuButton } from '../ui/MenuButton';
+import { ModeInfoPopup } from '../ui/ModeInfoPopup';
+import { ControlsPopup } from '../ui/ControlsPopup';
 import type { LeaderboardSceneData } from './LeaderboardScene';
 import { EventBus } from '../utils/EventBus';
 import { PauseEvent } from '../utils/PauseEvents';
@@ -15,7 +17,7 @@ const TITLE_GAP = 32
 const BUTTON_GAP = 20
 const HINT_SIZE = 24
 
-/** Main menu, with level selection and a read-only visit to the leaderboard. */
+/** Main menu, with mode and control information, level selection and a read-only leaderboard. */
 export default class MainMenuScene extends Phaser.Scene {
     constructor() {
         super("MainMenuScene")
@@ -72,9 +74,38 @@ export default class MainMenuScene extends Phaser.Scene {
             button.reveal(index * 70)
         })
 
-        const contentWidth = Math.max(logo.width, ...buttons.map(button => button.width * 1.04))
         const lastButton = buttons[buttons.length - 1]
-        const contentHeight = lastButton.y + lastButton.height * 1.04 / 2
+        const helpLinks = [
+            { label: "About game modes", popup: new ModeInfoPopup(this) },
+            { label: "Controls", popup: new ControlsPopup(this) },
+        ].map(({ label, popup }) => {
+            const link = this.add.bitmapText(0, 0, "Jersey25", label, HINT_SIZE)
+                .setOrigin(0, 0)
+                .setTint(0xF2C57C)
+                .setDropShadow(1, 1, 0x000000, 1)
+                .setInteractive({ useHandCursor: true })
+            link.on("pointerover", () => link.setTint(0xFBFEF9))
+            link.on("pointerout", () => link.setTint(0xF2C57C))
+            link.on("pointerup", () => {
+                if (leaving) return
+                AudioController.instance.play("ui-click")
+                popup.open()
+            })
+            content.add(link)
+            return link
+        })
+
+        const helpWidth = helpLinks.reduce((width, link) => width + link.width, 0) + BUTTON_GAP
+        const helpY = lastButton.y + lastButton.height / 2 + BUTTON_GAP
+        let helpX = -helpWidth / 2
+        for (const link of helpLinks) {
+            link.setPosition(helpX, helpY)
+            helpX += link.width + BUTTON_GAP
+        }
+
+        const contentWidth = Math.max(logo.width, helpWidth,
+            ...buttons.map(button => button.width * 1.04))
+        const contentHeight = helpY + Math.max(...helpLinks.map(link => link.height))
 
         const landscapeHint = this.add.bitmapText(0, 0, "Jersey25",
             "For the best experience, play in landscape mode", HINT_SIZE)
