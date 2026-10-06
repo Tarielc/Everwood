@@ -30,7 +30,7 @@ export const WEAPONS = {
         framePrefix: "diamond-sword/diamond-sword-",
         poseAliases: { swing: "attack" },
         damage: 150,
-        knockback: 120,
+        knockback: 150,
         knockbackLift: -90,
         swingSound: "player-swing-sword",
         swing: {
