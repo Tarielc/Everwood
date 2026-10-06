@@ -6,7 +6,7 @@ import { AudioController } from '../systems/audio/AudioController';
 import { MenuButton } from '../ui/MenuButton';
 import type { LeaderboardSceneData } from './LeaderboardScene';
 import { EventBus } from '../utils/EventBus';
-import { PauseEvent } from './UIScene';
+import { PauseEvent } from '../utils/PauseEvents';
 
 /** Design sizes; the whole menu shrinks together on narrow screens. */
 const TITLE_SIZE = 100

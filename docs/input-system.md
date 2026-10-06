@@ -40,6 +40,6 @@ Report it from each source - a key binding, a touch button, etc.
 
 ## Pause Listener Lifecycle
 
-`UIScene` handles Escape and the pause button through the global `EventBus`. `GameScene` listens for pause and resume requests, while `UIScene` listens for those requests and button visibility changes.
+`UIScene` handles Escape and the pause button through the global `EventBus`. Shared event names and their type are defined in [`PauseEvents.ts`](../src/game/utils/PauseEvents.ts), so scenes can use them without importing another scene. `GameScene` listens for pause and resume requests, while `UIScene` listens for those requests and button visibility changes.
 
 Both scenes register stable callback references in `create()` and remove those same callbacks on scene `SHUTDOWN`. The listeners remain registered while the scene is paused. Stopping or restarting a scene removes only its own listeners, so level transitions and retries cannot accumulate callbacks or remove another scene's subscriptions.

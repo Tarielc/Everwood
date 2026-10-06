@@ -33,7 +33,7 @@ import type { EndOutcome, EndSceneData } from './EndScene';
 import type { ArenaRun } from './LeaderboardScene';
 import { RANKED_LEVEL } from '../data/leaderboard';
 import { EventBus } from '../utils/EventBus';
-import { PauseEvent } from './UIScene';
+import { PauseEvent } from '../utils/PauseEvents';
 
 /** Backup spawn point if the map has no PlayerStartPoint set on it */
 const FALLBACK_SPAWN: FootPoint = { x: 400, y: 300 }

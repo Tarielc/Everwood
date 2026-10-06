@@ -5,22 +5,12 @@ import { UI_BUTTONS, UiButtonConfig } from '../config/ui';
 import { AudioController, AudioEvent } from '../systems/audio/AudioController';
 import type { AudioBus } from '../config/audio';
 import { ATLAS, UI_FRAMES, UiFrame } from '../config/atlas';
-import GameScene from './GameScene';
+import type GameScene from './GameScene';
 import { EventBus } from '../utils/EventBus';
+import { PauseEvent } from '../utils/PauseEvents';
 
 /** Buses the sound button mutes together - everything that isn't music */
 const SOUND_BUSES: readonly AudioBus[] = ["sfx", "ui", "ambience"]
-
-/** game pause-resume events */
-export const PauseEvent = {
-    Toggle: "game-pause-toggle",
-    Pause: "game-pause",
-    Resume: "game-resume",
-    Show: "button-show",
-    Hide: "button-hide",
-} as const
-
-export type PauseEventName = typeof PauseEvent[keyof typeof PauseEvent]
 
 /**
  * Scene where UI buttons and elements are displayed across different scenes

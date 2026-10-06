@@ -3,7 +3,7 @@ import { END_SCREEN, EndScreenConfig } from '../config/ui';
 import { onResize, safeArea } from '../utils/viewport';
 import { AudioController } from '../systems/audio/AudioController';
 import type { ArenaRun, LeaderboardSceneData } from './LeaderboardScene';
-import { PauseEvent } from './UIScene';
+import { PauseEvent } from '../utils/PauseEvents';
 import { EventBus } from '../utils/EventBus';
 
 /** How a run ended - picks the headline, its colour and what the first option says */
