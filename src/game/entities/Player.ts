@@ -78,8 +78,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     /** Controls movement*/
     private movement: MovementController
 
-    /** Scene time the current hit's stun runs out - read by the hurt state */
-    private stunnedUntil = 0
+    /** Milliseconds of stun left, counted down only by gameplay updates */
+    private remainingStunMs = 0
     /** player animations and mirrors sprite to match facing */
     private animations: AnimationController<typeof PLAYER_ANIMS>
     /** behaviour states and transitions between them */
@@ -172,6 +172,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.health.update(delta)
         // counted down whatever state the player is in - a stun doesn't pause a buff
         this.effects.update(delta)
+        // pause and hitstop skip gameplay updates, preserving the remaining stun
+        this.remainingStunMs = Math.max(0, this.remainingStunMs - delta)
 
         if (this.health.isDead) {
             // a corpse still falls, it just stops steering
@@ -212,8 +214,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     /** Set player's facing direction to sprite and physics body */
-    setFacing(){
-        this.animations.setFacing(this.steeredFacing())
+    setFacing(direction?:Facing){
+        this.animations.setFacing(direction ?? this.steeredFacing())
         this.applyBodyOffset()
     }
 
@@ -282,7 +284,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         // extended, never shortened - a plain hit landing mid-stun can't cut it short
         const stunMs = effects?.stunMs ?? PLAYER_HURT_STUN_MS
-        this.stunnedUntil = Math.max(this.stunnedUntil, this.scene.time.now + stunMs)
+        this.remainingStunMs = Math.max(this.remainingStunMs, stunMs)
 
         // after the damage, so the hurt state is already entered and the dead
         // state's own velocity reset isn't overwritten
@@ -293,7 +295,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     /** ms left before a hit lets go of the player - `0` once it has */
     get stunRemainingMs(): number {
-        return Math.max(0, this.stunnedUntil - this.scene.time.now)
+        return this.remainingStunMs
     }
 
     /**
@@ -377,10 +379,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         })
 
         this.health.on(HealthEvent.Died, () => {
+            this.remainingStunMs = 0
             this.stateMachine.transition(PlayerState.Dead)
         })
 
         this.health.on(HealthEvent.Revived, () => {
+            this.remainingStunMs = 0
             this.stateMachine.transition(PlayerState.Idle)
         })
 

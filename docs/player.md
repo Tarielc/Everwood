@@ -21,13 +21,14 @@ Source:
 
 `GameScene.update()` calls `Player.update()`. The order matters:
 1. **Health**: ticks i-frames and regeneration.
-2. **Control**: depends on the player's condition
+2. **Timers**: ticks buffs and remaining stun using gameplay delta.
+3. **Control**: depends on the player's condition
     - *Dead*: horizontal acceleration is cleared, so the body still falls but no longer steers.
     - *Stunned* (hurt state): movement runs with empty input, so gravity and drag still apply.
     - *Otherwise*: queue an attack, update facing, start a swing if possible, and apply movement.
-3. **Attack**: ticks the cooldown and moves the hit area along with the player, so hit area during movement is generated in front of a player.
-4. **Invulnerability blink** and **state machine** update.
-5. **Equipment**: runs last, so the item copies the pose the sprite settled on this frame.
+4. **Attack**: ticks the cooldown and moves the hit area along with the player, so hit area during movement is generated in front of a player.
+5. **Invulnerability blink** and **state machine** update.
+6. **Equipment**: runs last, so the item copies the pose the sprite settled on this frame.
 
 ## Jumping
 
@@ -49,6 +50,8 @@ Health events are driven by event listeners `bindHealth()`:
 Health events are also sent to global `EventBus` with `PLAYER_HEALTH_BUS` prefix. HUD for HP bar listens to those events and reflects player health on screen.
 
 After a hit player is stunned for `PLAYER_HURT_STUN_MS`. This is kept shorter than `PLAYER_HEALTH.invulnerabilityMs` so player has time to act.
+
+Stun counts down only during gameplay updates, like timed buffs, so pausing or hitstop preserves its remaining duration. A landed, nonfatal hit can extend the stun with its own duration but cannot shorten an existing stun. The hurt state also waits for its animation lock to finish. Death and revival clear any remaining stun.
 
 ## Combat
 

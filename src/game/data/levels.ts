@@ -26,6 +26,8 @@ export interface LevelDefinition {
      * what stands in it, where it lets out - is authored into the map itself
      */
     url: string,
+    /** which direction is player facing. 1 - left, -1 - right*/
+    facingDirection?: 1 | -1
     /**
      * Endless escalating foe waves, spawned at the map's `FoeSpawnPoint` markers.
      * A level without one only ever holds the foes its map places by hand
@@ -79,6 +81,7 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
     },
     nether: {
         url: "assets/map/nether.json",
+        facingDirection: 1,
         music: "nether",
         ambience: "abyss",
         world: {

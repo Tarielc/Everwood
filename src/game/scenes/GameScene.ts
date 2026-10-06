@@ -34,6 +34,7 @@ import type { ArenaRun } from './LeaderboardScene';
 import { RANKED_LEVEL } from '../data/leaderboard';
 import { EventBus } from '../utils/EventBus';
 import { PauseEvent } from '../utils/PauseEvents';
+import { Facing } from '../components/AnimationController';
 
 /** Backup spawn point if the map has no PlayerStartPoint set on it */
 const FALLBACK_SPAWN: FootPoint = { x: 400, y: 300 }
@@ -132,6 +133,9 @@ export default class GameScene extends Phaser.Scene {
     /** Current level ID - which map is being played, handed in by whatever started this scene */
     private level: LevelId = STARTING_LEVEL
 
+    /** every level can have facing direction - defaults to -1 */
+    private levelFacingDirection: Facing;
+
     /** A level change is a scene restart - this stops the exit firing non-stop while it's on its way */
     private travelling: boolean = false
 
@@ -160,6 +164,7 @@ export default class GameScene extends Phaser.Scene {
      */
     init(data: { level?: LevelId }) {
         this.level = data?.level ?? STARTING_LEVEL
+        this.levelFacingDirection = LEVELS[this.level]?.facingDirection ?? -1
         this.foes = []
         this.projectiles = []
         this.powerUps = []
@@ -209,6 +214,8 @@ export default class GameScene extends Phaser.Scene {
         // spawn player in game scene and give it input controls
         this.player = new Player(this, this.spawn.x, this.spawn.y, this.controls)
             .setScale(SCALE_FACTOR)
+        
+        this.player.setFacing(this.levelFacingDirection)
 
         // scaled first, then stood on the floor - the drop is measured off the
         // body the player actually ended up with
@@ -388,6 +395,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.finished = false
         this.player.respawn(this.spawn.x, this.spawn.y)
+        this.player.setFacing(this.levelFacingDirection)
         this.pauseButtonRefresh()
         this.world.stand(this.player, this.spawn)
     }
