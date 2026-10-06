@@ -472,12 +472,10 @@ export default class GameScene extends Phaser.Scene {
     }
 
     /**
-     * Spikes and anything else that kills on touch. The overlap fires every frame, but dead players can't be killed twice.
+     * Spikes and anything else that kills on touch. The overlap fires every frame, but dead entity can't be killed twice.
      */
     private watchForHazards(): void {
-        for (const hazard of this.world.hazards) {
-            this.collisions.watchZone(hazard, () => this.player.kill(hazard))
-        }
+        this.collisions.addHazards()
     }
 
     /**

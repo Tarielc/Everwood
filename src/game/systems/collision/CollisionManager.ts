@@ -65,7 +65,35 @@ export class CollisionManager {
         this.track(world.collide(this.projectileGroup, projectile => (projectile as Projectile).strike()))
         this.track(world.collide(this.pickupGroup))
 
+        
+
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
+    }
+
+    /**
+     * Track overlap between hazard that kill entities.
+     * Hazards kills both, players and foes.
+     * 
+     * Should be called after registering the player
+     */
+    addHazards(): void{
+        for (const hazard of this.world.hazards){
+            const zone = this.world.zone(hazard)
+            // kill foes
+            this.track([
+                this.scene.physics.add.overlap(this.foeGroup, zone, (_foe, _hazard) => {
+                    const foe = _foe as Foe
+                    foe.getHealth.kill(hazard)
+                })
+            ])
+            // kill player
+            if(!this.player) continue
+            this.track([
+                this.scene.physics.add.overlap(this.player, zone, ()=> {
+                    this.player?.kill(hazard)
+                })
+            ])
+        }
     }
 
     /**

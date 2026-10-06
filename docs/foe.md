@@ -31,6 +31,12 @@ Sight is horizontal range *and* `verticalReach` - a target far enough above or b
 | `Hurt` | Flinches and briefly stunned when a hit breaks its poise, if not fatal |
 | `Dead` | Stops colliding and fades out |
 
+## Flying Movement
+
+Flying foes chase the target's body center, offset upward by `hoverHeight` when configured. When a solid tile or world bound blocks the chase, they slide along that surface and keep leaning into it until they pass its edge. The detour continues for 250 ms after contact ends so the body has time to clear the obstacle.
+
+If another surface blocks the detour, the foe reverses along the surface and keeps that new direction. If both directions along that axis are blocked, it switches to an open direction on the other axis. This lets the Infernal Skull and other flying foes escape corners instead of repeatedly pushing into two blocked directions.
+
 ## Update Order
 
 `GameScene.update()` calls `Foe.update()`, the order matters:
