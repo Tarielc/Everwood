@@ -93,7 +93,7 @@ export const MAP_DEFAULT_BACKDROP_DEPTH:number = -90
 export const MAP_DEFAULT_LAYER_DEPTH:number = -40
 
 /** Gravity X for nether dimensions */
-export const NETHER_GRAVITY:number = 200
+export const NETHER_GRAVITY:number = 300
 
 /** How the camera trails the player */
 export interface CameraFollowConfig {
