@@ -15,9 +15,10 @@
   "homepage": "https://github.com/Tarielc/Everwood#readme",
   "scripts": {
     "dev": "node log.js dev & vite --config vite/config.dev.mjs",
-    "build": "node log.js build & vite build --config vite/config.prod.mjs",
+    "build": "npm run typecheck && (node log.js build & vite build --config vite/config.prod.mjs)",
     "dev-nolog": "vite --config vite/config.dev.mjs",
     "build-nolog": "vite build --config vite/config.prod.mjs",
+    "typecheck": "tsc --noEmit && npm run typecheck:api",
     "typecheck:api": "tsc -p api --noEmit"
   },
   "devDependencies": {
