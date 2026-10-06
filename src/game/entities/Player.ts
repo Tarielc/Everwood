@@ -68,7 +68,7 @@ const NO_INPUT: InputState = {
  * - {@link AnimationController}
  * - {@link StateMachine}
  * - {@link HealthComponent}
- * - {@link EquipmentController}
+ * - {@link EquipmentComponent}
  * - {@link MeeleAttack}
  * - {@link StatusEffectComponent}
  * 
@@ -439,7 +439,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     /**
-     * brief white flash on hit - FILL replaces the texture colout outright
+     * brief red flash on hit - FILL replaces the texture colout outright
      * so the siljouetter reads even against a busy background
      */
     private flashDamage(): void {
