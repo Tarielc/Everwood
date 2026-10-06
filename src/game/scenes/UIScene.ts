@@ -5,9 +5,22 @@ import { UI_BUTTONS, UiButtonConfig } from '../config/ui';
 import { AudioController, AudioEvent } from '../systems/audio/AudioController';
 import type { AudioBus } from '../config/audio';
 import { ATLAS, UI_FRAMES, UiFrame } from '../config/atlas';
+import GameScene from './GameScene';
+import { EventBus } from '../utils/EventBus';
 
 /** Buses the sound button mutes together - everything that isn't music */
 const SOUND_BUSES: readonly AudioBus[] = ["sfx", "ui", "ambience"]
+
+/** game pause-resume events */
+export const PauseEvent = {
+    Toggle: "game-pause-toggle",
+    Pause: "game-pause",
+    Resume: "game-resume",
+    Show: "button-show",
+    Hide: "button-hide",
+} as const
+
+export type PauseEventName = typeof PauseEvent[keyof typeof PauseEvent]
 
 /**
  * Scene where UI buttons and elements are displayed across different scenes
@@ -27,6 +40,12 @@ export default class UIScene extends Phaser.Scene {
     /** mute sound effects, interface and ambience button */
     soundButton: Phaser.GameObjects.Image
 
+    /** pause and resume GameScene */
+    pauseButton: Phaser.GameObjects.Image
+
+    /** ESC key to pause/continue game */
+    pauseKey!: Phaser.Input.Keyboard.Key
+
     /** buttons in the order they are laid out, from the right edge inwards */
     private buttons: Phaser.GameObjects.Image[] = []
 
@@ -38,6 +57,25 @@ export default class UIScene extends Phaser.Scene {
     /** set appropriate exit fullscreen button icon */
     private readonly onLeaveFullscreen = () => {
         this.fullScreenButton?.setFrame(UI_FRAMES["fullscreen-enter"])
+    }
+
+    /** set appropriate resume button icon */
+    private readonly onGamePause = () => {
+        this.pauseButton?.setFrame(UI_FRAMES["game-resume"])
+    }
+
+    /** set appropriate pause button icon */
+    private readonly onGameResume = () => {
+        this.pauseButton?.setFrame(UI_FRAMES["game-pause"])
+    }
+
+    /** show pause button */
+    private readonly onPauseShow = () => {
+        this.pauseButton.setVisible(true)
+    }
+    /** hide pause button */
+    private readonly onPauseHide = () => {
+        this.pauseButton.setVisible(false)
     }
 
     /** keep the audio icons in step with the mixer, whoever changed it */
@@ -58,7 +96,21 @@ export default class UIScene extends Phaser.Scene {
         this.buttons = []
         this.addFullScreenButton()
         this.addAudioButtons()
+        this.addPauseButton()
 
+        EventBus.on(PauseEvent.Show, this.onPauseShow)
+        EventBus.on(PauseEvent.Hide, this.onPauseHide)
+        EventBus.on(PauseEvent.Pause, this.onGamePause)
+        EventBus.on(PauseEvent.Resume, this.onGameResume)
+
+        this.pauseKey = this.input.keyboard!.addKey(
+            Phaser.Input.Keyboard.KeyCodes.ESC
+        )
+
+        this.pauseKey.on("down", () => {
+            this.toggleGamePause()
+        })
+        
         onResize(this, (width, height) => this.layout(width, height))
 
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)
@@ -101,6 +153,28 @@ export default class UIScene extends Phaser.Scene {
 
         audio.on(AudioEvent.MuteChanged, this.onMuteChanged)
         this.refreshAudioIcons()
+    }
+
+    /** add pause-resume buttons */
+    private addPauseButton(){
+        this.pauseButton = this.addButton("game-pause", ()=> {
+            AudioController.instance.play("ui-click")
+            this.toggleGamePause()
+        })
+        this.pauseButton.setVisible(false)
+    }
+
+    /** function to toggle game pause-resumte */
+    private toggleGamePause(){
+        const gameScene = this.scene.get("GameScene") as GameScene
+        if(gameScene.isGameFinished) return
+        
+        const controls = gameScene.scene
+        if(controls.isPaused("GameScene")){
+            EventBus.emit(PauseEvent.Resume)
+        }else if(controls.isActive("GameScene")) {
+            EventBus.emit(PauseEvent.Pause)
+        }
     }
 
     /**
@@ -186,9 +260,7 @@ export default class UIScene extends Phaser.Scene {
             ))
     }
 
-    /**
-     * Phaser automatically runs `shutdown()` function on scene DESTROY and SHUTDOWN
-     */
+    /** Remove global listeners when the scene emits SHUTDOWN */
     shutdown(){
         this.scale.off(
             Phaser.Scale.Events.ENTER_FULLSCREEN,
@@ -201,5 +273,10 @@ export default class UIScene extends Phaser.Scene {
         if (AudioController.isReady) {
             AudioController.instance.off(AudioEvent.MuteChanged, this.onMuteChanged)
         }
+
+        EventBus.off(PauseEvent.Show, this.onPauseShow)
+        EventBus.off(PauseEvent.Hide, this.onPauseHide)
+        EventBus.off(PauseEvent.Pause, this.onGamePause)
+        EventBus.off(PauseEvent.Resume, this.onGameResume)
     }
 }

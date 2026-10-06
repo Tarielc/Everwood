@@ -32,6 +32,8 @@ import { PLAYER_SOUNDS } from '../data/audio';
 import type { EndOutcome, EndSceneData } from './EndScene';
 import type { ArenaRun } from './LeaderboardScene';
 import { RANKED_LEVEL } from '../data/leaderboard';
+import { EventBus } from '../utils/EventBus';
+import { PauseEvent } from './UIScene';
 
 /** Backup spawn point if the map has no PlayerStartPoint set on it */
 const FALLBACK_SPAWN: FootPoint = { x: 400, y: 300 }
@@ -139,6 +141,10 @@ export default class GameScene extends Phaser.Scene {
     /** How deep a ranked run got, taken the moment the player falls - `null` on every other level */
     private rankedRun: ArenaRun | null = null
 
+    /** Keep the same callback references across scene restarts so shutdown can remove them */
+    private readonly onGamePause = () => this.showEndScreen("pause")
+    private readonly onGameResume = () => this.scene.resume()
+
     /** Registers the scene under the `GameScene` key */
     constructor() {
         super("GameScene")
@@ -167,6 +173,8 @@ export default class GameScene extends Phaser.Scene {
         this.textBanner = null
         this.waveCounter = null
         this.bossBar = null
+
+        this.pauseButtonRefresh()
     }
 
     /**
@@ -253,6 +261,29 @@ export default class GameScene extends Phaser.Scene {
                 busPrefix: PLAYER_HEALTH_BUS,
             })
         }
+
+        // show pause button
+        EventBus.on(PauseEvent.Pause, this.onGamePause)
+        EventBus.on(PauseEvent.Resume, this.onGameResume)
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)
+    }
+
+    /** Remove this scene's global pause listeners before it stops or restarts */
+    private shutdown(): void {
+        EventBus.off(PauseEvent.Pause, this.onGamePause)
+        EventBus.off(PauseEvent.Resume, this.onGameResume)
+    }
+
+    /** public API to check whether game finished or not */
+    get isGameFinished() {
+        return this.finished
+    }
+
+    /** Pause buttons display event emitter */
+    private pauseButtonRefresh(){
+        // show pause button
+        EventBus.emit(PauseEvent.Show)
+        EventBus.emit(PauseEvent.Resume)
     }
 
     /**
@@ -357,6 +388,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.finished = false
         this.player.respawn(this.spawn.x, this.spawn.y)
+        this.pauseButtonRefresh()
         this.world.stand(this.player, this.spawn)
     }
 
@@ -383,16 +415,19 @@ export default class GameScene extends Phaser.Scene {
      * 
      * @param outcome - the outcome of the run, either "victory" or "defeat"
      */
-    private showEndScreen(outcome: EndOutcome): void {
+    showEndScreen(outcome: EndOutcome): void {
         this.scene.pause()
         this.scene.launch("EndScene", {
             outcome,
             onRetry: () => {
                 this.scene.resume()
-                if (outcome === "defeat") this.retryAfterDeath()
+                if (outcome === "defeat" || outcome === "pause") this.retryAfterDeath()
                 else this.startOver(STARTING_LEVEL)
             },
             onMenu: () => this.startOver(),
+            onContinue: () => {
+                EventBus.emit(PauseEvent.Resume)
+            },
             run: outcome === "defeat" ? this.rankedRun ?? undefined : undefined,
         } satisfies EndSceneData)
     }

@@ -37,3 +37,9 @@ Add the flag to `RawInput` and reset it in `InputController.update()`.
 Expose it on `InputState` and set it in `update()`
 
 Report it from each source - a key binding, a touch button, etc.
+
+## Pause Listener Lifecycle
+
+`UIScene` handles Escape and the pause button through the global `EventBus`. `GameScene` listens for pause and resume requests, while `UIScene` listens for those requests and button visibility changes.
+
+Both scenes register stable callback references in `create()` and remove those same callbacks on scene `SHUTDOWN`. The listeners remain registered while the scene is paused. Stopping or restarting a scene removes only its own listeners, so level transitions and retries cannot accumulate callbacks or remove another scene's subscriptions.

@@ -283,6 +283,7 @@ export interface EndScreenConfig {
     /** Headline colour on a win, and on a death */
     victoryTint: number,
     defeatTint: number,
+    pauseTint: number,
     /** Drop shadow colour, so the text reads over whatever is left of the level */
     shadow: number,
     subtitleTint: number,
@@ -310,6 +311,7 @@ export const END_SCREEN: EndScreenConfig = {
     optionSize: 40,
     victoryTint: 0xF2C57C,
     defeatTint: 0xA63446,
+    pauseTint: 0x7C9FB0,
     shadow: 0x0B0B0F,
     subtitleTint: 0xFBFEF9,
     optionTint: 0xFBFEF9,

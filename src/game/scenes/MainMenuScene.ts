@@ -5,6 +5,8 @@ import { UI_BUTTONS } from '../config/ui';
 import { AudioController } from '../systems/audio/AudioController';
 import { MenuButton } from '../ui/MenuButton';
 import type { LeaderboardSceneData } from './LeaderboardScene';
+import { EventBus } from '../utils/EventBus';
+import { PauseEvent } from './UIScene';
 
 /** Design sizes; the whole menu shrinks together on narrow screens. */
 const TITLE_SIZE = 100
@@ -111,5 +113,8 @@ export default class MainMenuScene extends Phaser.Scene {
                 .setPosition(width / 2, height / 2)
         }
         onResize(this, layout)
+
+        // hide pause button
+        EventBus.emit(PauseEvent.Hide)
     }
 }

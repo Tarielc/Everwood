@@ -26,6 +26,8 @@ export const UI_FRAMES = {
     "staminaBar": "UI/healthbar/yellow-bar.png",
     "fullscreen-enter": "UI/fullscreen-enter-btn.png",
     "fullscreen-exit": "UI/fullscreen-exit-btn.png",
+    "game-pause": "UI/game-pause-btn.png",
+    "game-resume": "UI/game-resume-btn.png",
     "music-on": "UI/music-on-btn.png",
     "music-off": "UI/music-off-btn.png",
     "volume-on": "UI/volume-on-btn.png",

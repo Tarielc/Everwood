@@ -3,9 +3,11 @@ import { END_SCREEN, EndScreenConfig } from '../config/ui';
 import { onResize, safeArea } from '../utils/viewport';
 import { AudioController } from '../systems/audio/AudioController';
 import type { ArenaRun, LeaderboardSceneData } from './LeaderboardScene';
+import { PauseEvent } from './UIScene';
+import { EventBus } from '../utils/EventBus';
 
 /** How a run ended - picks the headline, its colour and what the first option says */
-export type EndOutcome = "victory" | "defeat"
+export type EndOutcome = "victory" | "defeat" | "pause"
 
 /** What the scene that launches the end screen hands it */
 export interface EndSceneData {
@@ -15,6 +17,8 @@ export interface EndSceneData {
     onRetry: () => void,
     /** Leave for the main menu */
     onMenu: () => void,
+    /** Continue the game */
+    onContinue?: () => void,
     /** A ranked arena run - the screen says how deep it got and offers the leaderboard */
     run?: ArenaRun,
 }
@@ -23,7 +27,7 @@ export interface EndSceneData {
  * Everything that differs between a win and a death - the headline, the line under it,
  * the label of the first option and which {@link EndScreenConfig} tint colours the headline
  */
-const OUTCOMES: Record<EndOutcome, { title: string, subtitle: string, retry: string, tint: "victoryTint" | "defeatTint" }> = {
+const OUTCOMES: Record<EndOutcome, { title: string, subtitle: string, retry: string, tint: "victoryTint" | "defeatTint" | "pauseTint" }> = {
     victory: {
         title: "Victory",
         subtitle: "The underworld falls silent",
@@ -36,6 +40,12 @@ const OUTCOMES: Record<EndOutcome, { title: string, subtitle: string, retry: str
         retry: "Try Again",
         tint: "defeatTint",
     },
+    pause: {
+        title: "Game Paused",
+        subtitle: "press ESC to continue",
+        retry: "Try Again",
+        tint: "pauseTint"
+    }
 }
 
 /**
@@ -52,6 +62,8 @@ export default class EndScene extends Phaser.Scene {
     private onRetry: () => void = () => {}
     /** What "Main Menu" does, handed in by the launching scene */
     private onMenu: () => void = () => {}
+    /** What "Continue" doed, handed by the launching scene */
+    private onContinue?: () => void | undefined = () => {}
     /** Everything this screen was opened with, so coming back from the leaderboard can reopen it as it was */
     private launchData!: EndSceneData
 
@@ -63,6 +75,10 @@ export default class EndScene extends Phaser.Scene {
     private ready: boolean = false
     /** The first pick wins - the scene is on its way out after it */
     private chosen: boolean = false
+
+    private readonly stopSceneOnResume = () => {
+        this.scene.stop()
+    }
 
     /**
      * Registers the scene under the `EndScene` key.
@@ -83,11 +99,16 @@ export default class EndScene extends Phaser.Scene {
         this.outcome = data.outcome
         this.onRetry = data.onRetry
         this.onMenu = data.onMenu
+        this.onContinue = data.onContinue
         this.launchData = data
         this.options = []
         this.selected = -1
         this.ready = false
         this.chosen = false
+    }
+
+    get endSceneType(): string {
+        return this.outcome
     }
 
     /**
@@ -117,9 +138,13 @@ export default class EndScene extends Phaser.Scene {
             .setDropShadow(2, 2, config.shadow, 1)
 
         // each one is added to `options` as it's made, which is what gives it its index
+        if (this.endSceneType === "pause") this.addOption("Continue", () => {
+            this.onContinue?.()
+        })
         this.addOption(outcome.retry, () => this.onRetry())
         if (this.launchData.run) this.addOption("Leaderboard", () => this.openLeaderboard())
         this.addOption("Main Menu", () => this.onMenu())
+
 
         const content = [title, subtitle, ...this.options]
 
@@ -164,6 +189,13 @@ export default class EndScene extends Phaser.Scene {
         })
 
         this.bindKeys()
+        
+        // hide pause button, if it's not pause scene
+        if(this.endSceneType !== "pause") EventBus.emit(PauseEvent.Hide)
+        if(this.endSceneType === "pause") EventBus.on(PauseEvent.Resume, this.stopSceneOnResume)
+
+
+        this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)
     }
 
     /**
@@ -276,11 +308,16 @@ export default class EndScene extends Phaser.Scene {
     private choose(choose: () => void): void {
         if (!this.ready || this.chosen) return
         this.chosen = true
-
+        
+        // EventBus.emit(PauseEvent.Resume)
         AudioController.instance.play("ui-confirm")
 
         // out of the way first - what the choice does may well restart the scene under it
         this.scene.stop()
         choose()
+    }
+
+    shutdown(){
+        EventBus.off(PauseEvent.Resume, this.stopSceneOnResume)
     }
 }
