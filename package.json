@@ -27,12 +27,12 @@
     "@types/node": "^26.6.3",
     "typescript": "~5.7.2",
     "vite": "^6.3.1",
+    "terser": "^5.39.0",
     "vitest": "^5.0.3"
   },
   "dependencies": {
     "mongodb": "^7.7.0",
     "obscenity": "^0.4.6",
-    "phaser": "4.0.0",
-    "terser": "^5.39.0"
+    "phaser": "4.0.0"
   }
 }
