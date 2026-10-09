@@ -19,12 +19,15 @@
     "dev-nolog": "vite --config vite/config.dev.mjs",
     "build-nolog": "vite build --config vite/config.prod.mjs",
     "typecheck": "tsc --noEmit && npm run typecheck:api",
-    "typecheck:api": "tsc -p api --noEmit"
+    "typecheck:api": "tsc -p api --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^26.6.3",
     "typescript": "~5.7.2",
-    "vite": "^6.3.1"
+    "vite": "^6.3.1",
+    "vitest": "^5.0.3"
   },
   "dependencies": {
     "mongodb": "^7.7.0",

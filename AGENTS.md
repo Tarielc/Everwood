@@ -17,6 +17,8 @@ Player jump availability and physics belong in `MovementController`; animation a
 - `npm install` — install dependencies.
 - `npm run dev-nolog` — serve the game at `http://localhost:8080`.
 - `npm run build-nolog` — create the production bundle in `dist/`.
+- `npm test` — run Vitest in watch mode during development.
+- `npm run test:run` — run the automated tests once.
 - `npx tsc --noEmit` — type-check game code.
 - `npm run typecheck:api` — type-check server code separately.
 - `vercel dev` — run the game with its leaderboard API after Vercel setup and local environment configuration.
@@ -29,7 +31,9 @@ Use four-space indentation and strict TypeScript. Match surrounding quote and se
 
 ## Testing Guidelines
 
-There is no automated test suite, test naming convention, or coverage threshold. Run both type checks and the production build for code changes. Manually exercise affected gameplay, scene transitions, and desktop/touch layouts; validate leaderboard changes through `vercel dev`.
+Vitest tests cover the shared leaderboard validation functions and wave-count calculations. Keep tests beside the code they exercise in `*.test.ts` files, with descriptive test names and comments for non-obvious fixtures. No coverage threshold is configured. Run `npm run test:run`, both type checks, and the production build for code changes. Manually exercise affected gameplay, scene transitions, and desktop/touch layouts; validate leaderboard changes through `vercel dev`.
+
+Run `npm run test:run -- src/game/data/leaderboard.test.ts` to check leaderboard validation alone. Its kill-range fixtures reflect the current `ARENA_WAVES` roster; update expected totals when its counts change.
 
 For movement changes, verify both jumps, third-jump rejection, ledge/coyote behavior, landing reset, held input, buffering/jump cuts, and jump feedback during attacks on keyboard and touch.
 

@@ -55,6 +55,8 @@ Scores live in the `arenaScores` collection as `{ name, wave, kills, createdAt }
 
 This turns away anything the game couldn't have produced. It doesn't stop someone posting a plausible made-up run with `curl`; that would need server-side verification of the run itself. There's no rate limiting either.
 
+Run `npm run test:run -- src/game/data/leaderboard.test.ts` for the shared validation tests. They cover name cleanup, malformed and incomplete submissions, wave and kill limits, cumulative kill ranges through the maximum ranked wave, and the cleaned score returned on success. Score and kill-range fixtures reflect the current arena roster; update them when its counts change.
+
 ## Name Filter
 
 A name that passes the shared checks is then run through [`obscenity`](https://github.com/jo3-l/obscenity) in `api/_lib/profanity.ts`, and turned away with `400 { error: "Pick another name" }` if it matches. This one is server-only on purpose: the word list stays out of the game's bundle, and a filter running in the player's browser wouldn't stop anyone.

@@ -24,7 +24,7 @@ Each wave is planned from `WaveConfig`, and gets harder in two independent ways.
 
 **Tougher ones.** `healthGrowth` and `damageGrowth` are fractions added per wave, capped at `statCeiling`. A scaled foe is a copy of its `FOES` entry with only its max health, contact damage and attack damage moved - same sheet, same reach, same pace. Wave one is the definition itself, uncopied.
 
-With the arena's numbers that lands at 2 foes on wave 1, 5 by wave 3, 15 by wave 10, and a count ceiling of 16 - past which the run keeps climbing on stats alone.
+With the arena's numbers that lands at 1 foe on wave 1, 3 by wave 3, and a count ceiling of 8 by wave 8 - past which the run keeps climbing on stats alone.
 
 ## The Run
 
@@ -67,3 +67,7 @@ On the player's death `GameScene.onPlayerDeath()` stops the run so nothing else 
 ## Ownership and Cleanup
 
 The constructor registers a one-time `SHUTDOWN` listener, so a level change takes the run with it. `stop()` cancels every timer in flight and empties the count; foes already on the floor are left alone - they belong to the scene.
+
+## Testing
+
+Run `npm run test:run -- src/game/data/waves.test.ts` for the `countFor()` unit tests. They cover the first-wave boundary, fractional growth and rounding, zero growth and starting counts, and the lower and upper count limits. Fixtures use custom rules with explicit expected counts, so arena roster tuning does not require changing them.

@@ -58,6 +58,12 @@ Everything is in `data/powerUps.ts`:
 
 A new *stat* also needs its name added to `Stat` in `StatusEffectComponent.ts`, plus whatever reads it on the player.
 
+## Tests
+
+Run `npm run test:run -- src/game/components/StatusEffectComponent.test.ts` for the power-up math tests. They cover additive and multiplicative bonuses, pickup order, stat isolation, current power-up tuning, refresh duration and replacement, and recalculation after expiry, removal or clearing. The tests run in Node using Phaser's underlying event emitter without starting a game.
+
+Run `npm run test:run -- src/game/config/feel.test.ts` for impact scaling. It covers the reference health share, proportional and fractional hits, either sign of health change, both clamp boundaries, and nonpositive maximum health.
+
 ## Sound
 
 The pickup plays `power-up-pickup`, which reuses the heal chime's marker for now. To give it a sound of its own, add a marker to the SFX spritemap and point the entry in `SOUNDS` at it.
