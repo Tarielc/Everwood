@@ -556,6 +556,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     /** Destructor and cleanup */
     destroy(fromScene?: boolean): void {
+        // AudioController is game-scoped, so a long warning can outlive this player
+        // when a scene shuts down before the clip finishes.
+        if (AudioController.isReady) AudioController.instance.stop(PLAYER_SOUNDS.lowHealth)
         this.healGlow?.stop()
         this.stateMachine?.destroy()
         this.animations?.destroy()
