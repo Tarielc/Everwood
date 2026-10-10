@@ -92,12 +92,12 @@ export default class PreloadScene extends Phaser.Scene {
     createLoadingGraph(): Phaser.GameObjects.Container {
         const barHeight = 24
 
-        this.progressBox = this.add.image(0, 0, ATLAS, UI_FRAMES["progBar-frame"])
+        this.progressBox = this.add.image(0, 0, ATLAS, UI_FRAMES["progBar-frame"]).setScale(0.5)
 
-        this.progressBar = this.add.image(0, 0, ATLAS, UI_FRAMES["progBar-line"])
+        this.progressBar = this.add.image(0, 0, ATLAS, UI_FRAMES["progBar-line"]).setScale(0.5)
 
         const percentText = this.add.text(0, barHeight / 2 + 20, "0%", {
-            fontSize: "18px",
+            fontSize: "12px",
             color: "#e52554"
         }).setOrigin(0.5)
 
