@@ -63,9 +63,7 @@ export class CollisionManager {
 
         this.track(world.collide(this.foeGroup))
         this.track(world.collide(this.projectileGroup, projectile => (projectile as Projectile).strike()))
-        this.track(world.collide(this.pickupGroup))
-
-        
+        this.track(world.collide(this.pickupGroup))  
 
         scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
     }

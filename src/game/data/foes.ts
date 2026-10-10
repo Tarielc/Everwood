@@ -380,7 +380,7 @@ export const FOES = {
         facing: 'left',
         scale: SCALE_FACTOR,
         // just the skull - the flames above it aren't something to be hit by
-        body: { width: 48, height: 96, offsetX: 40, offsetY: 8 },
+        body: { width: 48, height: 84, offsetX: 40, offsetY: 16 },
         health: {
             // fragile - one or two cuts pops it before it gets close
             // a dozen-odd sword cuts - a fight, not a slog
@@ -394,8 +394,8 @@ export const FOES = {
         chaseSpeed: 200,
         patrolRange: 160,
         pauseMs: 100,
-        aggroRange: Infinity,
-        deAggroRange: Infinity,
+        aggroRange: 500,
+        deAggroRange: 600,
         verticalReach: 0, // unused - a flier measures straight-line distance
         flying: true,
         // a big sprite - held up over the player's head, so the flames it bursts

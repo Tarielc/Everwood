@@ -97,6 +97,7 @@ export const LEVELS:Record<LevelId, LevelDefinition> = {
         world: {
             gravity: NETHER_GRAVITY,
         },
+        foesAlwaysHunt: true,
     },
 }
 

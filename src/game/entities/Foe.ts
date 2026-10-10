@@ -254,6 +254,9 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
      *
      * The way round is picked once and kept until it's clear. Re-picking toward the
      * target every frame would turn it back the moment it passed under them.
+     * 
+     * If another surface blocks the detour, the foe reverses along the surface
+     * only when the opposite direction isn't blocked.
      *
      * @param dx - horizontal distance to where it's flying
      * @param dy - vertical distance to where it's flying
@@ -278,7 +281,27 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
         if (this.detour && now >= this.detour.until) this.detour = null
         if (!this.detour) return false
 
-        const { axis, direction } = this.detour
+        const { axis } = this.detour
+        let direction = this.detour.direction
+
+        // Is the chosen detour direction itself blocked?
+        const blockedAhead = axis === 'x'
+            ? (direction < 0 ? body.blocked.left : body.blocked.right)
+            : (direction < 0 ? body.blocked.up : body.blocked.down)
+
+        const blockedBehind = axis === 'x'
+            ? (direction < 0 ? body.blocked.right : body.blocked.left)
+            : (direction < 0 ? body.blocked.down : body.blocked.up)
+
+        // Reverse only when the opposite direction is available.
+        if (blockedAhead && !blockedBehind) {
+            direction = direction === -1 ? 1 : -1
+
+            // Remember the change so the next frame doesn't turn it back.
+            this.detour.direction = direction
+            this.detour.until = now + DETOUR_CLEAR_MS
+        }
+
         const lean = speed * DETOUR_LEAN
 
         if (axis === 'x') {
@@ -288,6 +311,7 @@ export default class Foe extends Phaser.Physics.Arcade.Sprite {
             this.setFacing(dx < 0 ? -1 : 1)
             this.setVelocity(Math.sign(dx) * lean, direction * speed)
         }
+
         return true
     }
 

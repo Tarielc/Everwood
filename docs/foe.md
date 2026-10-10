@@ -35,7 +35,7 @@ Sight is horizontal range *and* `verticalReach` - a target far enough above or b
 
 Flying foes chase the target's body center, offset upward by `hoverHeight` when configured. When a solid tile or world bound blocks the chase, they slide along that surface and keep leaning into it until they pass its edge. The detour continues for 250 ms after contact ends so the body has time to clear the obstacle.
 
-If another surface blocks the detour, the foe reverses along the surface and keeps that new direction. If both directions along that axis are blocked, it switches to an open direction on the other axis. This lets the Infernal Skull and other flying foes escape corners instead of repeatedly pushing into two blocked directions.
+If another surface blocks the detour, the foe reverses along the surface only when the opposite direction is open, then keeps that direction for the rest of the detour. If both directions along that axis are blocked, it keeps its current direction. This prevents the Infernal Skull and other flying foes from repeatedly flipping direction against the same obstacle.
 
 ## Update Order
 
