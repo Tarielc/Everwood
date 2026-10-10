@@ -494,14 +494,9 @@
                          "value":"F \/ J to attack"
                         }, 
                         {
-                         "name":"text",
-                         "type":"string",
-                         "value":"attack to kill foes"
-                        }, 
-                        {
                          "name":"touch",
                          "type":"string",
-                         "value":"attack to kill foes"
+                         "value":"Pres X to attack"
                         }],
                  "rotation":0,
                  "type":"Hint",
