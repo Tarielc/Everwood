@@ -404,14 +404,13 @@ export const FOES = {
         // a skull or two out of the flames every few seconds, never more than a handful
         summon: { foe: "burning-skull", intervalMs: 11000, count: 2, maxAlive: 3, spread: 300 },
         boss: { title: "Infernal Skull" },
-        // nothing - the blast is what hurts
         contactDamage: 0,
         attack: {
             kind: "melee",
             // straight-line distance it lights the fuse at - a little inside the blast,
             // so standing still for the whole fuse is always a hit
             range: 110,
-            damage: 30,
+            damage: 35,
             knockback: { chance: 0.5, force: 150, lift: -120 },
             swing: {
                 // the flames are up from the 6th attack frame to the 10th, at 12fps
