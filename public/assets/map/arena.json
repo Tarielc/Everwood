@@ -476,6 +476,72 @@
                  "width":32,
                  "x":640,
                  "y":544
+                }, 
+                {
+                 "height":64,
+                 "id":10,
+                 "name":"AttackHint",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":"attack"
+                        }, 
+                        {
+                         "name":"keyboard",
+                         "type":"string",
+                         "value":"F \/ J to attack"
+                        }, 
+                        {
+                         "name":"text",
+                         "type":"string",
+                         "value":"attack to kill foes"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"attack to kill foes"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":1312,
+                 "x":0,
+                 "y":544.666666666667
+                }, 
+                {
+                 "height":80,
+                 "id":12,
+                 "name":"AttackHint",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dismissOn",
+                         "type":"string",
+                         "value":"sprint"
+                        }, 
+                        {
+                         "name":"keyboard",
+                         "type":"string",
+                         "value":"Hold Shift to sprint"
+                        }, 
+                        {
+                         "name":"text",
+                         "type":"string",
+                         "value":"Double tap to sprint"
+                        }, 
+                        {
+                         "name":"touch",
+                         "type":"string",
+                         "value":"Double tap to sprint"
+                        }],
+                 "rotation":0,
+                 "type":"Hint",
+                 "visible":true,
+                 "width":1312,
+                 "x":0,
+                 "y":528
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -560,7 +626,7 @@
          "y":0
         }],
  "nextlayerid":24,
- "nextobjectid":9,
+ "nextobjectid":14,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",

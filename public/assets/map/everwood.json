@@ -1425,7 +1425,7 @@
                  "y":384
                 }, 
                 {
-                 "height":48,
+                 "height":64,
                  "id":2,
                  "name":"PlayerExitpoint",
                  "opacity":1,
@@ -1439,8 +1439,8 @@
                  "type":"PlayerExitpoint",
                  "visible":true,
                  "width":48,
-                 "x":-12.25,
-                 "y":399.5
+                 "x":-16,
+                 "y":384
                 }, 
                 {
                  "height":38.75,
@@ -1461,35 +1461,7 @@
                  "y":408.5
                 }, 
                 {
-                 "height":96,
-                 "id":22,
-                 "name":"MoveHint",
-                 "opacity":1,
-                 "properties":[
-                        {
-                         "name":"dismissOn",
-                         "type":"string",
-                         "value":"sprint"
-                        }, 
-                        {
-                         "name":"keyboard",
-                         "type":"string",
-                         "value":"A \/ D or Arrow keys to move\nHold Shift to sprint"
-                        }, 
-                        {
-                         "name":"touch",
-                         "type":"string",
-                         "value":"Hold the arrow buttons to move\nDouble-tap one to sprint"
-                        }],
-                 "rotation":0,
-                 "type":"Hint",
-                 "visible":true,
-                 "width":96,
-                 "x":544,
-                 "y":352
-                }, 
-                {
-                 "height":37.5,
+                 "height":38.5,
                  "id":23,
                  "name":"TravelHint",
                  "opacity":1,
@@ -1502,9 +1474,9 @@
                  "rotation":0,
                  "type":"Hint",
                  "visible":true,
-                 "width":101.5,
-                 "x":1486.5,
-                 "y":409.5
+                 "width":129,
+                 "x":1475.5,
+                 "y":408.5
                 }, 
                 {
                  "height":95.5,
@@ -1523,62 +1495,6 @@
                  "width":256,
                  "x":1313,
                  "y":351
-                }, 
-                {
-                 "height":96,
-                 "id":25,
-                 "name":"AttackHint",
-                 "opacity":1,
-                 "properties":[
-                        {
-                         "name":"dismissOn",
-                         "type":"string",
-                         "value":"attack"
-                        }, 
-                        {
-                         "name":"keyboard",
-                         "type":"string",
-                         "value":"F \/ J to attack"
-                        }, 
-                        {
-                         "name":"touch",
-                         "type":"string",
-                         "value":"attack to kill foes"
-                        }],
-                 "rotation":0,
-                 "type":"Hint",
-                 "visible":true,
-                 "width":96,
-                 "x":736,
-                 "y":352
-                }, 
-                {
-                 "height":96,
-                 "id":26,
-                 "name":"AttackHint",
-                 "opacity":1,
-                 "properties":[
-                        {
-                         "name":"dismissOn",
-                         "type":"string",
-                         "value":"attack"
-                        }, 
-                        {
-                         "name":"keyboard",
-                         "type":"string",
-                         "value":"F \/ J to attack"
-                        }, 
-                        {
-                         "name":"touch",
-                         "type":"string",
-                         "value":"attack to kill foes"
-                        }],
-                 "rotation":0,
-                 "type":"Hint",
-                 "visible":true,
-                 "width":96,
-                 "x":352,
-                 "y":352
                 }, 
                 {
                  "height":94.75,
