@@ -114,6 +114,17 @@ export default class MainMenuScene extends Phaser.Scene {
             .setTint(0xFBFEF9)
             .setDropShadow(1, 1, 0x000000, 1)
 
+        this.tweens.add({
+            targets: landscapeHint,
+            scaleX: 1.035,
+            scaleY: 1.035,
+            alpha: 0.78,
+            duration: 1400,
+            ease: "Sine.InOut",
+            yoyo: true,
+            repeat: -1,
+        })
+
         AudioController.instance.playMusic("menu")
         AudioController.instance.playAmbience("town")
         if (!this.scene.isActive("UIScene")) this.scene.launch("UIScene")
