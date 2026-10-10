@@ -84,26 +84,26 @@ export const SOUNDS = {
     "player-swing": {
         markers: ["player-attack-barehand2"],
         channel: "sfx",
-        volume: 0.45,
+        volume: 0.18,
         rateJitter: 0.1,
     },
     "player-swing-sword": {
         markers: ["player-attack-sword"],
         channel: "sfx",
-        volume: 0.5,
+        volume: 0.55,
         rateJitter: 0.08,
     },
     "player-swing-axe": {
         markers: ["player-attack-axe"],
         channel: "sfx",
-        volume: 0.5,
+        volume: 0.14,
         rateJitter: 0.08,
     },
     // two takes of the same grunt, so a run of hits doesn't repeat itself
     "player-hurt": {
         markers: ["player-hurt"],
         channel: "sfx",
-        volume: 0.6,
+        volume: 0.55,
         rateJitter: 0.06,
         // i-frames already stop a second hit landing, this is only for a shared frame
         throttleMs: 200,
@@ -112,19 +112,19 @@ export const SOUNDS = {
     "player-death": {
         markers: ["player-death"],
         channel: "sfx",
-        volume: 0.55,
+        volume: 0.38,
         duck: true,
     },
     "player-jump": {
         markers: ["player-jump"],
         channel: "sfx",
-        volume: 0.3,
+        volume: 0.16,
         rateJitter: 0.12,
     },
     "player-land": {
         markers: ["player-landing"],
         channel: "sfx",
-        volume: 0.25,
+        volume: 0.8,
         rateJitter: 0.1,
         // a landing that lands twice in three frames is one landing
         throttleMs: 150,
@@ -133,13 +133,13 @@ export const SOUNDS = {
     "player-heal": {
         markers: ["player-heal"],
         channel: "sfx",
-        volume: 0.55,
+        volume: 0.75,
     },
     // borrows the heal's chime until a pickup sound of its own is added to the spritemap
     "power-up-pickup": {
         markers: ["player-heal"],
         channel: "sfx",
-        volume: 0.5,
+        volume: 0.65,
         rateJitter: 0.05,
     },
     // the warning that goes with a nearly empty bar - long throttle, it is a warning
@@ -147,7 +147,7 @@ export const SOUNDS = {
     "player-low-health": {
         markers: ["player-low-health"],
         channel: "sfx",
-        volume: 0.6,
+        volume: 0.16,
         throttleMs: 8000,
         maxVoices: 1,
     },
@@ -156,43 +156,43 @@ export const SOUNDS = {
     "warrior-swing": {
         markers: ["warrior-attack"],
         channel: "sfx",
-        volume: 0.65,
+        volume: 0.75,
         rateJitter: 0.1,
     },
     "fire-whoosh": {
         markers: ["fire-whoosh"],
         channel: "sfx",
-        volume: 0.9,
+        volume: 0.28,
         rateJitter: 0.1,
     },
     "foe-hurt": {
         markers: ["foe-hurt"],
         channel: "sfx",
-        volume: 0.25,
+        volume: 0.22,
         rateJitter: 0.02,
     },
     "foe-death": {
         markers: ["foe-death"],
         channel: "sfx",
-        volume: 0.30,
+        volume: 0.25,
         rateJitter: 0.02,
     },
     "archer-draw": {
         markers: ["archer-bow-tension"],
         channel: "sfx",
-        volume: 0.4,
+        volume: 0.65,
         rateJitter: 0.08,
     },
     "archer-loose": {
         markers: ["archer-arrow-loose"],
         channel: "sfx",
-        volume: 0.45,
+        volume: 0.32,
         rateJitter: 0.1,
     },
     "arrow-impact": {
         markers: ["archer-arrow-Impact-1", "archer-arrow-Impact-2"],
         channel: "sfx",
-        volume: 0.4,
+        volume: 0.5,
         rateJitter: 0.12,
         maxVoices: 3,
     },
@@ -207,30 +207,30 @@ export const SOUNDS = {
     "wave-cleared": {
         markers: ["arena-wave-vistory"],
         channel: "sfx",
-        volume: 0.7,
+        volume: 0.8,
         duck: true,
     },
     "reward": {
         markers: ["positive-ring"],
         channel: "sfx",
-        volume: 0.5,
+        volume: 0.65,
     },
 
     // interface --------------------------------------------------------------
     "ui-click": {
         markers: ["click-button"],
         channel: "ui",
-        volume: 0.5,
+        volume: 0.22,
     },
     "ui-confirm": {
         markers: ["positive-button"],
         channel: "ui",
-        volume: 0.6,
+        volume: 0.4,
     },
     "ui-cancel": {
         markers: ["negative-button"],
         channel: "ui",
-        volume: 0.6,
+        volume: 0.85,
     },
 } as const satisfies Record<string, SoundDefinition>
 
@@ -242,23 +242,23 @@ export const MUSIC = {
     /** The menu's own track, so the game has a voice before a level is even loaded */
     menu: {
         files: ["music/ambient-2"],
-        volume: 0.5,
+        volume: 0.85,
     },
     /** Out in the wood - the three ambient tracks, shuffled and played back to back */
     wood: {
         files: ["music/ambient-1", "music/ambient-2", "music/ambient-3"],
-        volume: 0.45,
+        volume: 0.7,
         shuffle: true,
     },
     /** The arena, where the fight never stops and neither does the drumming */
     arena: {
         files: ["music/action-1", "music/action-2", "music/action-3"],
-        volume: 0.5,
+        volume: 0.4,
         shuffle: true,
     },
     nether: {
         files: ["music/horror-1", "music/horror-2", "music/horror-3"],
-        volume: 0.1,
+        volume: 0.18,
         shuffle: true,
     }
 } as const satisfies Record<string, BedDefinition>
@@ -270,19 +270,19 @@ export type MusicId = keyof typeof MUSIC
 export const AMBIENCE = {
     forest: {
         files: ["background-ambience/forest-background-animals"],
-        volume: 0.5,
+        volume: 0.55,
     },
     "arena-crowd": {
         files: ["background-ambience/crowd-arena-background-noise"],
-        volume: 0.7,
+        volume: 0.65,
     },
     town: {
         files: ["background-ambience/crowd-town-background-noise"],
-        volume: 0.45,
+        volume: 0.2,
     },
     abyss: {
         files: ["background-ambience/abyssal-pulse", "background-ambience/abyssal-chill", "background-ambience/abyssal-echo"],
-        volume: 0.4,
+        volume: 0.07,
         shuffle: true,
     }
 } as const satisfies Record<string, BedDefinition>
