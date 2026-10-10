@@ -203,6 +203,9 @@ export default class HealthBar extends Phaser.Scene {
 
     // the EventBus outlives this scene - a relaunch would otherwise stack duplicates
     private unsubscribeAll(): void {
+        this.events.off(Phaser.Scenes.Events.SHUTDOWN, this.unsubscribeAll, this)
+        this.events.off(Phaser.Scenes.Events.DESTROY, this.unsubscribeAll, this)
+
         for (const { key, handler } of this.subscriptions) {
             EventBus.off(key, handler)
         }

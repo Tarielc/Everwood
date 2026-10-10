@@ -212,6 +212,9 @@ export default class InputController implements InputState {
      * Called automatically on scene `SHUTDOWN` or `DESTROY`.
      */
     destroy(): void {
+        this.scene.events.off(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this)
+        this.scene.events.off(Phaser.Scenes.Events.DESTROY, this.destroy, this)
+        
         for (const source of this.sources) {
             source.destroy()
         }
